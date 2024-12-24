@@ -5,18 +5,17 @@
  */
 
 /**
- * Initializes file loading capabilities for a Buffee instance.
+ * Decorator: adds file loading capabilities to a Buffee instance.
  *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The FileLoader API object
+ * @returns {Buffee} The extended editor instance
  * @example
- * const editor = new Buffee(document.getElementById('editor'));
- * BuffeeFileLoader(editor);
+ * const editor = BuffeeFileLoader(Buffee(container, config));
  * await editor.FileLoader.streamMaterializedLoad(file);
  */
 function BuffeeFileLoader(editor) {
   const { Model } = editor;
-  const $parent = editor._$e.parentElement;
+  const $parent = editor._.$e.parentElement;
 
   // Create progress bar element
   const $progress = document.createElement('div');
@@ -109,7 +108,7 @@ function BuffeeFileLoader(editor) {
         if (lastNewlineIndex !== -1) {
           const completeText = fullText.substring(0, lastNewlineIndex);
           const lines = completeText.split('\n');
-          editor._appendLines(lines);
+          editor._.appendLines(lines);
           totalLines += lines.length;
           remainder = fullText.substring(lastNewlineIndex + 1);
         } else {
@@ -120,7 +119,7 @@ function BuffeeFileLoader(editor) {
       }
 
       if (remainder.length > 0) {
-        editor._appendLines([remainder]);
+        editor._.appendLines([remainder]);
         totalLines++;
       }
 
@@ -168,7 +167,7 @@ function BuffeeFileLoader(editor) {
         if (lastNewlineIndex !== -1) {
           const completeText = fullText.substring(0, lastNewlineIndex);
           const lines = completeText.split('\n');
-          editor._appendLines(lines);
+          editor._.appendLines(lines);
           totalLines += lines.length;
           remainder = fullText.substring(lastNewlineIndex + 1);
         } else {
@@ -179,7 +178,7 @@ function BuffeeFileLoader(editor) {
       }
 
       if (remainder.length > 0) {
-        editor._appendLines([remainder]);
+        editor._.appendLines([remainder]);
         totalLines++;
       }
 
@@ -225,7 +224,7 @@ function BuffeeFileLoader(editor) {
           if (lastNewlineIndex !== -1) {
             const completeText = fullText.substring(0, lastNewlineIndex);
             const lines = completeText.split('\n');
-            editor._appendLines(lines);
+            editor._.appendLines(lines);
             totalLines += lines.length;
             remainder = fullText.substring(lastNewlineIndex + 1);
           } else {
@@ -240,7 +239,7 @@ function BuffeeFileLoader(editor) {
         }
 
         if (remainder.length > 0) {
-          editor._appendLines([remainder]);
+          editor._.appendLines([remainder]);
           totalLines++;
         }
       } finally {
@@ -293,7 +292,7 @@ function BuffeeFileLoader(editor) {
 
             // Materialize strings to break V8 sliced string references
             const materializedLines = slicedLines.map(line => Array.from(line).join(''));
-            editor._appendLines(materializedLines, true);
+            editor._.appendLines(materializedLines, true);
           } else {
             remainder += text;
           }
@@ -301,12 +300,12 @@ function BuffeeFileLoader(editor) {
           chunkCount++;
           if (chunkCount % yieldEvery === 0) {
             if (onProgress) onProgress(bytesRead / file.size);
-            editor._appendLines([], false);
+            editor._.appendLines([], false);
             await new Promise(resolve => setTimeout(resolve, 0));
           }
         }
 
-        editor._appendLines(remainder.length > 0 ? ['' + remainder] : [], false);
+        editor._.appendLines(remainder.length > 0 ? ['' + remainder] : [], false);
       } finally {
         reader.releaseLock();
       }
@@ -360,7 +359,7 @@ function BuffeeFileLoader(editor) {
             // Materialize strings to break V8 sliced string references
             const materializedLines = slicedLines.map(line => Array.from(line).join(''));
             // Render periodically within yield cycle
-            editor._appendLines(materializedLines, chunkCount % yieldEvery !== renderEvery);
+            editor._.appendLines(materializedLines, chunkCount % yieldEvery !== renderEvery);
           } else {
             remainder += text;
           }
@@ -374,7 +373,7 @@ function BuffeeFileLoader(editor) {
           }
         }
 
-        editor._appendLines(remainder.length > 0 ? ['' + remainder] : [], false);
+        editor._.appendLines(remainder.length > 0 ? ['' + remainder] : [], false);
       } finally {
         reader.releaseLock();
       }
@@ -390,5 +389,5 @@ function BuffeeFileLoader(editor) {
   // Attach to editor instance
   editor.FileLoader = FileLoader;
 
-  return FileLoader;
+  return editor;
 }

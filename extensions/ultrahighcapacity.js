@@ -5,23 +5,17 @@
  */
 
 /**
- * Initializes ultra-high-capacity mode for a Buffee instance.
- * When activated, the editor enters navigate mode (can scroll, no editing) and handles large files efficiently
- * by compressing lines into chunks and decompressing on-demand.
+ * Decorator: adds ultra-high-capacity mode to a Buffee instance.
  *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The UltraHighCapacity API object
+ * @returns {Buffee} The extended editor instance
  * @example
- * const editor = new Buffee(document.getElementById('editor'));
- * BuffeeUltraHighCapacity(editor);
+ * const editor = BuffeeUltraHighCapacity(Buffee(container, config));
  * editor.UltraHighCapacity.activate();
  * await editor.UltraHighCapacity.appendLines(largeArrayOfLines);
  */
 function BuffeeUltraHighCapacity(editor) {
-  const $e = editor._$e;
-  const render = editor._render;
-  const renderHooks = editor._renderHooks;
-  const appendLines = editor._appendLines;
+  const { $e, render, renderHooks, appendLines } = editor._;
   const { Viewport, Model } = editor;
 
   // Store original methods/getters
@@ -316,7 +310,7 @@ function BuffeeUltraHighCapacity(editor) {
       });
 
       // Override _appendLines
-      editor._appendLines = appendChunkedLines;
+      editor._.appendLines = appendChunkedLines;
 
       render(true);
     },
@@ -337,7 +331,7 @@ function BuffeeUltraHighCapacity(editor) {
       Model.lines = [];
 
       // Restore original appendLines
-      editor._appendLines = originalAppendLines;
+      editor._.appendLines = originalAppendLines;
 
       // Restore normal mode (full editing)
       editor.Mode.interactive = 1;
@@ -383,5 +377,5 @@ function BuffeeUltraHighCapacity(editor) {
   // Attach to editor instance
   editor.UltraHighCapacity = UltraHighCapacity;
 
-  return UltraHighCapacity;
+  return editor;
 }

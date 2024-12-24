@@ -26,7 +26,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
-  this.version = "11.2.2-alpha";
+  this.version = "12.0.0-alpha";
   const self = this;
   /** Replaces tabs with spaces (spaces = number of spaces, 0 = keep tabs) */
   const expandTabs = s => Mode.spaces ? s.replace(/\t/g, ' '.repeat(Mode.spaces)) : s;
@@ -267,9 +267,9 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
         const selectedText = this.lines.join('\n');
 
         // Delete selection, then insert new text
-        self._delete(first.row, first.col, selectedText);
+        self._.delete(first.row, first.col, selectedText);
         const insertedLines = s.length > 0
-          ? self._insert(first.row, first.col, s)
+          ? self._.insert(first.row, first.col, s)
           : null;
 
         // Update cursor to end of inserted text
@@ -284,7 +284,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
         }
         this.makeCursor();
       } else {
-        const insertedLines = self._insert(tail.row, tail.col, s);
+        const insertedLines = self._.insert(tail.row, tail.col, s);
 
         // Update cursor
         if (!insertedLines) {
@@ -309,12 +309,12 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       if (tail.col > 0) {
         // Delete character before cursor
         const charToDelete = Model.lines[tail.row][tail.col - 1];
-        self._delete(tail.row, tail.col - 1, charToDelete);
+        self._.delete(tail.row, tail.col - 1, charToDelete);
         head.col--;
       } else if (tail.row > 0) {
         // At start of line - delete newline (join with previous line)
         const prevLineLen = Model.lines[tail.row - 1].length;
-        self._delete(tail.row - 1, prevLineLen, '\n');
+        self._.delete(tail.row - 1, prevLineLen, '\n');
         head.col = prevLineLen;
         head.row--;
         // Scroll viewport if cursor went above visible area
@@ -333,7 +333,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       if (this.isSelection) Selection.insert('', true); // skipRender - we render below
 
       // Insert newline character
-      self._insert(tail.row, tail.col, '\n');
+      self._.insert(tail.row, tail.col, '\n');
 
       head.col = 0, head.row++;
       if (head.row > Viewport.end) Viewport.start = head.row - Viewport.size + 1;
@@ -841,21 +841,6 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
   // ============================================================================
 
   /**
-   * Registers an extension with this editor instance.
-   * @param {Function} extension - Extension initializer function
-   * @param {Object} [options] - Optional configuration for the extension
-   * @returns {Buffee} This editor instance for chaining
-   * @example
-   * const editor = new Buffee(element)
-   *   .use(BuffeeSyntax)
-   *   .use(BuffeeElementals)
-   */
-  this.use = (extension, options) => {
-    extension(this, options);
-    return this;
-  };
-
-  /**
    * Line height in pixels. Used for positioning elements and calculating viewport.
    * @type {number}
    * @readonly
@@ -870,28 +855,30 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
   this.Mode = Mode;
 
   /**
-   * Internal API for extensions.
+   * Internal API for extensions (decorator pattern).
    * @private
    */
-  Object.defineProperty(this, '_head', { get: () => head });
-  Object.defineProperty(this, '_tail', { get: () => tail });
-  this._insert = _insert;
-  this._delete = _delete;
-  Object.defineProperty(this, '_contentOffset', {
-    get: () => ({
-      ch: $gutter ? gutterCols() : 0,
-      px: $gutter ? (editorPaddingPX * 3) : editorPaddingPX,
-      top: editorPaddingPX
-    })
-  });
-  this._$e = $e;
-  this._$l = $l;
-  this._$textLayer = $textLayer;
-  this._render = render;
-  this._renderHooks = renderHooks;
-  this._appendLines = function(newLines, skipRender = false) {
-    Model.lines.push(...newLines.map(expandTabs));
-    if (!skipRender) render();
+  this._ = {
+    get head() { return head; },
+    get tail() { return tail; },
+    get contentOffset() {
+      return {
+        ch: $gutter ? gutterCols() : 0,
+        px: $gutter ? (editorPaddingPX * 3) : editorPaddingPX,
+        top: editorPaddingPX
+      };
+    },
+    $e,
+    $l,
+    $textLayer,
+    render,
+    renderHooks,
+    insert: _insert,
+    delete: _delete,
+    appendLines(newLines, skipRender = false) {
+      Model.lines.push(...newLines.map(expandTabs));
+      if (!skipRender) render();
+    }
   };
 
   // Auto-fit viewport to container height

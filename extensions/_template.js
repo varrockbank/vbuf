@@ -4,16 +4,17 @@
  */
 
 /**
- * Initializes [feature] for a Buffee instance.
+ * Decorator: adds [feature] to a Buffee instance.
+ *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The [Name] API object
+ * @returns {Buffee} The extended editor instance
+ * @example
+ * const editor = Buffee__NAME__(Buffee(container, config));
  */
 function Buffee__NAME__(editor) {
-  // === INTERNALS ===
-  // Available: $e, $textLayer, render, renderHooks, contentOffset, appendLines
-  const $e = editor._$e;
-  const render = editor._render;
-  const renderHooks = editor._renderHooks;
+  // === INTERNALS (via editor._) ===
+  // Available: $e, $l, $textLayer, render, renderHooks, contentOffset, appendLines, insert, delete
+  const { $e, render, renderHooks } = editor._;
 
   // === EDITOR PROPERTIES ===
   // Available: Model, Selection, Viewport, Mode, lineHeight
@@ -42,10 +43,12 @@ function Buffee__NAME__(editor) {
 
   // === ATTACH TO EDITOR ===
   editor.__NAME__ = __NAME__;
-  return __NAME__;
+  return editor;
 }
 
-// Usage:
-// const editor = new Buffee(el, options);
-// Buffee__NAME__(editor);
+// Usage (decorator pattern):
+// const editor = Buffee__NAME__(Buffee(container, config));
 // editor.__NAME__.enabled = true;
+//
+// Multiple extensions:
+// const editor = BuffeeB(BuffeeA(Buffee(container, config)));

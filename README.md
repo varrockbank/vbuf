@@ -120,14 +120,36 @@ See: [API notes](https://varrockbank.github.io/buffee/API.html)
 
 ## Extensibility
 
-Historically, extensibility was only via the MVC APIs. However, extensions can access deeper internals. See extensions directory for examples including:
+Extensions use the decorator pattern - pure functions that wrap and return the editor:
 
-- Tree-sitter (experimental)
-- Regex based syntax highlighting
-- TUI (legacy that fiddles with)
-- Elementals (TUI 2.0 that uses layer API)
+```javascript
+// Single extension
+const editor = BuffeeHistory(new Buffee(container, config));
 
-iOS support is currently provided as an extension which maps iOS events to keyboard events. see: index.html for example.
+// Multiple extensions (compose by nesting)
+const editor = BuffeeElementals(
+  BuffeeSyntax(
+    BuffeeHistory(
+      new Buffee(container, config)
+    )
+  )
+);
+
+// Extensions expose APIs on the editor instance
+editor.History.undo();
+editor.Syntax.setLanguage('javascript');
+editor.Elementals.addButton({ row: 0, col: 0, label: 'OK' });
+```
+
+Available extensions:
+- **History** - Undo/redo with operation coalescing
+- **UndoTree** - Tree-based undo that preserves all branches
+- **Syntax** - Regex-based syntax highlighting
+- **Elementals** - DOM-based UI elements (buttons, inputs)
+- **TUI** - Terminal UI via text manipulation
+- **FileLoader** - Multiple strategies for large file loading
+- **UltraHighCapacity** - Gzip-compressed storage for 1B+ lines
+- **iOS** - Touch and on-screen keyboard support
 
 See: [Extensions](https://varrockbank.github.io/buffee/web/extensions.html)
 

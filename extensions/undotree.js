@@ -1,24 +1,20 @@
 /**
- * BuffeeUndoTree - Tree-based undo/redo for Buffee
+ * Decorator: adds tree-based undo/redo to a Buffee instance.
  *
  * Unlike linear history where new edits discard the redo stack,
  * undo tree preserves all branches. When you undo and make a new edit,
  * you create a new branch instead of losing the previous future.
  *
- * Usage:
- *   const tree = BuffeeUndoTree(editor);
- *   // Now editor.UndoTree is available
- *   editor.UndoTree.undo();           // Go to parent node
- *   editor.UndoTree.redo();           // Go to most recent child
- *   editor.UndoTree.redo(0);          // Go to first child branch
- *   editor.UndoTree.branches();       // Get available branches at current node
- *   editor.UndoTree.goToNode(id);     // Jump to any node in tree
- *   editor.UndoTree.getTree();        // Get tree structure for visualization
+ * @param {Buffee} editor - The Buffee instance to extend
+ * @returns {Buffee} The extended editor instance
+ * @example
+ * const editor = BuffeeUndoTree(Buffee(container, config));
+ * editor.UndoTree.undo();           // Go to parent node
+ * editor.UndoTree.redo();           // Go to most recent child
+ * editor.UndoTree.branches();       // Get available branches at current node
  */
-
 function BuffeeUndoTree(editor) {
-  const _insert = editor._insert;
-  const _delete = editor._delete;
+  const { insert: _insert, delete: _delete } = editor._;
   const { Selection, Model } = editor;
 
   // Node ID counter
@@ -43,8 +39,8 @@ function BuffeeUndoTree(editor) {
   // Capture cursor position
   // Access via getters each time - head/tail references can change
   function captureCursor() {
-    const head = editor._head;
-    const tail = editor._tail;
+    const head = editor._.head;
+    const tail = editor._.tail;
     return {
       headRow: head.row, headCol: head.col,
       tailRow: tail.row, tailCol: tail.col
@@ -66,8 +62,8 @@ function BuffeeUndoTree(editor) {
     }
 
     // Access via getters AFTER makeSelection/makeCursor - references change
-    const head = editor._head;
-    const tail = editor._tail;
+    const head = editor._.head;
+    const tail = editor._.tail;
     head.row = pos.headRow;
     head.col = pos.headCol;
     tail.row = pos.tailRow;
@@ -122,16 +118,16 @@ function BuffeeUndoTree(editor) {
     _lastOpTime = now;
   }
 
-  // Wrap _insert to record history
-  editor._insert = function(row, col, text) {
+  // Wrap insert to record history
+  editor._.insert = function(row, col, text) {
     const cursorBefore = captureCursor();
     const result = _insert(row, col, text);
     recordOperation('insert', row, col, text, cursorBefore);
     return result;
   };
 
-  // Wrap _delete to record history
-  editor._delete = function(row, col, text) {
+  // Wrap delete to record history
+  editor._.delete = function(row, col, text) {
     const cursorBefore = captureCursor();
     const result = _delete(row, col, text);
     recordOperation('delete', row, col, text, cursorBefore);
@@ -319,7 +315,7 @@ function BuffeeUndoTree(editor) {
     set: (v) => { _lastOpTime = v; }
   });
 
-  return editor.UndoTree;
+  return editor;
 }
 
 if (typeof module !== 'undefined' && module.exports) {

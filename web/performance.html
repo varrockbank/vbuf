@@ -74,13 +74,13 @@ Took 4.60 millis to delete line with 10000001 lines. That's 217.39 FPS.</pre>
   <h2>Chunked File Loading</h2>
 
   <h3>No improvement: Sequentially adding lines</h3>
-  <p>We use the <code>_appendLines</code> method and send in 100k lines at a time.</p>
+  <p>We use the <code>_.appendLines</code> method and send in 100k lines at a time.</p>
   <pre>const fileLines = fileSourceTextString.split('\n');
 primary.Model.lines = [];
 const BATCH_SIZE = 100_000;
 for (let i = 0; i &lt; fileLines.length; i += BATCH_SIZE) {
   const batch = fileLines.slice(i, i + BATCH_SIZE);
-  editor._appendLines(batch);
+  editor._.appendLines(batch);
 }</pre>
   <p>This doesn't work and still fails on 20 million line files. The bottleneck seems to be on the source file being in memory.</p>
 

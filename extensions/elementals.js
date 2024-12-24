@@ -6,16 +6,15 @@
  */
 
 /**
- * Initializes Elementals extension for a Buffee instance.
- * Creates UI elements (buttons, labels, inputs) as DOM nodes in the element layer.
+ * Decorator: adds layer-based UI elements to a Buffee instance.
  *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The Elementals API object
+ * @returns {Buffee} The extended editor instance
+ * @example
+ * const editor = BuffeeElementals(Buffee(container, config));
  */
 function BuffeeElementals(editor) {
-  const $e = editor._$e;
-  const render = editor._render;
-  const renderHooks = editor._renderHooks;
+  const { $e, render, renderHooks } = editor._;
   const { Viewport, lineHeight } = editor;
   const $elementLayer = $e.querySelector('.buffee-layer-elements');
 
@@ -368,5 +367,5 @@ function BuffeeElementals(editor) {
   // Attach to editor instance
   editor.Elementals = Elementals;
 
-  return Elementals;
+  return editor;
 }

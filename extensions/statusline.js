@@ -2,6 +2,9 @@
  * Creates status line callbacks for a Buffee editor.
  * @param {HTMLElement} node - The editor container element
  * @returns {Object} Callbacks object to pass to Buffee config
+ *
+ * TODO: Refactor to decorator pattern for consistency with other extensions.
+ * Currently returns callbacks object for Buffee config, should wrap editor instead.
  */
 function BuffeeStatusLine(node) {
   const $headRow = node.querySelector('.buffee-head-row');

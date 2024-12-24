@@ -432,15 +432,23 @@ editor.UltraHighCapacity.deactivate();
 
 ## Extension API
 
-Internal state is exposed directly on the editor instance for building extensions. Extensions can hook into the render cycle without buffee needing to know about them.
+Internal state is exposed via `editor._` for building extensions. Extensions can hook into the render cycle without buffee needing to know about them.
 
 ```javascript
-// Internal API (for extensions)
-const render = editor._render;           // render(rebuildContainers?) function
-const renderHooks = editor._renderHooks; // Hook registration object
-const $e = editor._$e;                   // Lines container DOM element
-const head = editor._head;               // Cursor head position { row, col }
-const tail = editor._tail;               // Cursor tail position { row, col }
+// Internal API (for extensions) - accessed via editor._
+const {
+  render,       // render() function
+  renderHooks,  // Hook registration object
+  $e,           // Elements container DOM element
+  $l,           // Lines container DOM element
+  $textLayer,   // Text layer DOM element
+  head,         // Cursor head position { row, col }
+  tail,         // Cursor tail position { row, col }
+  insert,       // Primitive insert(row, col, text) function
+  delete: del,  // Primitive delete(row, col, text) function
+  appendLines,  // appendLines(lines, skipRender?) function
+  contentOffset // { ch, px, top } for positioning
+} = editor._;
 
 // Public properties
 const { Viewport, Selection, Model, Mode, lineHeight } = editor;
@@ -471,8 +479,7 @@ renderHooks.onRenderComplete.push(($container, viewport) => {
 
 ```javascript
 function MyExtension(editor) {
-  const render = editor._render;
-  const renderHooks = editor._renderHooks;
+  const { render, renderHooks } = editor._;
 
   // Register render hook
   renderHooks.onRenderComplete.push(($e, viewport) => {
@@ -484,6 +491,8 @@ function MyExtension(editor) {
     enable() { editor.Mode.interactive = 0; render(true); },
     disable() { editor.Mode.interactive = 1; render(true); }
   };
+
+  return editor; // Decorator pattern: return the editor
 }
 
 // Usage

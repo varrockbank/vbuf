@@ -294,7 +294,7 @@
 
             const materializedLines = slicedLines.map(line => Array.from(line).join(''));
             originalSize += materializedLines.join('\n').length;
-            await editor._appendLines(materializedLines, true);
+            await editor._.appendLines(materializedLines, true);
           } else {
             remainder += text;
           }
@@ -302,13 +302,13 @@
           chunkCount++;
           if (chunkCount % 10 === 0) {
             editor.FileLoader.setProgress(bytesRead / f.size);
-            await editor._appendLines([], false);
+            await editor._.appendLines([], false);
             await new Promise(resolve => setTimeout(resolve, 0));
           }
         }
 
         if (remainder.length > 0) {
-          await editor._appendLines([remainder], false);
+          await editor._.appendLines([remainder], false);
         }
 
         editor.FileLoader.hideProgress();

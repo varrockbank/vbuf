@@ -5,13 +5,13 @@
  */
 
 /**
- * Initializes highlight support for a Buffee instance.
+ * Decorator: adds fixed-position highlight support to a Buffee instance.
+ *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The Highlights API object
+ * @returns {Buffee} The extended editor instance
  */
 function BuffeeHighlights(editor) {
-  const $e = editor._$e;
-  const contentOffset = editor._contentOffset;
+  const { $e, contentOffset } = editor._;
   const { lineHeight } = editor;
 
   // Create fixed layer for highlights (doesn't scroll with content)
@@ -92,5 +92,5 @@ function BuffeeHighlights(editor) {
   };
 
   editor.Highlights = Highlights;
-  return Highlights;
+  return editor;
 }
