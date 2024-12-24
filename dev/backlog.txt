@@ -1,9 +1,6 @@
 Website
 16. everywhere in web page should use buffee 
 
-Wrappers
-17. wrappers in React, etc.
-
 Status Line
 22. show selection coordinates, not just cursor 
 24. bytecount calculation can be refactored out of buffee.js

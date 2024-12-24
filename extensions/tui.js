@@ -6,10 +6,11 @@
  */
 
 /**
- * Initializes TUI mode for a Buffee instance.
- * Requires BuffeeHighlights to be initialized first.
+ * Decorator: adds TUI mode to a Buffee instance.
+ * Automatically applies BuffeeHighlights if not present.
+ *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The TUI API object
+ * @returns {Buffee} The extended editor instance
  */
 function BuffeeTUI(editor) {
   // Initialize highlights extension if not already done
@@ -18,9 +19,7 @@ function BuffeeTUI(editor) {
   }
   const Highlights = editor.Highlights;
 
-  const $textLayer = editor._$textLayer;
-  const render = editor._render;
-  const renderHooks = editor._renderHooks;
+  const { $textLayer, render, renderHooks } = editor._;
   const { Viewport, Model } = editor;
 
   let enabled = false;
@@ -330,5 +329,5 @@ function BuffeeTUI(editor) {
   });
 
   editor.TUI = TUI;
-  return TUI;
+  return editor;
 }

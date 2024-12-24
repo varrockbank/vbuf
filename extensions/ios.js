@@ -5,13 +5,15 @@
  */
 
 /**
- * Initializes iOS support extension for a Buffee instance.
+ * Decorator: adds iOS/touch support to a Buffee instance.
  *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The iOS API object
+ * @returns {Buffee} The extended editor instance
+ * @example
+ * const editor = BuffeeIOS(Buffee(container, config));
  */
 function BuffeeIOS(editor) {
-  const $e = editor._$e;
+  const $e = editor._.$e;
   const lineHeight = editor.lineHeight;
   const { Selection, Model, Viewport } = editor;
 
@@ -98,7 +100,7 @@ function BuffeeIOS(editor) {
     // Bounds check col to line length
     const lineLength = Model.lines[absRow].length;
     Selection.setCursor({ row: absRow, col: Math.min(col, lineLength) });
-    editor._render();
+    editor._.render();
   }
 
   // Dispatch synthetic keydown to the editor
@@ -168,5 +170,5 @@ function BuffeeIOS(editor) {
   // Attach to editor instance
   editor.iOS = iOS;
 
-  return iOS;
+  return editor;
 }

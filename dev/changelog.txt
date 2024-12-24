@@ -1,5 +1,13 @@
 * Project Devlog
 
+** 12.0.0-alpha [2025-12-24]  gz+min: 3.58 KB (0), min: 9.90 KB (0)
+*** breaking
+- refactor to decorator pattern for extensions
+- remove editor.use() method from core
+- consolidate internal API into editor._ object
+- access internals via: const { render, insert, delete: del } = editor._
+- extensions are pure functions: BuffeeHistory(editor) returns editor
+
 ** 11.2.2-alpha [2025-12-22]  gz+min: 3.62 KB (+0.00), min: 10.05 KB (+0.00)
 *** golf
 - inline isHorizontal and edgeIndex, only 2 vars: arrowCode, direction
@@ -51,12 +59,12 @@
 
 ** 11.0.6-alpha.1 [2025-12-21]  gz+min: 3.78 KB (+0.00), min: 10.79 KB (+0.05)
 *** breaking
-- remove _internals object, expose internal API directly on editor
-- editor._head, editor._tail (getters for cursor state)
-- editor._insert, editor._delete (wrappable primitives)
-- editor._render, editor._renderHooks
-- editor._$e, editor._$l, editor._$textLayer
-- editor._contentOffset, editor._appendLines
+- remove _internals object, expose internal API via editor._
+- editor._.head, editor._.tail (getters for cursor state)
+- editor._.insert, editor._.delete (wrappable primitives)
+- editor._.render, editor._.renderHooks
+- editor._.$e, editor._.$l, editor._.$textLayer
+- editor._.contentOffset, editor._.appendLines
 *** fix
 - fix stale cursor references in history extensions
 - fix atomic undo for selection replacement

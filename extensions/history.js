@@ -5,15 +5,15 @@
  */
 
 /**
- * Initializes history support for a Buffee instance.
- * Wraps _insert and _delete to record operations for undo/redo.
+ * Decorator: adds undo/redo support to a Buffee instance.
+ *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The History API object
+ * @returns {Buffee} The extended editor instance
+ * @example
+ * const editor = BuffeeHistory(Buffee(container, config));
  */
 function BuffeeHistory(editor) {
-  const render = editor._render;
-  const _insert = editor._insert;
-  const _delete = editor._delete;
+  const { render, insert: _insert, delete: _delete } = editor._;
 
   // State
   const undoStack = [];
@@ -27,8 +27,8 @@ function BuffeeHistory(editor) {
   /** Capture current cursor/selection state */
   function captureCursor() {
     // Access via getters each time - head/tail references can change after makeSelection()
-    const head = editor._head;
-    const tail = editor._tail;
+    const head = editor._.head;
+    const tail = editor._.tail;
     return {
       headRow: head.row, headCol: head.col,
       tailRow: tail.row, tailCol: tail.col
@@ -47,8 +47,8 @@ function BuffeeHistory(editor) {
     }
 
     // Access via getters AFTER makeSelection/makeCursor - references change
-    const head = editor._head;
-    const tail = editor._tail;
+    const head = editor._.head;
+    const tail = editor._.tail;
     head.row = cursor.headRow;
     head.col = cursor.headCol;
     tail.row = cursor.tailRow;
@@ -71,8 +71,8 @@ function BuffeeHistory(editor) {
     }
   }
 
-  // Wrap _insert to record history
-  editor._insert = function(row, col, text) {
+  // Wrap insert to record history
+  editor._.insert = function(row, col, text) {
     if (text.length === 0) return null;
 
     const cursorBefore = captureCursor();
@@ -98,8 +98,8 @@ function BuffeeHistory(editor) {
     return result;
   };
 
-  // Wrap _delete to record history
-  editor._delete = function(row, col, text) {
+  // Wrap delete to record history
+  editor._.delete = function(row, col, text) {
     if (text.length === 0) return;
 
     const cursorBefore = captureCursor();
@@ -191,5 +191,7 @@ function BuffeeHistory(editor) {
     }
   };
 
-  return History;
+  editor.History = History;
+
+  return editor;
 }

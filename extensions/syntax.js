@@ -5,17 +5,15 @@
  */
 
 /**
- * Initializes syntax highlighting extension for a Buffee instance.
+ * Decorator: adds syntax highlighting to a Buffee instance.
  *
  * @param {Buffee} editor - The Buffee instance to extend
- * @returns {Object} The Syntax API object
+ * @returns {Buffee} The extended editor instance
+ * @example
+ * const editor = BuffeeSyntax(Buffee(container, config));
  */
 function BuffeeSyntax(editor) {
-  const $e = editor._$e;
-  const $textLayer = editor._$textLayer;
-  const renderHooks = editor._renderHooks;
-  const _insert = editor._insert;
-  const _delete = editor._delete;
+  const { $e, $textLayer, renderHooks, insert: _insert, delete: _delete } = editor._;
   const { Viewport, Model } = editor;
 
   // State cache: stateCache[lineIndex] = startState for that line
@@ -30,8 +28,8 @@ function BuffeeSyntax(editor) {
   // Hook into _insert/_delete to detect edits and invalidate state cache
   // ============================================================================
 
-  // Hook _insert
-  editor._insert = function(row, col, text) {
+  // Hook insert
+  editor._.insert = function(row, col, text) {
     const result = _insert(row, col, text);
     if (enabled) {
       invalidateFrom(row);
@@ -39,8 +37,8 @@ function BuffeeSyntax(editor) {
     return result;
   };
 
-  // Hook _delete
-  editor._delete = function(row, col, text) {
+  // Hook delete
+  editor._.delete = function(row, col, text) {
     _delete(row, col, text);
     if (enabled) {
       invalidateFrom(row);
@@ -702,5 +700,5 @@ function BuffeeSyntax(editor) {
   // Attach to editor instance
   editor.Syntax = Syntax;
 
-  return Syntax;
+  return editor;
 }
