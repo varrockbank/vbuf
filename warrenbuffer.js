@@ -548,8 +548,9 @@ function WarrenBuffer(node,
       return;
     }
 
-    event.preventDefault();
     if(event.key.startsWith("Arrow")) {
+      event.preventDefault(); // prevents page scroll
+
       if(event.metaKey) {
         if(!event.shiftKey) Selection.makeCursor();
         if(event.key === "ArrowLeft") {
@@ -592,6 +593,10 @@ function WarrenBuffer(node,
       Selection.newLine();
     } else if (event.key === "Escape") {
     } else if (event.key === "Tab" ) {
+      // prevents tabbing to next item
+      // TODO: fix as it may break accessibility for some users
+      event.preventDefault();
+
       if(Selection.isSelection) {
         if(event.shiftKey) {
           Selection.unindent();
@@ -603,10 +608,8 @@ function WarrenBuffer(node,
       }
     } else if (event.key.length > 1) {
       console.warn('Ignoring unknown key: ', event.code, event.key);
-    } else if (event.metaKey) {
     } else if (event.key === "Shift") {
     } else {
-      console.log("id ont know");
       Selection.insert(event.key);
     }
   });
