@@ -134,6 +134,26 @@ function WarrenBuffer(node,
       tail.row = head.row;
       tail.col = head.col;
     },
+    moveCursorStartOfLine() {
+      const row = tail.row;
+      const realRow = Viewport.start + row;
+      let col = 0;
+      const line = Model.lines[realRow];
+      for(let i = 0; i < line.length; i++) {
+        if(line.charAt(i) !== ' ') {
+          col = i;
+          break;
+        }
+      }
+      maxCol = tail.col = col < tail.col ? col : 0
+      render(true);
+    },
+    moveCursorEndOfLine() {
+      const row = tail.row;
+      const realRow = Viewport.start + row;
+      maxCol = tail.col = Model.lines[realRow].length - 1;
+      render(true);
+    },
     insert(c) {
       if (this.isSelection) {
         // Sort head and tail by order of appearance ( depends on chirality )
@@ -477,7 +497,14 @@ function WarrenBuffer(node,
     event.preventDefault();
 
     if(event.key.startsWith("Arrow")) {
-      if (!event.shiftKey && Selection.isSelection) {
+      if(event.metaKey) {
+        if(!event.shiftKey) Selection.makeCursor();
+        if(event.key === "ArrowLeft") {
+          Selection.moveCursorStartOfLine();
+        } else if (event.key === "ArrowRight") {
+          Selection.moveCursorEndOfLine();
+        }
+      } else if (!event.shiftKey && Selection.isSelection) { // no meta key, no shift key, selection.
         if(event.key === "ArrowLeft") {
           Selection.setCursor(Selection.ordered[0]); // Move cursor to the first edge
           render(true);
@@ -493,7 +520,7 @@ function WarrenBuffer(node,
           Selection.setCursor(Selection.ordered[1]);
           Selection.moveRow(1);
         }
-      } else {
+      } else { // no meta key.
         if (event.shiftKey && !Selection.isSelection) Selection.makeSelection();
 
         if (event.key === "ArrowDown") {
@@ -515,7 +542,6 @@ function WarrenBuffer(node,
     } else if (event.key === "Tab" ) {
       if(Selection.isSelection) {
         if(event.shiftKey) {
-          console.log("here");
           Selection.unindent();
         } else {
           Selection.indent();
