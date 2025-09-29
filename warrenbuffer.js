@@ -22,7 +22,6 @@ function WarrenBuffer(node,
   const $lineCounter = node.querySelector('.wb .wb-linecount');
   const $indentation = node.querySelector('.wb .wb-indentation');
 
-  // TOOD: make this width based on number of digits of line
   const $gutter = Object.assign(node.querySelector('.wb .wb-gutter'), {
     style: `
             font-size: ${lineHeight}px;
@@ -329,8 +328,10 @@ function WarrenBuffer(node,
       $lineCounter.textContent = `${lastRender.lineCount = Model.lastIndex + 1}L, originally: ${Model.originalLineCount}L ${Model.byteCount} bytes`;
     }
 
+    // TODO: nit: we don't reclaim and shrink the gutter if the text get smaller.
     const digitsInLargestLineNumber = Viewport.end.toString().length;
-    if(digitsInLargestLineNumber > 2 ) {
+    const shouldIncreaseSizeOfGutter = digitsInLargestLineNumber > 2;
+    if(shouldIncreaseSizeOfGutter) {
       $gutter.style.width = `${ digitsInLargestLineNumber +  1 }ch`;
     }
 
