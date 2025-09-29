@@ -189,7 +189,7 @@ function WarrenBuffer(node,
         Model.splice(index, [left + c + right], second.row - first.row + 1);
 
         tail.row = first.row;
-        tail.col = first.col;
+        tail.col = first.col + c.length;
         this.makeCursor();
       } else {
         const { index, left, right } = this.partitionLine(head);
