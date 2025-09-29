@@ -154,6 +154,18 @@ function WarrenBuffer(node,
       maxCol = tail.col = Model.lines[realRow].length - 1;
       render(true);
     },
+    insertLinesAtCursor(lines) {
+      if(lines.length === 1) {
+        this.insert(lines[0]);
+      } else {
+        const { index, left, right } = this.partitionLine(head);
+        Model.lines[index] = left + lines[0];
+        Model.lines.splice(index+1, 0, ...lines.slice(1, -1));
+        Model.lines[index + lines.length - 1] = lines[lines.length-1] + right;
+        this.setCursor({row: index + lines.length - 1, col: lines[lines.length-1].length})
+        render(true);
+      }
+    },
     insert(c) {
       if (this.isSelection) {
         // Sort head and tail by order of appearance ( depends on chirality )
@@ -492,10 +504,25 @@ function WarrenBuffer(node,
 
   render(true);
 
+  // Reading clipboard from the keydown listener involves a different security model.
+  node.addEventListener("paste", (e) => {
+    console.log("handling paste");
+    e.preventDefault(); // stop browser from inserting raw clipboard text
+    const text = e.clipboardData.getData("text/plain");
+    if (text) {
+      Selection.insertLinesAtCursor(text.split("\n"));
+    }
+  });
+
   // Bind keyboard control to move viewport
   node.addEventListener('keydown', event => {
-    event.preventDefault();
+    // Do nothing for Meta+V (on Mac) or Ctrl+V (on Windows/Linux) as to avoid conflict with the paste event.
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "v") {
+      // just return, no preventDefault, no custom handling
+      return;
+    }
 
+    event.preventDefault();
     if(event.key.startsWith("Arrow")) {
       if(event.metaKey) {
         if(!event.shiftKey) Selection.makeCursor();
@@ -533,7 +560,6 @@ function WarrenBuffer(node,
           Selection.moveCol(1);
         }
       }
-    } else if (event.metaKey) {
     } else if (event.key === "Backspace") {
       Selection.delete();
     } else if (event.key === "Enter") {
@@ -550,9 +576,11 @@ function WarrenBuffer(node,
         Selection.insert(" ".repeat(indentation));
       }
     } else if (event.key.length > 1) {
-      console.warn('Ignoring unknown key: ', event.code, key);
+      console.warn('Ignoring unknown key: ', event.code, event.key);
+    } else if (event.metaKey) {
     } else if (event.key === "Shift") {
     } else {
+      console.log("id ont know");
       Selection.insert(event.key);
     }
   });
