@@ -251,6 +251,8 @@
         height: '1px',
         width: '1px',
       });
+      // Fake out a deletion event so iOS fires deleteContentBackward input time
+      // Otherwise the keyboard handler with a synthetic Backspace event is never claled.
       const L = '\u200B';           // left sentinel (zero-width space)
       const R = '\u200B';           // right sentinel (optional, helps if you add ForwardDelete later)
       sink.value = L + R ;
@@ -337,21 +339,12 @@
         // Some code checks isTrusted; this won’t be trusted, so avoid that check.
         editor.dispatchEvent(ev);
       }
-      // Optional: keep the editor looking focused when sink is focused.
-      function syncFocusRing() {
-        editor.classList.toggle('is-focused', document.activeElement === sink || document.activeElement === editor);
-      }
-      document.addEventListener('focusin', syncFocusRing);
-      document.addEventListener('focusout', syncFocusRing);
 
       // Focus on tap (otherwise iOS may not show keyboard)
       // Focus the sink on tap so iOS shows the keyboard.
       editor.addEventListener('pointerdown', e => {
         sink.focus({preventScroll: true});
         setCursor(e);
-      });
-      editor.addEventListener('click', () => {
-        sink.focus();
       });
     }
   });
