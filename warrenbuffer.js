@@ -167,40 +167,38 @@ function WarrenBuffer(node,
       maxCol = tail.col = Model.lines[realRow].length - 1;
       render(true);
     },
-    insertLinesAtCursor(lines) {
-      if(lines.length === 1) {
-        this.insert(lines[0]);
-      } else {
-        const [firstEdge, secondEdge] = this.ordered
-        const { index, left, _ } = this.partitionLine(firstEdge);
-        const { index: secondIndex, right, rightExclusive } = this.partitionLine(secondEdge);
-        Model.lines[index] = left + lines[0];
-        Model.lines.splice(index+1, secondIndex - index - 1, ...lines.slice(1, -1));
-        if (this.isSelection) {
-          Model.lines[index + lines.length - 1] = lines[lines.length-1] + rightExclusive;
-        } else {
-          Model.lines[index + lines.length - 1] = lines[lines.length-1] + right;
-        }
-        this.setCursor({row: index + lines.length - 1, col: lines[lines.length-1].length})
-        render(true);
-      }
+    // Inserts list of string lines into the selection
+    insertLines(lines) {
+      if(lines.length === 1) return this.insert(lines[0]);
+
+      const [firstEdge, secondEdge] = this.ordered
+      const { index, left, _ } = this.partitionLine(firstEdge);
+      const { index: secondIndex, right, rightExclusive } = this.partitionLine(secondEdge);
+
+      Model.lines[index] = left + lines[0];
+      Model.lines.splice(index+1, secondIndex - index - 1, ...lines.slice(1, -1));
+      Model.lines[index + lines.length - 1] = lines[lines.length-1] + (this.isSelection ? rightExclusive : right);
+
+      this.setCursor({row: index + lines.length - 1, col: lines[lines.length-1].length});
+      render(true);
     },
-    insert(c) {
+    // Inserts the string s into the selection
+    insert(s) {
       if (this.isSelection) {
         // Sort head and tail by order of appearance ( depends on chirality )
         const [first, second] = this.ordered;
         const { index, left } = this.partitionLine(first);
         const p = this.partitionLine({ row: second.row, col: second.col + 1 });
         const {right} = p;
-        Model.splice(index, [left + c + right], second.row - first.row + 1);
+        Model.splice(index, [left + s + right], second.row - first.row + 1);
 
         tail.row = first.row;
-        tail.col = first.col + c.length;
+        tail.col = first.col + s.length;
         this.makeCursor();
       } else {
         const { index, left, right } = this.partitionLine(head);
-        Model.lines[index] = left + c + right;
-        tail.col += c.length;
+        Model.lines[index] = left + s + right;
+        tail.col += s.length;
       }
       render(true);
     },
@@ -531,7 +529,7 @@ function WarrenBuffer(node,
     e.preventDefault(); // stop browser from inserting raw clipboard text
     const text = e.clipboardData.getData("text/plain");
     if (text) {
-      Selection.insertLinesAtCursor(text.split("\n"));
+      Selection.insertLines(text.split("\n"));
     }
   });
 
