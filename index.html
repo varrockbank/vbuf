@@ -110,6 +110,7 @@
           </div>
       </div>
   </blockquote>
+  <h2>This second editor has iOS support enabled</h2>
   <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select" tabindex="0" id="notes">
     <!-- Hidden clipboard bridge lives inside the editor so copy bubbles through it -->
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
@@ -303,7 +304,7 @@
         const { x, y } = getPoint(evt);
         const row = Math.max(0, Math.floor(y / 24));
         const col = Math.max(0, Math.floor(x / ch));
-        notes.Selection.setCursorAndRender({ row, col });
+        notes.Selection.iosSetCursorAndRender({ row, col });
       }
 
       // Map beforeinput → synthetic keydown(s)

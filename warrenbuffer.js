@@ -7,7 +7,7 @@ function WarrenBuffer(node,
     indentation = 2,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026") {
-  this.version = "2.1.0-alpha.1";
+  this.version = "2.1.2-alpha.1";
 
   const $e = node.querySelector('.wb .wb-lines');
   $e.style.lineHeight = `${lineHeight}px`;
@@ -121,8 +121,17 @@ function WarrenBuffer(node,
     get isForwardSelection() {
       return head.row === tail.row && head.col < tail.col || head.row < tail.row;
     },
-    setCursorAndRender({row, col}) {
-      this.setCursor({row, col});
+    iosSetCursorAndRender({row, col}) {
+      const linesFromViewportStart = Model.lastIndex - Viewport.start;
+      // Case 1: linesFromViewportStart is outside viewport. case 2: linesFromViewportStart is less than viewport.
+      const lastMeaningfulViewportRow = Math.min(Viewport.size-1, linesFromViewportStart);
+      row = Math.min(row, lastMeaningfulViewportRow);
+      // Cursor 1 past last character
+      let positionOfLastChar = Model.lines[Viewport.start + row].length;
+      this.setCursor({
+        row,
+        col: Math.min(col, positionOfLastChar)}
+      );
       render(true);
     },
     setCursor({row, col}) {
@@ -332,7 +341,7 @@ function WarrenBuffer(node,
     },
   }
   const Viewport = {
-    start: 0,
+    start: 0, // 0-indexed line number in Model buffer.
     size: initialViewportSize,
     get end() {
       return Math.min(this.start + this.size - 1, Model.lastIndex);
