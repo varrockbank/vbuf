@@ -7,7 +7,7 @@ function WarrenBuffer(node,
     indentation = 2,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026") {
-  this.version = "2.1.3-alpha.1";
+  this.version = "2.2.0-alpha.1";
 
   const $e = node.querySelector('.wb .wb-lines');
   $e.style.lineHeight = `${lineHeight}px`;
@@ -246,6 +246,31 @@ function WarrenBuffer(node,
       } else {
         Viewport.scroll(1);
       }
+      render(true);
+    },
+    moveWord() {
+      const s = Model.lines[tail.row];
+      const n = s.length;
+
+      if(tail.col === n) { // Edge case: At last character of line
+        // TODO: handle viewport scroll
+        // TODO: handle last row of file
+        tail.col = 0;
+        tail.row++;
+      } else {
+        const isSpace = ch => /\s/.test(ch);
+        const isWord = ch => /[\p{L}\p{Nd}_]/u.test(ch);
+        let j = tail.col;
+        if (isSpace(s[j])) { // Case 1: at whitespace → skip to next non-space character
+          while (j < n && isSpace(s[j])) j++;
+        } else if (isWord(s[j])) { // Case 2: at word-chars → consume word run to 1 past the word
+          while (j < n && isWord(s[j])) j++;
+        } else { // Case 3: at punctuation/symbols
+          j++;
+        }
+        tail.col = j;
+      }
+
       render(true);
     },
     indent() {
@@ -513,7 +538,6 @@ function WarrenBuffer(node,
         // on the last cursor position, menaing the cursor is between the last char and new line.
         // We want to render 1 char to represent this new line.
         $selections[firstEdge.row].style.width = `${Math.max(1, text.length - firstEdge.col)}ch`;
-        console.log("First row width: " + (text.length - firstEdge.col));
         $selections[firstEdge.row].style.visibility = 'visible';
       }
       if(secondEdge.row < Viewport.lines.length) {
@@ -580,6 +604,12 @@ function WarrenBuffer(node,
           Selection.moveCursorStartOfLine();
         } else if (event.key === "ArrowRight") {
           Selection.moveCursorEndOfLine();
+        }
+      } else if (event.altKey) {
+        if(!event.shiftKey) Selection.makeCursor();
+        if(event.key === "ArrowLeft") {
+        } else if (event.key === "ArrowRight") {
+          Selection.moveWord();
         }
       } else if (!event.shiftKey && Selection.isSelection) { // no meta key, no shift key, selection.
         if(event.key === "ArrowLeft") {
