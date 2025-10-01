@@ -7,7 +7,7 @@ function WarrenBuffer(node,
     indentation = 4,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026") {
-  this.version = "2.2.4-alpha.1";
+  this.version = "2.2.5-alpha.1";
 
   const $e = node.querySelector('.wb .wb-lines');
   $e.style.lineHeight = `${lineHeight}px`;
@@ -24,7 +24,7 @@ function WarrenBuffer(node,
   const $lineCounter = node.querySelector('.wb .wb-linecount');
   const $indentation = node.querySelector('.wb .wb-indentation');
 
-  const $clipboardBridge  = node.querySelector('.wb-clipboard-bridge');
+  const $clipboardBridge = node.querySelector('.wb-clipboard-bridge');
 
   const $gutter = Object.assign(node.querySelector('.wb .wb-gutter'), {
     style: `
@@ -46,7 +46,8 @@ function WarrenBuffer(node,
 
   const detachedTail = { row : 0, col : 0};
   // In case where we have cursor, we want tail === head.
-  let tail = head = { row: 0, col: 0 };
+  let head = { row: 0, col: 0 };
+  let tail = head;
   let maxCol = tail.col;
   const Selection = {
     get ordered() { return this.isForwardSelection ? [head, tail] : [tail, head] },

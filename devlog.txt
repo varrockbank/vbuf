@@ -1,5 +1,10 @@
 * Project Devlog
 
+**	 2.2.5-alpha.1 [2025-10-1]
+*** 🐞 Bug Fixes
+- Editor was falsely initialized to a selection
+- Head cursor of one editor instance was entangled with another instance
+
 **	 2.2.4-alpha.1 [2025-10-1]
 *** 🐞 Bug Fixes
 - Unindent did not work with cursor. Related, w/ selection the unindent should consume spaces
