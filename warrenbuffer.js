@@ -4,10 +4,10 @@ function WarrenBuffer(node,
     initialViewportSize = 20,
     lineHeight = 24,
     editorPaddingPX = 4 ,
-    indentation = 2,
+    indentation = 4,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026") {
-  this.version = "2.2.3-alpha.1";
+  this.version = "2.2.4-alpha.1";
 
   const $e = node.querySelector('.wb .wb-lines');
   $e.style.lineHeight = `${lineHeight}px`;
@@ -323,7 +323,6 @@ function WarrenBuffer(node,
       render(true);
     },
     unindent() {
-       if(!this.isSelection) return;
       // Note: Vim, VSCode, Intellij all has slightly different unindent behavior.
       // VSCode: for lines not aligned at a multiple of indentation number of spaces, align them to the
       // first such position.
@@ -333,25 +332,38 @@ function WarrenBuffer(node,
       const [first, second] = this.ordered;
 
       for(let i = first.row; i <= second.row; i++) {
-        const realRow = Viewport.start + i;
-        const line = Model.lines[realRow];
-        let maxUnindent = 0;
-        for(let i = 0; i < Math.min(indentation, line.length); i++) {
-          if(line.charAt(0) === " ") {
-            maxUnindent++;
-          } else {
-            break;
+        if( i  === first.row || i === second.row) {
+          const cursor = i === first.row ? first : second;
+          // Cursor movement of first and second depends on spaces left and right of it .
+          let indentableSpacesLeftOfCursor = 0;
+          let indentableSpacesFromCursor = 0 ;
+          const s = Viewport.lines[cursor.row];
+          let j = cursor.col;
+          while (j < s.length && s.charAt(j) === ' ') j++;
+          indentableSpacesFromCursor = j - cursor.col ;
+          j = 0; while (j < cursor.col && s.charAt(j) === ' ') j++;
+          indentableSpacesLeftOfCursor = j;
+          const unindentationsFirstLine = Math.min(indentation,
+            indentableSpacesLeftOfCursor + indentableSpacesFromCursor);
+          Model.lines[Viewport.start + cursor.row] = Model.lines[cursor.row].slice(unindentationsFirstLine);
+          if(indentableSpacesFromCursor < unindentationsFirstLine)
+            cursor.col -= unindentationsFirstLine - indentableSpacesFromCursor;
+        } else {
+          const realRow = Viewport.start + i;
+          const line = Model.lines[realRow];
+          let maxUnindent = 0;
+          for(let i = 0; i < Math.min(indentation, line.length); i++) {
+            if (line.charAt(0) === " ") {
+              maxUnindent++;
+            } else {
+              break;
+            }
           }
+          Model.lines[realRow] = line.slice(maxUnindent);
         }
-        Model.lines[realRow] = line.slice(maxUnindent);
-        if(i == first.row) {
-          first.col -= maxUnindent;
-        } else if ( i == second.row) {
-          second.col -= maxUnindent;
-        }
-
-        render(true);
       }
+
+      render(true);
     },
     // Utility to extract the text left, right, and character at the col of the
     // position for the row of the position.
@@ -697,7 +709,11 @@ function WarrenBuffer(node,
           Selection.indent();
         }
       } else {
-        Selection.insert(" ".repeat(indentation));
+        if(event.shiftKey) {
+          Selection.unindent();
+        } else {
+          Selection.insert(" ".repeat(indentation));
+        }
       }
     } else if (event.key.length > 1) {
       console.warn('Ignoring unknown key: ', event.code, event.key);
