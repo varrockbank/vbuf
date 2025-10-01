@@ -1,4 +1,4 @@
 * Unhandled bugs
 
-- Not a selection. Hold shift + cmd + arrow right. should select from cursor to end of line
 - At last character of last last line. Behaviors such as move next row, move next col should add new line to buffer
+- tab character messes up the rendering

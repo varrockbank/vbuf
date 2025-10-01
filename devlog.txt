@@ -1,5 +1,10 @@
 * Project Devlog
 
+**	 2.2.3-alpha.1 [2025-10-1]
+*** 🐞 Bug Fixes
+- create selection and select until beginning/end of line was not working
+- create selection and select until next/prev word was not working
+
 ** 2.2.1-alpha.1 [2025-10-1]
 *** ✨ New Features
 - support moving to back word with option (MacOS) / alt (windows) + arrow left

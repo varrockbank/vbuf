@@ -7,7 +7,7 @@ function WarrenBuffer(node,
     indentation = 2,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026") {
-  this.version = "2.2.2-alpha.1";
+  this.version = "2.2.3-alpha.1";
 
   const $e = node.querySelector('.wb .wb-lines');
   $e.style.lineHeight = `${lineHeight}px`;
@@ -633,14 +633,18 @@ function WarrenBuffer(node,
       event.preventDefault(); // prevents page scroll
 
       if(event.metaKey) {
-        if(!event.shiftKey) Selection.makeCursor();
+        if(!event.shiftKey && Selection.isSelection) Selection.makeCursor();
+        if(event.shiftKey && !Selection.isSelection) Selection.makeSelection();
+
         if(event.key === "ArrowLeft") {
           Selection.moveCursorStartOfLine();
         } else if (event.key === "ArrowRight") {
           Selection.moveCursorEndOfLine();
         }
       } else if (event.altKey) {
-        if(!event.shiftKey) Selection.makeCursor();
+        if(!event.shiftKey && Selection.isSelection) Selection.makeCursor();
+        if(event.shiftKey && !Selection.isSelection) Selection.makeSelection();
+
         if(event.key === "ArrowLeft") {
           Selection.moveBackWord();
         } else if (event.key === "ArrowRight") {
