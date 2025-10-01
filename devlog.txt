@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 2.1.3-alpha.1 [2025-10-1]
+*** 🐞 Bug Fixes
+- prevent browser scroll when press space key
+
 ** 2.1.2-alpha.1 [2025-09-30]
 *** 🐞 Bug Fixes
 - position iOS touch cursor to the previous most meaningful coordinates

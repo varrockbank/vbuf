@@ -7,7 +7,7 @@ function WarrenBuffer(node,
     indentation = 2,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026") {
-  this.version = "2.1.2-alpha.1";
+  this.version = "2.1.3-alpha.1";
 
   const $e = node.querySelector('.wb .wb-lines');
   $e.style.lineHeight = `${lineHeight}px`;
@@ -633,6 +633,9 @@ function WarrenBuffer(node,
     } else if (event.key.length > 1) {
       console.warn('Ignoring unknown key: ', event.code, event.key);
     } else if (event.key === "Shift") {
+    } else if (event.key === " ") {
+      event.preventDefault();
+      Selection.insert(" ");
     } else {
       Selection.insert(event.key);
     }
