@@ -143,16 +143,25 @@
       (string) @string
     `;
     const query = new Query(javascriptParser, highlightQuery);
+    
+    window.treesitterInstance = {
+       query,
+       parser: treesitterParser 
+    };
 
-    const node = document.getElementById("playground");
-    const primary = new WarrenBuf(node, null, null);
-    primary.Model.text = "This is my first text document\nWoohoo\nFoobar\njfdhfjhfdg\njfdhj\ndh";
+</script>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
 
-    const notes = new WarrenBuf(document.getElementById('notes'), null, null, 20);
-    notes.Model.text = ``;
-    window.notes = notes;
+    const mainElement = document.getElementById("playground");
+    const primary = new WarrenBuf(mainElement, null, null);
+    // primary.Model.text = "This is my first text document\nWoohoo\nFoobar\njfdhfjhfdg\njfdhj\ndh";
+    mainElement.focus();
 
-    // Bind UI controls to move viewport
+    const notesElement = document.getElementById('notes');
+    const notes = new WarrenBuf(notesElement, null, null, 20);
+
+    // Diagnostics -- Bind UI controls to move viewport
     document.getElementById('viewport-update').addEventListener('click', () => {
       const viewportStart = parseInt(document.getElementById('viewport-start').value);
       const viewportSize = parseInt(document.getElementById('viewport-size').value);
@@ -164,7 +173,6 @@
     document.getElementById('viewport-scroll-down-1').addEventListener('click', () => {
       primary.Viewport.scroll(1);
     });
-
     document.getElementById("file-input").addEventListener("change", () => {
       const file = this.files[0];
       const nBytes = file.size;
@@ -176,16 +184,11 @@
       document.getElementById("fileSize").innerHTML = sOutput || (nBytes + " bytes");
     }, false);
     document.getElementById('load-file').addEventListener('click', () => {
-      const t0 = performance.now();
       const f = document.getElementById("file-input").files[0];
       if (!f) {
         alert("No file selected");
       } else {
-        f.text().then(text => {
-          primary.Model.text = text;
-          const t1 = performance.now();
-          console.log(`Reading file took ${t1 - t0} millis.`);
-        });
+        f.text().then(text => primary.Model.text = text)
       }
     });
     document.getElementById('append-file').addEventListener('click', () => {
@@ -206,30 +209,17 @@
 
     fetch("instructions.txt")
       .then(response => response.text())
-      .then(source => {
-        primary.Model.text = source;
-      })
-      .catch(err => {
-        console.error("Error reading foobar.js:", err);
-      });
+      .then(source => primary.Model.text = source)
+      .catch(err => console.error("Error reading foobar.js:", err));
 
     fetch("devlog.txt")
       .then(response => response.text())
-      .then(source => {
-        notes.Model.text = source;
-      })
-      .catch(err => {
-        console.error("Error reading foobar.js:", err);
-      });
-
-  </script>
-  <script type="module">
-  window.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("playground").focus();
-    const editor = document.getElementById("notes");
-    const notesEditingArea = editor.querySelector('.wb-lines');
+      .then(source => notes.Model.text = source)
+      .catch(err => console.error("Error reading foobar.js:", err));
 
     if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+      const notesEditingArea = notesElement.querySelector('.wb-lines');
+   
       // Use contenteditable so tapping opens the keyboard
       editor.setAttribute('contenteditable', 'true');
       editor.setAttribute('role', 'textbox');
