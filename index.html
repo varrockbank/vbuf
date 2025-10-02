@@ -1,6 +1,6 @@
 <html>
 <head>
-<script src="warrenbuffer.js"></script>
+<script src="warrenbuf.js"></script>
 <style>
   /************* "Atomic CSS" classes for Boxes *************/
   .💪 { display: flex }                                 /* Flex like muscles.   */
@@ -16,7 +16,7 @@
   blockquote {
       margin: 15px;
   }
-  /*** Classes for WarrenBuffer ***/
+  /*** Classes for WarrenBuf ***/
   .wb {
       background-color: #282C34;
       color: #B2B2B2;
@@ -145,10 +145,10 @@
     const query = new Query(javascriptParser, highlightQuery);
 
     const node = document.getElementById("playground");
-    const warrenBuffer = new WarrenBuffer(node, null, null);
-    warrenBuffer.Model.text = "This is my first text document\nWoohoo\nFoobar\njfdhfjhfdg\njfdhj\ndh";
+    const primary = new WarrenBuf(node, null, null);
+    primary.Model.text = "This is my first text document\nWoohoo\nFoobar\njfdhfjhfdg\njfdhj\ndh";
 
-    const notes = new WarrenBuffer(document.getElementById('notes'), null, null, 20);
+    const notes = new WarrenBuf(document.getElementById('notes'), null, null, 20);
     notes.Model.text = ``;
     window.notes = notes;
 
@@ -156,13 +156,13 @@
     document.getElementById('viewport-update').addEventListener('click', () => {
       const viewportStart = parseInt(document.getElementById('viewport-start').value);
       const viewportSize = parseInt(document.getElementById('viewport-size').value);
-      warrenBuffer.Viewport.set(viewportStart, viewportSize);
+      primary.Viewport.set(viewportStart, viewportSize);
     });
     document.getElementById('viewport-scroll-up-1').addEventListener('click', () => {
-      warrenBuffer.Viewport.scroll(-1);
+      primary.Viewport.scroll(-1);
     });
     document.getElementById('viewport-scroll-down-1').addEventListener('click', () => {
-      warrenBuffer.Viewport.scroll(1);
+      primary.Viewport.scroll(1);
     });
 
     document.getElementById("file-input").addEventListener("change", () => {
@@ -182,7 +182,7 @@
         alert("No file selected");
       } else {
         f.text().then(text => {
-          warrenBuffer.Model.text = text;
+          primary.Model.text = text;
           const t1 = performance.now();
           console.log(`Reading file took ${t1 - t0} millis.`);
         });
@@ -197,9 +197,9 @@
         f.text().then(text => {
           const s = text.split("\n");
           const t0 = performance.now();
-          warrenBuffer.Model.splice(lineNumber, s);
+          primary.Model.splice(lineNumber, s);
           const t1 = performance.now();
-          console.log(`Took ${parseFloat(t1 - t0).toFixed(2)} millis to splice ${s.length.toLocaleString()} elements at ${index.toLocaleString()} w/ ${warrenBuffer.Model.lc.toLocaleString()} lines.`);
+          console.log(`Took ${parseFloat(t1 - t0).toFixed(2)} millis to splice ${s.length.toLocaleString()} elements at ${index.toLocaleString()} w/ ${primary.Model.lc.toLocaleString()} lines.`);
         });
       }
     });
@@ -207,7 +207,7 @@
     fetch("instructions.txt")
       .then(response => response.text())
       .then(source => {
-        warrenBuffer.Model.text = source;
+        primary.Model.text = source;
       })
       .catch(err => {
         console.error("Error reading foobar.js:", err);

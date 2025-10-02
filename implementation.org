@@ -64,5 +64,3 @@ Other flavors include:
     - This is called WORD-mode instead of word-mode
 - Editors can be configured to break words at the capital letter on camelCasing
 
-
-

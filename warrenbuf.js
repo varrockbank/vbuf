@@ -1,4 +1,4 @@
-function WarrenBuffer(node,
+function WarrenBuf(node,
     treeSitterParser = null,
     treeSitterQuery = null,
     initialViewportSize = 20,
