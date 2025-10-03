@@ -3,19 +3,27 @@
 
 echo "Generating dist/warrenbuf.min.js..."
 
-# Get old size if file exists
-if [ -f dist/warrenbuf.min.js ]; then
-    OLD_SIZE=$(wc -c < dist/warrenbuf.min.js | tr -d ' ')
+# Get old sizes from HEAD (last committed version)
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+    if git cat-file -e HEAD:dist/warrenbuf.min.js 2>/dev/null; then
+        OLD_SIZE=$(git show HEAD:dist/warrenbuf.min.js | wc -c | tr -d ' ')
+        OLD_GZIPPED=$(git show HEAD:dist/warrenbuf.min.js | gzip -c | wc -c)
+    else
+        OLD_SIZE=0
+        OLD_GZIPPED=0
+    fi
 else
     OLD_SIZE=0
+    OLD_GZIPPED=0
 fi
 
 terser warrenbuf.js -c -m -o dist/warrenbuf.min.js
 
 if [ $? -eq 0 ]; then
     NEW_SIZE=$(wc -c < dist/warrenbuf.min.js | tr -d ' ')
+    NEW_GZIPPED=$(gzip -c dist/warrenbuf.min.js | wc -c)
     MINIFIED_KB=$(echo "$NEW_SIZE" | awk '{printf "%.2f", $1/1024}')
-    GZIPPED_KB=$(gzip -c dist/warrenbuf.min.js | wc -c | awk '{printf "%.2f", $1/1024}')
+    GZIPPED_KB=$(echo "$NEW_GZIPPED" | awk '{printf "%.2f", $1/1024}')
 
     echo "✓ Minification complete"
     echo "  Minified:          ${MINIFIED_KB} KB"
@@ -23,13 +31,24 @@ if [ $? -eq 0 ]; then
 
     if [ $OLD_SIZE -ne 0 ]; then
         DIFF=$((NEW_SIZE - OLD_SIZE))
+        DIFF_GZIPPED=$((NEW_GZIPPED - OLD_GZIPPED))
         DIFF_KB=$(echo "$DIFF" | awk '{printf "%.2f", $1/1024}')
+        DIFF_GZIPPED_KB=$(echo "$DIFF_GZIPPED" | awk '{printf "%.2f", $1/1024}')
+
         if [ $DIFF -gt 0 ]; then
-            echo "  Change:            +${DIFF_KB} KB"
+            echo "  Minified change:   +${DIFF_KB} KB"
         elif [ $DIFF -lt 0 ]; then
-            echo "  Change:            ${DIFF_KB} KB"
+            echo "  Minified change:   ${DIFF_KB} KB"
         else
-            echo "  Change:            (no change)"
+            echo "  Minified change:   (no change)"
+        fi
+
+        if [ $DIFF_GZIPPED -gt 0 ]; then
+            echo "  Gzipped change:    +${DIFF_GZIPPED_KB} KB"
+        elif [ $DIFF_GZIPPED -lt 0 ]; then
+            echo "  Gzipped change:    ${DIFF_GZIPPED_KB} KB"
+        else
+            echo "  Gzipped change:    (no change)"
         fi
     fi
 
