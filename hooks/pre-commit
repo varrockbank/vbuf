@@ -1,0 +1,41 @@
+#!/bin/sh
+# Pre-commit hook to generate minified dist file
+
+echo "Generating dist/warrenbuf.min.js..."
+
+# Get old size if file exists
+if [ -f dist/warrenbuf.min.js ]; then
+    OLD_SIZE=$(wc -c < dist/warrenbuf.min.js | tr -d ' ')
+else
+    OLD_SIZE=0
+fi
+
+terser warrenbuf.js -c -m -o dist/warrenbuf.min.js
+
+if [ $? -eq 0 ]; then
+    NEW_SIZE=$(wc -c < dist/warrenbuf.min.js | tr -d ' ')
+    MINIFIED_KB=$(echo "$NEW_SIZE" | awk '{printf "%.2f", $1/1024}')
+    GZIPPED_KB=$(gzip -c dist/warrenbuf.min.js | wc -c | awk '{printf "%.2f", $1/1024}')
+
+    echo "✓ Minification complete"
+    echo "  Minified:          ${MINIFIED_KB} KB"
+    echo "  Gzipped+Minified:  ${GZIPPED_KB} KB"
+
+    if [ $OLD_SIZE -ne 0 ]; then
+        DIFF=$((NEW_SIZE - OLD_SIZE))
+        DIFF_KB=$(echo "$DIFF" | awk '{printf "%.2f", $1/1024}')
+        if [ $DIFF -gt 0 ]; then
+            echo "  Change:            +${DIFF_KB} KB"
+        elif [ $DIFF -lt 0 ]; then
+            echo "  Change:            ${DIFF_KB} KB"
+        else
+            echo "  Change:            (no change)"
+        fi
+    fi
+
+    git add dist/warrenbuf.min.js
+    exit 0
+else
+    echo "✗ Minification failed"
+    exit 1
+fi
