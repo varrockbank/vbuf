@@ -140,11 +140,18 @@
       font-family: monospace;
       border: 1px solid black;
     }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+      20%, 40%, 60%, 80% { transform: translateX(4px); }
+    }
+    .shake {
+      animation: shake 0.5s;
+    }
   </style>
 </head>
 <body>
-  <h1>WarrenBuf Test Suite</h1>
-
+  <div id="test-timing" style="margin-bottom: 16px; opacity: 0.8; font-size: 14px; line-height: 1.6;"></div>
   <div class="summary">
     <div class="summary-item">
       <div class="summary-number" id="total-tests">0</div>
@@ -249,7 +256,23 @@
     }
 
     async function runAllTests() {
+      const startTime = new Date();
       const results = await runner.run();
+      const endTime = new Date();
+      const duration = endTime - startTime;
+
+      const timingDiv = document.getElementById('test-timing');
+      timingDiv.innerHTML = `
+        Test started at: ${startTime.toLocaleTimeString()}<br>
+        Test ended at: ${endTime.toLocaleTimeString()}<br>
+        Duration: ${duration} ms
+      `;
+
+      // Trigger shake animation on timer
+      timingDiv.classList.remove('shake');
+      void timingDiv.offsetWidth; // Force reflow
+      timingDiv.classList.add('shake');
+
       renderResults(results);
     }
 
