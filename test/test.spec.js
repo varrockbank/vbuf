@@ -517,3 +517,270 @@ runner.describe('Shift+Meta+Arrow selection', () => {
     expect(end).toEqual({ row: 0, col: 16 });
   }, "Extend selection to end with Shift+Meta+Right");
 });
+
+// Multi-line selections
+runner.describe('Multi-line selections', () => {
+  let wb, node;
+
+  runner.beforeEach(() => {
+    const editor = createTestEditor();
+    wb = editor.wb;
+    node = editor.node;
+  });
+
+  runner.it('should select 3 rows with start in middle, end in middle', () => {
+    type(node, 'First line here');
+    dispatchKey(node, 'Enter');
+    type(node, 'Second line here');
+    dispatchKey(node, 'Enter');
+    type(node, 'Third line here');
+    dispatchKey(node, 'Enter');
+    type(node, 'Fourth line here');
+
+    // Move to middle of first line (col 6, after "First ")
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowLeft', { meta: true });
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+
+    // Select down to third line, middle (col 6)
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 6 });
+    expect(end).toEqual({ row: 2, col: 6 });
+  }, "Select 3 rows: middle to middle");
+
+  runner.it('should select 3 rows with start at beginning, end at end', () => {
+    type(node, 'First line here');
+    dispatchKey(node, 'Enter');
+    type(node, 'Second line here');
+    dispatchKey(node, 'Enter');
+    type(node, 'Third line here');
+
+    // Move to beginning of first line
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowLeft', { meta: true });
+
+    // Select to end of third line
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowRight', { shift: true, meta: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 0 });
+    expect(end).toEqual({ row: 2, col: 15 });
+  }, "Select 3 rows: beginning to end");
+
+  runner.it('should select 3 rows with start at end of line', () => {
+    type(node, 'First');
+    dispatchKey(node, 'Enter');
+    type(node, 'Second line here');
+    dispatchKey(node, 'Enter');
+    type(node, 'Third line here');
+
+    // Move to end of first line
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowRight', { meta: true });
+
+    // Select down to middle of third line
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 5 });
+    expect(end).toEqual({ row: 2, col: 5 });
+  }, "Select 3 rows: end of line to middle");
+
+  runner.it('should select 3 rows with start in middle, end at beginning', () => {
+    type(node, 'First line here');
+    dispatchKey(node, 'Enter');
+    type(node, 'Second line here');
+    dispatchKey(node, 'Enter');
+    type(node, 'Third line here');
+
+    // Move to middle of first line (col 6)
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowLeft', { meta: true });
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+
+    // Select to beginning of third line
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowLeft', { shift: true, meta: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 6 });
+    expect(end).toEqual({ row: 2, col: 0 });
+  }, "Select 3 rows: middle to beginning");
+
+  runner.it('should select at last character of line then extend down', () => {
+    type(node, 'First');
+    dispatchKey(node, 'Enter');
+    type(node, 'Second');
+    dispatchKey(node, 'Enter');
+    type(node, 'Third');
+
+    // Move to last character 't' of first line (col 4)
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowRight', { meta: true });
+    dispatchKey(node, 'ArrowLeft');
+
+    // Select character and extend right (wraps to next line)
+    dispatchKey(node, 'ArrowRight', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 4 });
+    expect(end).toEqual({ row: 2, col: 0 });
+  }, "Select from last character and extend down");
+
+  runner.it('should extend selection down 4 rows', () => {
+    type(node, 'Line 1');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 2');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 3');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 4');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 5');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 6');
+
+    // Move to beginning of first line
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowLeft', { meta: true });
+
+    // Select down 4 rows
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 0 });
+    expect(end).toEqual({ row: 4, col: 0 });
+  }, "Select down 4 rows from beginning");
+
+  runner.it('should extend selection right 3 columns', () => {
+    type(node, 'Hello World');
+    dispatchKey(node, 'Enter');
+    type(node, 'Second line');
+
+    // Move to beginning of first line
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowLeft', { meta: true });
+
+    // Select right 3 columns
+    dispatchKey(node, 'ArrowRight', { shift: true });
+    dispatchKey(node, 'ArrowRight', { shift: true });
+    dispatchKey(node, 'ArrowRight', { shift: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 0 });
+    expect(end).toEqual({ row: 0, col: 3 });
+  }, "Select right 3 columns");
+
+  runner.it('should extend selection down 4 rows then right 3 columns', () => {
+    type(node, 'Line 1');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 2');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 3');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 4');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 5 with more text');
+
+    // Move to beginning of first line
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowLeft', { meta: true });
+
+    // Select down 4 rows
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+
+    // Then right 3 columns
+    dispatchKey(node, 'ArrowRight', { shift: true });
+    dispatchKey(node, 'ArrowRight', { shift: true });
+    dispatchKey(node, 'ArrowRight', { shift: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 0 });
+    expect(end).toEqual({ row: 4, col: 3 });
+  }, "Select down 4 rows then right 3 columns");
+
+  runner.it('should extend selection from middle down 4 rows then right 3 columns', () => {
+    type(node, 'Line 1 text');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 2 text');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 3 text');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 4 text');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 5 with more text');
+
+    // Move to col 5 of first line (after "Line ")
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowLeft', { meta: true });
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+    dispatchKey(node, 'ArrowRight');
+
+    // Select down 4 rows
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+    dispatchKey(node, 'ArrowDown', { shift: true });
+
+    // Then right 3 columns
+    dispatchKey(node, 'ArrowRight', { shift: true });
+    dispatchKey(node, 'ArrowRight', { shift: true });
+    dispatchKey(node, 'ArrowRight', { shift: true });
+
+    expect(wb.Selection.isSelection).toBe(true);
+    const [start, end] = wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 5 });
+    expect(end).toEqual({ row: 4, col: 8 });
+  }, "Select from middle down 4 rows then right 3 columns");
+});
