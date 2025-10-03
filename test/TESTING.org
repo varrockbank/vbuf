@@ -6,10 +6,11 @@ WarrenBuf uses a native browser-based test suite with no dependencies on Jest or
 
 Open ~test.html~ in your browser. Tests run automatically on page load.
 
-* Test Files
+* Directory Structure
 
 - *test.html* - Test runner UI with results display
-- *test-framework.js* - Simple test framework with ~describe~, ~it~, ~xit~, ~expect~
+- *test-framework.js* - Domain-agnostic test library with ~describe~, ~it~, ~xit~, ~expect~
+- *dsl.js* - Fixture to (1) isolate test state and (2) literate DSL for user actions. 
 - *test.spec.js* - All test definitions
 
 * Writing Tests
@@ -18,46 +19,65 @@ Open ~test.html~ in your browser. Tests run automatically on page load.
 
 #+begin_src javascript
 runner.describe('Feature Name', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should do something', () => {
-    // Test code
-    expect(actual).toBe(expected);
+    fixture.type('Hello');
+    fixture.press(Key.Enter).once();
+
+    expect(fixture.wb.Model.lines[0]).toBe('Hello');
   }, "Optional description");
 });
 #+end_src
 
 ** Test Isolation
 
-Each test gets a *fresh DOM node and WarrenBuf instance* via ~createTestEditor()~. This ensures proper test isolation with no state leakage between tests.
+Each test gets a *fresh DOM node and WarrenBuf instance* via ~new EditorFixture()~. This ensures proper test isolation with no state leakage between tests.
 
-** Simulating User Input
+** EditorFixture & Literate DSL
 
-Tests use keyboard event simulation instead of calling methods directly:
+The test fixture provides a literate, chainable DSL that reads like user actions:
 
 #+begin_src javascript
-// Type characters
-dispatchKey(node, 'a');
-type(node, 'Hello');  // Types multiple characters
+// Create fixture
+const fixture = new EditorFixture();
 
-// Navigation
-dispatchKey(node, 'ArrowLeft');
-dispatchKey(node, 'ArrowRight', { meta: true });  // Cmd/Ctrl+Arrow
+// Access WarrenBuf instance and DOM node
+fixture.wb    // WarrenBuf instance
+fixture.node  // DOM node
 
-// Create selection
-dispatchKey(node, 'ArrowRight', { shift: true });  // Shift+Arrow
+// Type text
+fixture.type('Hello World');
 
-// Other keys
-dispatchKey(node, 'Enter');
-dispatchKey(node, 'Backspace');
-dispatchKey(node, 'Tab');
+// Press keys with modifiers (chainable builder pattern)
+fixture.press(Key.Enter).once();
+fixture.press(Key.Backspace).times(3);
+fixture.press(Key.ArrowLeft).withMetaKey().once();
+fixture.press(Key.ArrowRight).withShiftKey().once();
+fixture.press(Key.ArrowDown).withShiftKey().withMetaKey().once();
+fixture.press(' ').once();  // Single character key
 #+end_src
+
+** Available Key Constants
+
+#+begin_src javascript
+Key.Enter
+Key.Backspace
+Key.ArrowLeft
+Key.ArrowRight
+Key.ArrowUp
+Key.ArrowDown
+#+end_src
+
+** DSL Design Principles
+
+- *Deferred execution*: Modifiers chain, execution happens on ~.once()~ or ~.times(n)~
+- *Literate syntax*: Reads like natural user actions
+- *Type safety*: Validates key names (single chars or Key constants only)
 
 ** Assertions
 
@@ -73,25 +93,25 @@ expect(array).toHaveLength(3)          // Array/string length
 
 #+begin_src javascript
 // Check text content
-expect(wb.Model.lines[0]).toBe('Hello');
-expect(wb.Model.lines).toHaveLength(2);
+expect(fixture.wb.Model.lines[0]).toBe('Hello');
+expect(fixture.wb.Model.lines).toHaveLength(2);
 #+end_src
 
 ** Testing Cursor/Selection
 
 #+begin_src javascript
-// Get cursor position (head and tail are same for cursor)
-const [head, tail] = wb.Selection.ordered;
-expect(head).toEqual({ row: 0, col: 5 });
-expect(tail).toEqual({ row: 0, col: 5 });
+// Get cursor position (firstEdge and SecondEdge are same for cursor)
+const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
+expect(firstEdge).toEqual({ row: 0, col: 5 });
+expect(SecondEdge).toEqual({ row: 0, col: 5 });
 
 // Check if selection exists
-expect(wb.Selection.isSelection).toBe(true);
+expect(fixture.wb.Selection.isSelection).toBe(true);
 
 // Selection positions
-const [head, tail] = wb.Selection.ordered;
-expect(head).toEqual({ row: 0, col: 0 });  // Start of selection
-expect(tail).toEqual({ row: 0, col: 5 });  // End of selection
+const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
+expect(firstEdge).toEqual({ row: 0, col: 0 });  // Start of selection
+expect(SecondEdge).toEqual({ row: 0, col: 5 });  // End of selection
 #+end_src
 
 ** Skipping Tests

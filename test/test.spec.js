@@ -1,152 +1,89 @@
-// Test utilities
-function createTestEditor() {
-  const container = document.querySelector('.editor-container');
-
-  const node = document.createElement('div');
-  node.className = 'wb no-select';
-  node.innerHTML = `
-    <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-    <div style="display: flex">
-      <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
-    </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between;">
-      <div class="wb-status-left" style="display: flex;">
-        <span class="wb-linecount"></span>
-      </div>
-      <div class="wb-status-right" style="display: flex;">
-        <span class="wb-coordinate"></span>
-        <span>|</span>
-        <span class="wb-indentation"></span>
-      </div>
-    </div>
-  `;
-
-  container.innerHTML = '';
-  container.appendChild(node);
-
-  return { wb: new WarrenBuf(node), node };
-}
-
-function dispatchKey(node, key, modifiers = {}) {
-  const event = new KeyboardEvent('keydown', {
-    key,
-    code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
-    bubbles: true,
-    cancelable: true,
-    metaKey: modifiers.meta || false,
-    ctrlKey: modifiers.ctrl || false,
-    shiftKey: modifiers.shift || false,
-    altKey: modifiers.alt || false
-  });
-  node.dispatchEvent(event);
-}
-
-function type(node, text) {
-  for (const char of text) {
-    dispatchKey(node, char);
-  }
-}
-
-function repeatKey(node, key, count, modifiers = {}) {
-  for (let i = 0; i < count; i++) {
-    dispatchKey(node, key, modifiers);
-  }
-}
-
 // Test definitions
 const runner = new TestRunner();
 
 // Basic Typing Tests
 runner.describe('Basic Typing', () => {
-  let wb, node;
-
-  runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
-  });
+  let fixture;
+  runner.beforeEach(() => fixture = new EditorFixture());
 
   runner.it('should insert single character', () => {
-    dispatchKey(node, 'a');
-    expect(wb.Model.lines[0]).toBe('a');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press('a').once();
+    expect(fixture.wb.Model.lines[0]).toBe('a');
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 1 });
     expect(SecondEdge).toEqual({ row: 0, col: 1 });
   }, "Insert single character 'a'");
 
   runner.it('should insert multiple characters', () => {
-    type(node, 'Hello');
-    expect(wb.Model.lines[0]).toBe('Hello');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello');
+    expect(fixture.wb.Model.lines[0]).toBe('Hello');
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 5 });
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
   }, "Insert 'Hello'");
 
   runner.it('should insert word with spaces', () => {
-    type(node, 'Hello World');
-    expect(wb.Model.lines[0]).toBe('Hello World');
+    fixture.type('Hello World');
+    expect(fixture.wb.Model.lines[0]).toBe('Hello World');
   }, "Insert 'Hello World' with spaces");
 
   runner.it('should type sentence', () => {
-    type(node, 'The quick brown fox');
-    expect(wb.Model.lines[0]).toBe('The quick brown fox');
+    fixture.type('The quick brown fox');
+    expect(fixture.wb.Model.lines[0]).toBe('The quick brown fox');
   }, "Insert sentence 'The quick brown fox'");
 });
 
 // Backspace Tests
 runner.describe('Backspace', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should delete single character', () => {
-    type(node, 'Hello');
-    dispatchKey(node, 'Backspace');
-    expect(wb.Model.lines[0]).toBe('Hell');
+    fixture.type('Hello');
+    fixture.press(Key.Backspace).once();
+    expect(fixture.wb.Model.lines[0]).toBe('Hell');
   }, "Delete single char from 'Hello' → 'Hell'");
 
   runner.it('should delete multiple characters', () => {
-    type(node, 'Hello');
-    repeatKey(node, 'Backspace', 3);
-    expect(wb.Model.lines[0]).toBe('He');
+    fixture.type('Hello');
+    fixture.press(Key.Backspace).times(3);
+    expect(fixture.wb.Model.lines[0]).toBe('He');
   }, "Delete 3 chars from 'Hello' → 'He'");
 
   runner.it('should delete all characters', () => {
-    type(node, 'Hi');
-    repeatKey(node, 'Backspace', 2);
-    expect(wb.Model.lines[0]).toBe('');
+    fixture.type('Hi');
+    fixture.press(Key.Backspace).times(2);
+    expect(fixture.wb.Model.lines[0]).toBe('');
   }, "Delete all chars from 'Hi' → ''");
 
   runner.it('should delete from middle of line', () => {
-    type(node, 'Hello');
-    repeatKey(node, 'ArrowLeft', 2); // Position at 'l' (col 3)
-    dispatchKey(node, 'Backspace'); // Delete 'l'
-    expect(wb.Model.lines[0]).toBe('Helo');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello');
+    fixture.press(Key.ArrowLeft).times(2); // Position at 'l' (col 3)
+    fixture.press(Key.Backspace).once(); // Delete 'l'
+    expect(fixture.wb.Model.lines[0]).toBe('Helo');
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 2 });
     expect(SecondEdge).toEqual({ row: 0, col: 2 });
   }, "Delete from middle: 'Hello' → 'Helo'");
 
   runner.it('should delete multiple characters from middle', () => {
-    type(node, 'Hello World');
-    repeatKey(node, 'ArrowLeft', 6); // Position at space (col 5)
-    repeatKey(node, 'Backspace', 2); // Delete 'lo'
-    expect(wb.Model.lines[0]).toBe('Hel World');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).times(6); // Position at space (col 5)
+    fixture.press(Key.Backspace).times(2); // Delete 'lo'
+    expect(fixture.wb.Model.lines[0]).toBe('Hel World');
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 3 });
     expect(SecondEdge).toEqual({ row: 0, col: 3 });
   }, "Delete 2 chars from middle");
 
   runner.it('should handle Backspace beyond line start', () => {
-    type(node, 'Hi');
-    repeatKey(node, 'Backspace', 5); // Delete 2 chars + 3 extra
-    expect(wb.Model.lines[0]).toBe('');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hi');
+    fixture.press(Key.Backspace).times(5); // Delete 2 chars + 3 extra
+    expect(fixture.wb.Model.lines[0]).toBe('');
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 0 });
     expect(SecondEdge).toEqual({ row: 0, col: 0 });
   }, "Backspace beyond line start");
@@ -154,68 +91,66 @@ runner.describe('Backspace', () => {
 
 // Enter/Newline Tests
 runner.describe('Enter Key', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should create new line', () => {
-    type(node, 'Hello');
-    dispatchKey(node, 'Enter');
-    expect(wb.Model.lines).toHaveLength(2);
-    expect(wb.Model.lines[0]).toBe('Hello');
-    expect(wb.Model.lines[1]).toBe('');
+    fixture.type('Hello');
+    fixture.press(Key.Enter).once();
+    expect(fixture.wb.Model.lines).toHaveLength(2);
+    expect(fixture.wb.Model.lines[0]).toBe('Hello');
+    expect(fixture.wb.Model.lines[1]).toBe('');
   }, "Create new line: 'Hello'[Enter] → 2 lines");
 
   runner.it('should create multiple lines', () => {
-    type(node, 'Line 1');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 3');
-    expect(wb.Model.lines).toHaveLength(3);
-    expect(wb.Model.lines[0]).toBe('Line 1');
-    expect(wb.Model.lines[1]).toBe('Line 2');
-    expect(wb.Model.lines[2]).toBe('Line 3');
+    fixture.type('Line 1');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 3');
+    expect(fixture.wb.Model.lines).toHaveLength(3);
+    expect(fixture.wb.Model.lines[0]).toBe('Line 1');
+    expect(fixture.wb.Model.lines[1]).toBe('Line 2');
+    expect(fixture.wb.Model.lines[2]).toBe('Line 3');
   }, "Create multiple lines: 'Line 1'[Enter]'Line 2'[Enter]'Line 3' → 3 lines");
 
   runner.it('should split line with Enter', () => {
-    type(node, 'Hello');
-    dispatchKey(node, 'ArrowLeft');
-    dispatchKey(node, 'ArrowLeft');
-    dispatchKey(node, 'Enter');
-    expect(wb.Model.lines).toHaveLength(2);
-    expect(wb.Model.lines[0]).toBe('Hel');
-    expect(wb.Model.lines[1]).toBe('lo');
+    fixture.type('Hello');
+    fixture.press(Key.ArrowLeft).once();
+    fixture.press(Key.ArrowLeft).once();
+    fixture.press(Key.Enter).once();
+    expect(fixture.wb.Model.lines).toHaveLength(2);
+    expect(fixture.wb.Model.lines[0]).toBe('Hel');
+    expect(fixture.wb.Model.lines[1]).toBe('lo');
   }, "Split line: 'Hello'[ArrowLeft×2][Enter] → 'Hel' and 'lo'");
 
   runner.it('should add new line when pressing Enter at end of file', () => {
-    type(node, 'First line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line');
-    dispatchKey(node, 'Enter'); // At end of file
-    expect(wb.Model.lines).toHaveLength(3);
-    expect(wb.Model.lines[0]).toBe('First line');
-    expect(wb.Model.lines[1]).toBe('Second line');
-    expect(wb.Model.lines[2]).toBe('');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('First line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line');
+    fixture.press(Key.Enter).once(); // At end of file
+    expect(fixture.wb.Model.lines).toHaveLength(3);
+    expect(fixture.wb.Model.lines[0]).toBe('First line');
+    expect(fixture.wb.Model.lines[1]).toBe('Second line');
+    expect(fixture.wb.Model.lines[2]).toBe('');
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 2, col: 0 });
     expect(SecondEdge).toEqual({ row: 2, col: 0 });
   }, "Enter at end of file creates new line");
 
   runner.it('should create multiple empty lines from empty document', () => {
-    repeatKey(node, 'Enter', 5);
-    expect(wb.Model.lines).toHaveLength(6);
-    expect(wb.Model.lines[0]).toBe('');
-    expect(wb.Model.lines[1]).toBe('');
-    expect(wb.Model.lines[2]).toBe('');
-    expect(wb.Model.lines[3]).toBe('');
-    expect(wb.Model.lines[4]).toBe('');
-    expect(wb.Model.lines[5]).toBe('');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.Enter).times(5);
+    expect(fixture.wb.Model.lines).toHaveLength(6);
+    expect(fixture.wb.Model.lines[0]).toBe('');
+    expect(fixture.wb.Model.lines[1]).toBe('');
+    expect(fixture.wb.Model.lines[2]).toBe('');
+    expect(fixture.wb.Model.lines[3]).toBe('');
+    expect(fixture.wb.Model.lines[4]).toBe('');
+    expect(fixture.wb.Model.lines[5]).toBe('');
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 5, col: 0 });
     expect(SecondEdge).toEqual({ row: 5, col: 0 });
   }, "Create multiple empty lines from empty document");
@@ -223,157 +158,151 @@ runner.describe('Enter Key', () => {
 
 // Complex Sequences
 runner.describe('Complex Sequences', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should type, delete, and retype', () => {
-    type(node, 'Hello');
-    repeatKey(node, 'Backspace', 2);
-    type(node, 'y there');
-    expect(wb.Model.lines[0]).toBe('Hely there');
+    fixture.type('Hello');
+    fixture.press(Key.Backspace).times(2);
+    fixture.type('y there');
+    expect(fixture.wb.Model.lines[0]).toBe('Hely there');
   }, "Type, delete, retype");
 
   runner.it('should create line, delete line break', () => {
-    type(node, 'Hello');
-    dispatchKey(node, 'Enter');
-    type(node, 'World');
-    repeatKey(node, 'Backspace', 6);
-    expect(wb.Model.lines).toHaveLength(1);
-    expect(wb.Model.lines[0]).toBe('Hello');
+    fixture.type('Hello');
+    fixture.press(Key.Enter).once();
+    fixture.type('World');
+    fixture.press(Key.Backspace).times(6);
+    expect(fixture.wb.Model.lines).toHaveLength(1);
+    expect(fixture.wb.Model.lines[0]).toBe('Hello');
   }, "Create/delete line breaks");
 
   runner.it('should type multi-line then edit first line', () => {
-    type(node, 'First');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second');
-    dispatchKey(node, 'ArrowUp');
-    type(node, ' Line');
-    expect(wb.Model.lines[0]).toBe('First Line');
-    expect(wb.Model.lines[1]).toBe('Second');
+    fixture.type('First');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second');
+    fixture.press(Key.ArrowUp).once();
+    fixture.type(' Line');
+    expect(fixture.wb.Model.lines[0]).toBe('First Line');
+    expect(fixture.wb.Model.lines[1]).toBe('Second');
   }, "Multi-line editing");
 
   runner.it('should delete across line boundary', () => {
-    type(node, 'Hello');
-    dispatchKey(node, 'Enter');
-    type(node, 'World');
-    // Cursor is now at row 1, col 5 (after 'World')
-    // Move to row 1, col 0 (before 'W')
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    // Delete the newline character (backspace from row 1, col 0 merges lines)
-    dispatchKey(node, 'Backspace');
-    expect(wb.Model.lines).toHaveLength(1);
-    expect(wb.Model.lines[0]).toBe('HelloWorld');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello');
+    fixture.press(Key.Enter).once();
+    fixture.type('World');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Go to start of line
+    fixture.press(Key.Backspace).once(); // Delete newline
+
+    expect(fixture.wb.Model.lines).toHaveLength(1);
+    expect(fixture.wb.Model.lines[0]).toBe('HelloWorld');
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 5 });
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
   }, "Delete across boundaries");
 
   runner.it('should create paragraph and edit at end of middle line', () => {
-    type(node, 'Line 1');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 3');
-    dispatchKey(node, 'ArrowUp');
-    type(node, ' edited');
-    expect(wb.Model.lines).toHaveLength(3);
-    expect(wb.Model.lines[0]).toBe('Line 1');
-    expect(wb.Model.lines[1]).toBe('Line 2 edited');
-    expect(wb.Model.lines[2]).toBe('Line 3');
+    fixture.type('Line 1');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 3');
+    fixture.press(Key.ArrowUp).once();
+    fixture.type(' edited');
+    expect(fixture.wb.Model.lines).toHaveLength(3);
+    expect(fixture.wb.Model.lines[0]).toBe('Line 1');
+    expect(fixture.wb.Model.lines[1]).toBe('Line 2 edited');
+    expect(fixture.wb.Model.lines[2]).toBe('Line 3');
   }, "Edit at end of middle line");
 
   runner.it('should create paragraph and edit at middle of middle line', () => {
-    type(node, 'Line 1');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 3');
-    dispatchKey(node, 'ArrowUp');
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 3);
-    type(node, 'X');
-    expect(wb.Model.lines).toHaveLength(3);
-    expect(wb.Model.lines[0]).toBe('Line 1');
-    expect(wb.Model.lines[1]).toBe('LinXe 2');
-    expect(wb.Model.lines[2]).toBe('Line 3');
+    fixture.type('Line 1');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 3');
+    fixture.press(Key.ArrowUp).once();
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(3);
+    fixture.type('X');
+    expect(fixture.wb.Model.lines).toHaveLength(3);
+    expect(fixture.wb.Model.lines[0]).toBe('Line 1');
+    expect(fixture.wb.Model.lines[1]).toBe('LinXe 2');
+    expect(fixture.wb.Model.lines[2]).toBe('Line 3');
   }, "Edit at middle of middle line");
 });
 
 // Selection Tests
 runner.describe('Selection', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should create selection with Shift+ArrowRight', () => {
-    type(node, 'Hello');
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Move to start
-    dispatchKey(node, 'ArrowRight', { shift: true }); // Select 1 char
-    expect(wb.Selection.isSelection).toBe(true);
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Move to start
+    fixture.press(Key.ArrowRight).withShiftKey().once(); // Select 1 char
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 0 });
     expect(SecondEdge).toEqual({ row: 0, col: 1 });
   }, "Select one character with Shift+ArrowRight");
 
   runner.it('should create selection with Shift+ArrowLeft', () => {
-    type(node, 'Hello');
-    dispatchKey(node, 'ArrowLeft', { shift: true }); // Select 1 char backward
-    expect(wb.Selection.isSelection).toBe(true);
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello');
+    fixture.press(Key.ArrowLeft).withShiftKey().once(); // Select 1 char backward
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 4 });
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
   }, "Select one character with Shift+ArrowLeft");
 
   runner.it('should create multi-line selection with Shift+ArrowDown', () => {
-    type(node, 'Line 1');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2');
-    dispatchKey(node, 'ArrowUp');
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Start of Line 1
-    dispatchKey(node, 'ArrowDown', { shift: true }); // Select to Line 2
-    expect(wb.Selection.isSelection).toBe(true);
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Line 1');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2');
+    fixture.press(Key.ArrowUp).once();
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Start of Line 1
+    fixture.press(Key.ArrowDown).withShiftKey().once(); // Select to Line 2
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 0 });
     expect(SecondEdge).toEqual({ row: 1, col: 0 });
   }, "Select multiple lines with Shift+ArrowDown");
 
   runner.it('should move cursor up without selection', () => {
-    type(node, 'Line 1');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2');
-    dispatchKey(node, 'ArrowUp');
-    expect(wb.Selection.isSelection).toBe(false);
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Line 1');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2');
+    fixture.press(Key.ArrowUp).once();
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 6 });
     expect(SecondEdge).toEqual({ row: 0, col: 6 });
   }, "Move cursor up without selection");
 
   runner.it('should create multi-line selection with Shift+ArrowUp', () => {
-    type(node, 'Line 1');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2');
-    dispatchKey(node, 'ArrowUp', { shift: true });
-    expect(wb.Selection.isSelection).toBe(true);
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Line 1');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2');
+    fixture.press(Key.ArrowUp).withShiftKey().once();
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 6 });
     expect(SecondEdge).toEqual({ row: 1, col: 6 });
   }, "Select upward with Shift+ArrowUp");
 
   runner.it('should extend selection with multiple Shift+Arrow', () => {
-    type(node, 'Hello World');
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Start
-    repeatKey(node, 'ArrowRight', 5, { shift: true }); // Select "Hello"
-    expect(wb.Selection.isSelection).toBe(true);
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Start
+    fixture.press(Key.ArrowRight).withShiftKey().times(5); // Select "Hello"
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 0 });
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
   }, "Extend selection with multiple Shift+Arrow");
@@ -381,121 +310,119 @@ runner.describe('Selection', () => {
 
 // Cursor movement between lines of varying length
 runner.describe('Cursor movement - varying line lengths', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should preserve column when moving from long to short line', () => {
-    type(node, 'Short');
-    dispatchKey(node, 'Enter');
-    type(node, 'Much longer line');
-    dispatchKey(node, 'ArrowUp');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Short');
+    fixture.press(Key.Enter).once();
+    fixture.type('Much longer line');
+    fixture.press(Key.ArrowUp).once();
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 5 });
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
   }, "Long to short: cursor at end of short line");
 
   runner.it('should restore column when moving back to long line', () => {
-    type(node, 'Short');
-    dispatchKey(node, 'Enter');
-    type(node, 'Much longer line');
+    fixture.type('Short');
+    fixture.press(Key.Enter).once();
+    fixture.type('Much longer line');
     // Assert cursor position after typing
-    let [firstEdge, SecondEdge] = wb.Selection.ordered;
+    let [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 1, col: 16 }); // One past last char
     expect(SecondEdge).toEqual({ row: 1, col: 16 });
 
-    dispatchKey(node, 'ArrowUp');  // Move to "Short", col clamped to 5
-    dispatchKey(node, 'ArrowDown'); // Move back to "Much longer line"
-    [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.ArrowUp).once();  // Move to "Short", col clamped to 5
+    fixture.press(Key.ArrowDown).once(); // Move back to "Much longer line"
+    [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 1, col: 16 }); // Should restore to col 16
     expect(SecondEdge).toEqual({ row: 1, col: 16 });
   }, "Should restore original column when moving back");
 
   runner.it('should clamp column to line end on shorter line', () => {
-    type(node, 'A');
-    dispatchKey(node, 'Enter');
-    type(node, 'Very long line here');
-    dispatchKey(node, 'ArrowUp');
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('A');
+    fixture.press(Key.Enter).once();
+    fixture.type('Very long line here');
+    fixture.press(Key.ArrowUp).once();
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 1 }); // Clamped to end of "A"
     expect(SecondEdge).toEqual({ row: 0, col: 1 });
   }, "Clamp to shorter line end");
 
   runner.it('should handle moving through multiple lines of varying length', () => {
-    type(node, 'Line one');
-    dispatchKey(node, 'Enter');
-    type(node, 'Two');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line three is longest');
+    fixture.type('Line one');
+    fixture.press(Key.Enter).once();
+    fixture.type('Two');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line three is longest');
     // Cursor at (2, 20)
-    dispatchKey(node, 'ArrowUp'); // to "Two", clamped to (1, 3)
-    dispatchKey(node, 'ArrowUp'); // to "Line one", should restore toward original col
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.ArrowUp).once(); // to "Two", clamped to (1, 3)
+    fixture.press(Key.ArrowUp).once(); // to "Line one", should restore toward original col
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 8 }); // End of "Line one"
     expect(SecondEdge).toEqual({ row: 0, col: 8 });
   }, "Multiple lines with varying lengths");
 
   runner.it('should move from middle of long line to end of shorter line', () => {
-    type(node, 'Short');
-    dispatchKey(node, 'Enter');
-    type(node, 'This is a much longer line');
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 10); // Position at middle of long line (col 10)
-    dispatchKey(node, 'ArrowUp'); // Move to "Short", should clamp to end (col 5)
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Short');
+    fixture.press(Key.Enter).once();
+    fixture.type('This is a much longer line');
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(10); // Position at middle of long line (col 10)
+    fixture.press(Key.ArrowUp).once(); // Move to "Short", should clamp to end (col 5)
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 5 }); // Clamped to end of "Short"
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
   }, "Move from middle of long line to end of short line");
 
   runner.it('should navigate between three lines: short, medium, long', () => {
-    type(node, 'Short'); // Length 5
-    dispatchKey(node, 'Enter');
-    type(node, 'Medium!!'); // Length 8
-    dispatchKey(node, 'Enter');
-    type(node, 'Longest!!!'); // Length 10
+    fixture.type('Short'); // Length 5
+    fixture.press(Key.Enter).once();
+    fixture.type('Medium!!'); // Length 8
+    fixture.press(Key.Enter).once();
+    fixture.type('Longest!!!'); // Length 10
     // Position at start of medium line (row 1)
-    dispatchKey(node, 'ArrowUp'); // Move to medium line
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Start of medium line
-    repeatKey(node, 'ArrowRight', 8); // End of medium line (col 8)
+    fixture.press(Key.ArrowUp).once(); // Move to medium line
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Start of medium line
+    fixture.press(Key.ArrowRight).times(8); // End of medium line (col 8)
 
     // Move up to short line - should clamp to col 5
-    dispatchKey(node, 'ArrowUp');
-    let [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.ArrowUp).once();
+    let [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 5 }); // Clamped to end of "Short"
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
 
     // Move down twice to longest line - should restore to col 8
-    dispatchKey(node, 'ArrowDown'); // Back to medium
-    dispatchKey(node, 'ArrowDown'); // To longest
-    [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.ArrowDown).once(); // Back to medium
+    fixture.press(Key.ArrowDown).once(); // To longest
+    [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 2, col: 8 }); // Middle of "Longest!!!" (col 8)
     expect(SecondEdge).toEqual({ row: 2, col: 8 });
   }, "Navigate from medium line to short and long lines");
 
   runner.it('should navigate between three lines: short, medium, long (natural typing)', () => {
-    type(node, 'Short'); // Length 5
-    dispatchKey(node, 'Enter');
-    type(node, 'Medium!!'); // Length 8
-    dispatchKey(node, 'Enter');
-    type(node, 'Longest!!!'); // Length 10
+    fixture.type('Short'); // Length 5
+    fixture.press(Key.Enter).once();
+    fixture.type('Medium!!'); // Length 8
+    fixture.press(Key.Enter).once();
+    fixture.type('Longest!!!'); // Length 10
     // Cursor at end of longest line (row 2, col 10)
-    dispatchKey(node, 'ArrowUp'); // Move to medium line (row 1, col 8)
-    dispatchKey(node, 'ArrowRight', { meta: true }); // Reset maxCol from 10 to 8
+    fixture.press(Key.ArrowUp).once(); // Move to medium line (row 1, col 8)
+    fixture.press(Key.ArrowRight).withMetaKey().once(); // Reset maxCol from 10 to 8
 
     // Move up to short line - should clamp to col 5
-    dispatchKey(node, 'ArrowUp');
-    let [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.ArrowUp).once();
+    let [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 5 }); // Clamped to end of "Short"
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
 
     // Move down twice to longest line - should restore to col 8
-    dispatchKey(node, 'ArrowDown'); // Back to medium
-    dispatchKey(node, 'ArrowDown'); // To longest
-    [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.ArrowDown).once(); // Back to medium
+    fixture.press(Key.ArrowDown).once(); // To longest
+    [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 2, col: 8 }); // Middle of "Longest!!!" (col 8)
     expect(SecondEdge).toEqual({ row: 2, col: 8 });
   }, "Navigate from medium line to short and long lines (natural typing)");
@@ -503,67 +430,65 @@ runner.describe('Cursor movement - varying line lengths', () => {
 
 // Meta+Arrow navigation (Cmd/Ctrl+Left/Right)
 runner.describe('Meta+Arrow navigation', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should move to end of line with Meta+Right', () => {
-    type(node, 'Hello World');
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Move to start
-    let [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Move to start
+    let [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 0 });
     expect(SecondEdge).toEqual({ row: 0, col: 0 });
 
-    dispatchKey(node, 'ArrowRight', { meta: true }); // Move to end
-    [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.ArrowRight).withMetaKey().once(); // Move to end
+    [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 11 });
     expect(SecondEdge).toEqual({ row: 0, col: 11 });
   }, "Meta+Right moves to end of line");
 
   runner.it('should move to start of line from middle', () => {
-    type(node, 'Hello World');
-    repeatKey(node, 'ArrowLeft', 3);
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Jump to start
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).times(3);
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Jump to start
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 0 });
     expect(SecondEdge).toEqual({ row: 0, col: 0 });
   }, "Meta+Left from middle of line");
 
   runner.it('should move to end of line from middle', () => {
-    type(node, 'Hello World');
-    repeatKey(node, 'ArrowLeft', 3);
-    dispatchKey(node, 'ArrowRight', { meta: true }); // Jump to end
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).times(3);
+    fixture.press(Key.ArrowRight).withMetaKey().once(); // Jump to end
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 11 });
     expect(SecondEdge).toEqual({ row: 0, col: 11 });
   }, "Meta+Right from middle of line");
 
   runner.it('should work on multi-line document', () => {
-    type(node, 'First line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line here');
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Start of line 2
-    let [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('First line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line here');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Start of line 2
+    let [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 1, col: 0 });
     expect(SecondEdge).toEqual({ row: 1, col: 0 });
 
-    dispatchKey(node, 'ArrowRight', { meta: true }); // End of line 2
-    [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.press(Key.ArrowRight).withMetaKey().once(); // End of line 2
+    [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 1, col: 16 });
     expect(SecondEdge).toEqual({ row: 1, col: 16 });
   }, "Meta+Left/Right on second line");
 
   runner.it('should work when navigating between lines', () => {
-    type(node, 'Short');
-    dispatchKey(node, 'Enter');
-    type(node, 'Much longer line');
-    dispatchKey(node, 'ArrowUp'); // Move to line 1
-    dispatchKey(node, 'ArrowRight', { meta: true }); // End of line 1
-    const [firstEdge, SecondEdge] = wb.Selection.ordered;
+    fixture.type('Short');
+    fixture.press(Key.Enter).once();
+    fixture.type('Much longer line');
+    fixture.press(Key.ArrowUp).once(); // Move to line 1
+    fixture.press(Key.ArrowRight).withMetaKey().once(); // End of line 1
+    const [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
     expect(firstEdge).toEqual({ row: 0, col: 5 });
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
   }, "Meta+Right after moving between lines");
@@ -571,71 +496,69 @@ runner.describe('Meta+Arrow navigation', () => {
 
 // Shift+Meta+Arrow selection
 runner.describe('Shift+Meta+Arrow selection', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should select to end of line with Shift+Meta+Right', () => {
-    type(node, 'Hello World');
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Move to start
-    dispatchKey(node, 'ArrowRight', { shift: true, meta: true }); // Select to end
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Move to start
+    fixture.press(Key.ArrowRight).withShiftKey().withMetaKey().once(); // Select to end
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 0, col: 11 });
   }, "Shift+Meta+Right selects to end of line");
 
   runner.it('should select to start of line with Shift+Meta+Left', () => {
-    type(node, 'Hello World');
-    dispatchKey(node, 'ArrowLeft', { shift: true, meta: true }); // Select to start
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).withShiftKey().withMetaKey().once(); // Select to start
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 0, col: 11 });
   }, "Shift+Meta+Left selects to start of line");
 
   runner.it('should select from middle to end', () => {
-    type(node, 'Hello World');
-    repeatKey(node, 'ArrowLeft', 3); // Back 3 (at col 8)
-    dispatchKey(node, 'ArrowRight', { shift: true, meta: true }); // Select to end
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).times(3); // Back 3 (at col 8)
+    fixture.press(Key.ArrowRight).withShiftKey().withMetaKey().once(); // Select to end
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 8 });
     expect(end).toEqual({ row: 0, col: 11 });
   }, "Shift+Meta+Right from middle selects to end");
 
   runner.it('should select from middle to start', () => {
-    type(node, 'Hello World');
-    repeatKey(node, 'ArrowLeft', 3); // Back 3 (at col 8)
-    dispatchKey(node, 'ArrowLeft', { shift: true, meta: true }); // Select to start
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).times(3); // Back 3 (at col 8)
+    fixture.press(Key.ArrowLeft).withShiftKey().withMetaKey().once(); // Select to start
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 0, col: 8 });
   }, "Shift+Meta+Left from middle selects to start");
 
   runner.it('should select on second line of multi-line document', () => {
-    type(node, 'First line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line here');
-    dispatchKey(node, 'ArrowLeft', { shift: true, meta: true }); // Select to start of line 2
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    fixture.type('First line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line here');
+    fixture.press(Key.ArrowLeft).withShiftKey().withMetaKey().once(); // Select to start of line 2
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 1, col: 0 });
     expect(end).toEqual({ row: 1, col: 16 });
   }, "Shift+Meta+Left on second line");
 
   runner.it('should extend existing selection with Shift+Meta+Right', () => {
-    type(node, 'Hello World Here');
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // To start
-    repeatKey(node, 'ArrowRight', 2, { shift: true }); // Select 'He'
-    dispatchKey(node, 'ArrowRight', { shift: true, meta: true }); // Extend to end
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    fixture.type('Hello World Here');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // To start
+    fixture.press(Key.ArrowRight).withShiftKey().times(2); // Select 'He'
+    fixture.press(Key.ArrowRight).withShiftKey().withMetaKey().once(); // Extend to end
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 0, col: 16 });
   }, "Extend selection to end with Shift+Meta+Right");
@@ -643,216 +566,214 @@ runner.describe('Shift+Meta+Arrow selection', () => {
 
 // Multi-line selections
 runner.describe('Multi-line selections', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should select 3 rows with start in middle, end in middle', () => {
-    type(node, 'First line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Fourth line here');
+    fixture.type('First line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Fourth line here');
 
     // Move to middle of first line (col 6, after "First ")
-    repeatKey(node, 'ArrowUp', 3);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 6);
+    fixture.press(Key.ArrowUp).times(3);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(6);
 
     // Select down to third line, middle (col 6)
-    repeatKey(node, 'ArrowDown', 2, { shift: true });
+    fixture.press(Key.ArrowDown).withShiftKey().times(2);
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 6 });
     expect(end).toEqual({ row: 2, col: 6 });
   }, "Select 3 rows: middle to middle");
 
   runner.it('should select 3 rows with start at beginning, end at end', () => {
-    type(node, 'First line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third line here');
+    fixture.type('First line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third line here');
 
     // Move to beginning of first line
-    repeatKey(node, 'ArrowUp', 2);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
 
     // Select to end of third line
-    repeatKey(node, 'ArrowDown', 2, { shift: true });
-    dispatchKey(node, 'ArrowRight', { shift: true, meta: true });
+    fixture.press(Key.ArrowDown).withShiftKey().times(2);
+    fixture.press(Key.ArrowRight).withShiftKey().withMetaKey().once();
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 2, col: 15 });
   }, "Select 3 rows: beginning to end");
 
   runner.it('should select 3 rows with start at end of line', () => {
-    type(node, 'First');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third line here');
+    fixture.type('First');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third line here');
 
     // Move to end of first line
-    repeatKey(node, 'ArrowUp', 2);
-    dispatchKey(node, 'ArrowRight', { meta: true });
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowRight).withMetaKey().once();
 
     // Select down to middle of third line
-    repeatKey(node, 'ArrowDown', 2, { shift: true });
+    fixture.press(Key.ArrowDown).withShiftKey().times(2);
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 5 });
     expect(end).toEqual({ row: 2, col: 5 });
   }, "Select 3 rows: end of line to middle");
 
   runner.it('should select 3 rows with start in middle, end at beginning', () => {
-    type(node, 'First line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third line here');
+    fixture.type('First line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third line here');
 
     // Move to middle of first line (col 6)
-    repeatKey(node, 'ArrowUp', 2);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 6);
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(6);
 
     // Select to beginning of third line
-    repeatKey(node, 'ArrowDown', 2, { shift: true });
-    dispatchKey(node, 'ArrowLeft', { shift: true, meta: true });
+    fixture.press(Key.ArrowDown).withShiftKey().times(2);
+    fixture.press(Key.ArrowLeft).withShiftKey().withMetaKey().once();
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 6 });
     expect(end).toEqual({ row: 2, col: 0 });
   }, "Select 3 rows: middle to beginning");
 
   runner.it('should select at last character of line then extend down', () => {
-    type(node, 'First');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third');
+    fixture.type('First');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third');
 
     // Move to last character 't' of first line (col 4)
-    repeatKey(node, 'ArrowUp', 2);
-    dispatchKey(node, 'ArrowLeft');
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowLeft).once();
 
     // Select character and extend right (wraps to next line)
-    dispatchKey(node, 'ArrowRight', { shift: true });
-    dispatchKey(node, 'ArrowDown', { shift: true });
+    fixture.press(Key.ArrowRight).withShiftKey().once();
+    fixture.press(Key.ArrowDown).withShiftKey().once();
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 4 });
     expect(end).toEqual({ row: 2, col: 0 });
   }, "Select from last character and extend down");
 
   runner.it('should extend selection down 4 rows', () => {
-    type(node, 'Line 1');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 3');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 4');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 5');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 6');
+    fixture.type('Line 1');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 3');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 4');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 5');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 6');
 
     // Move to beginning of first line
-    repeatKey(node, 'ArrowUp', 5);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
+    fixture.press(Key.ArrowUp).times(5);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
 
     // Select down 4 rows
-    repeatKey(node, 'ArrowDown', 4, { shift: true });
+    fixture.press(Key.ArrowDown).withShiftKey().times(4);
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 4, col: 0 });
   }, "Select down 4 rows from beginning");
 
   runner.it('should extend selection right 3 columns', () => {
-    type(node, 'Hello World');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line');
+    fixture.type('Hello World');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line');
 
     // Move to beginning of first line
-    dispatchKey(node, 'ArrowUp');
-    dispatchKey(node, 'ArrowLeft', { meta: true });
+    fixture.press(Key.ArrowUp).once();
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
 
     // Select right 3 columns
-    repeatKey(node, 'ArrowRight', 3, { shift: true });
+    fixture.press(Key.ArrowRight).withShiftKey().times(3);
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 0, col: 3 });
   }, "Select right 3 columns");
 
   runner.it('should extend selection down 4 rows then right 3 columns', () => {
-    type(node, 'Line 1');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 3');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 4');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 5 with more text');
+    fixture.type('Line 1');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 3');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 4');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 5 with more text');
 
     // Move to beginning of first line
-    repeatKey(node, 'ArrowUp', 4);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
+    fixture.press(Key.ArrowUp).times(4);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
 
     // Select down 4 rows
-    repeatKey(node, 'ArrowDown', 4, { shift: true });
+    fixture.press(Key.ArrowDown).withShiftKey().times(4);
 
     // Then right 3 columns
-    repeatKey(node, 'ArrowRight', 3, { shift: true });
+    fixture.press(Key.ArrowRight).withShiftKey().times(3);
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 4, col: 3 });
   }, "Select down 4 rows then right 3 columns");
 
   runner.it('should extend selection from middle down 4 rows then right 3 columns', () => {
-    type(node, 'Line 1 text');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 2 text');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 3 text');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 4 text');
-    dispatchKey(node, 'Enter');
-    type(node, 'Line 5 with more text');
+    fixture.type('Line 1 text');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 2 text');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 3 text');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 4 text');
+    fixture.press(Key.Enter).once();
+    fixture.type('Line 5 with more text');
 
     // Move to col 5 of first line (after "Line ")
-    repeatKey(node, 'ArrowUp', 4);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 5);
+    fixture.press(Key.ArrowUp).times(4);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(5);
 
     // Select down 4 rows
-    repeatKey(node, 'ArrowDown', 4, { shift: true });
+    fixture.press(Key.ArrowDown).withShiftKey().times(4);
 
     // Then right 3 columns
-    repeatKey(node, 'ArrowRight', 3, { shift: true });
+    fixture.press(Key.ArrowRight).withShiftKey().times(3);
 
-    expect(wb.Selection.isSelection).toBe(true);
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(true);
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 5 });
     expect(end).toEqual({ row: 4, col: 8 });
   }, "Select from middle down 4 rows then right 3 columns");
@@ -860,118 +781,116 @@ runner.describe('Multi-line selections', () => {
 
 // Deleting selections with Backspace
 runner.describe('Deleting selections', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should delete single line selection with Backspace', () => {
-    type(node, 'Hello World');
-    dispatchKey(node, 'ArrowLeft', { meta: true }); // Start at col 0
-    repeatKey(node, 'ArrowRight', 5, { shift: true }); // Select to col 5
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Start at col 0
+    fixture.press(Key.ArrowRight).withShiftKey().times(5); // Select to col 5
 
-    dispatchKey(node, 'Backspace');
+    fixture.press(Key.Backspace).once();
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines[0]).toBe('World');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines[0]).toBe('World');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 0, col: 0 });
   }, "Delete 'Hello ' from 'Hello World'");
 
   runner.it('should delete entire line with Backspace', () => {
-    type(node, 'Delete me');
-    dispatchKey(node, 'ArrowLeft', { shift: true, meta: true }); // Select all
+    fixture.type('Delete me');
+    fixture.press(Key.ArrowLeft).withShiftKey().withMetaKey().once(); // Select all
 
-    dispatchKey(node, 'Backspace');
+    fixture.press(Key.Backspace).once();
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines[0]).toBe('');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines[0]).toBe('');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 0, col: 0 });
   }, "Delete entire line");
 
   runner.it('should delete multi-line selection with Backspace', () => {
-    type(node, 'First line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third line');
+    fixture.type('First line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third line');
 
     // Select from beginning of first to col 0 of third (includes 'T')
-    repeatKey(node, 'ArrowUp', 2);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowDown', 2, { shift: true });
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowDown).withShiftKey().times(2);
 
-    dispatchKey(node, 'Backspace');
+    fixture.press(Key.Backspace).once();
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines).toHaveLength(1);
-    expect(wb.Model.lines[0]).toBe('hird line');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines).toHaveLength(1);
+    expect(fixture.wb.Model.lines[0]).toBe('hird line');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 0 });
     expect(end).toEqual({ row: 0, col: 0 });
   }, "Delete two full lines plus first character");
 
   runner.it('should delete partial multi-line selection with Backspace', () => {
-    type(node, 'First line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line here');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third line here');
+    fixture.type('First line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line here');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third line here');
 
     // Select from middle of first (col 6) to middle of third (col 6)
-    repeatKey(node, 'ArrowUp', 2);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 6);
-    repeatKey(node, 'ArrowDown', 2, { shift: true });
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(6);
+    fixture.press(Key.ArrowDown).withShiftKey().times(2);
 
-    dispatchKey(node, 'Backspace');
+    fixture.press(Key.Backspace).once();
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines).toHaveLength(1);
-    expect(wb.Model.lines[0]).toBe('First ine here');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines).toHaveLength(1);
+    expect(fixture.wb.Model.lines[0]).toBe('First ine here');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 6 });
     expect(end).toEqual({ row: 0, col: 6 });
   }, "Delete partial multi-line selection");
 
   runner.it('should delete from middle to end across lines with Backspace', () => {
-    type(node, 'First line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line');
+    fixture.type('First line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line');
 
     // Select from middle of first line to end of second
-    dispatchKey(node, 'ArrowUp');
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 6);
-    dispatchKey(node, 'ArrowDown', { shift: true });
-    dispatchKey(node, 'ArrowRight', { shift: true, meta: true });
+    fixture.press(Key.ArrowUp).once();
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(6);
+    fixture.press(Key.ArrowDown).withShiftKey().once();
+    fixture.press(Key.ArrowRight).withShiftKey().withMetaKey().once();
 
-    dispatchKey(node, 'Backspace');
+    fixture.press(Key.Backspace).once();
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines).toHaveLength(1);
-    expect(wb.Model.lines[0]).toBe('First ');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines).toHaveLength(1);
+    expect(fixture.wb.Model.lines[0]).toBe('First ');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 6 });
     expect(end).toEqual({ row: 0, col: 6 });
   }, "Delete from middle to end across lines");
 
   runner.it('should delete backward selection with Backspace', () => {
-    type(node, 'Hello World');
+    fixture.type('Hello World');
     // Select backward from col 11 to col 6
-    repeatKey(node, 'ArrowLeft', 5, { shift: true });
+    fixture.press(Key.ArrowLeft).withShiftKey().times(5);
 
-    dispatchKey(node, 'Backspace');
+    fixture.press(Key.Backspace).once();
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines[0]).toBe('Hello ');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines[0]).toBe('Hello ');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 6 });
     expect(end).toEqual({ row: 0, col: 6 });
   }, "Delete backward selection");
@@ -979,128 +898,126 @@ runner.describe('Deleting selections', () => {
 
 // Replacing selections by typing
 runner.describe('Replacing selections', () => {
-  let wb, node;
+  let fixture;
 
   runner.beforeEach(() => {
-    const editor = createTestEditor();
-    wb = editor.wb;
-    node = editor.node;
+    fixture = new EditorFixture();
   });
 
   runner.it('should replace single line selection with typed character', () => {
-    type(node, 'Hello World');
-    dispatchKey(node, 'ArrowLeft', { meta: true });
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
     // Select "Hello " (6 characters, positions 0-5)
-    repeatKey(node, 'ArrowRight', 5, { shift: true });
+    fixture.press(Key.ArrowRight).withShiftKey().times(5);
 
-    type(node, 'X');
+    fixture.type('X');
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines[0]).toBe('XWorld');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines[0]).toBe('XWorld');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 1 });
     expect(end).toEqual({ row: 0, col: 1 });
   }, "Replace 'Hello ' with 'X'");
 
   runner.it('should replace selection with multiple characters', () => {
-    type(node, 'Hello World');
-    dispatchKey(node, 'ArrowLeft', { meta: true });
+    fixture.type('Hello World');
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
     // Select "Hello " (6 characters, positions 0-5)
-    repeatKey(node, 'ArrowRight', 5, { shift: true });
+    fixture.press(Key.ArrowRight).withShiftKey().times(5);
 
-    type(node, 'Goodbye');
+    fixture.type('Goodbye');
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines[0]).toBe('GoodbyeWorld');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines[0]).toBe('GoodbyeWorld');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 7 });
     expect(end).toEqual({ row: 0, col: 7 });
   }, "Replace 'Hello ' with 'Goodbye'");
 
   runner.it('should replace entire line with typed text', () => {
-    type(node, 'Old text');
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    dispatchKey(node, 'ArrowRight', { shift: true, meta: true });
+    fixture.type('Old text');
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).withShiftKey().withMetaKey().once();
 
-    type(node, 'New');
+    fixture.type('New');
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines[0]).toBe('New');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines[0]).toBe('New');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 3 });
     expect(end).toEqual({ row: 0, col: 3 });
   }, "Replace entire line");
 
   runner.it('should replace multi-line selection with single character', () => {
-    type(node, 'First line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third line');
+    fixture.type('First line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third line');
 
     // Select from start of first to start of third
-    repeatKey(node, 'ArrowUp', 2);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowDown', 2, { shift: true });
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowDown).withShiftKey().times(2);
 
-    type(node, 'X');
+    fixture.type('X');
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines).toHaveLength(1);
-    expect(wb.Model.lines[0]).toBe('Xhird line');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines).toHaveLength(1);
+    expect(fixture.wb.Model.lines[0]).toBe('Xhird line');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 1 });
     expect(end).toEqual({ row: 0, col: 1 });
   }, "Replace multi-line selection with 'X'");
 
   runner.it('should replace multi-line selection with multiple characters', () => {
-    type(node, 'First line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Second line');
-    dispatchKey(node, 'Enter');
-    type(node, 'Third line');
+    fixture.type('First line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Second line');
+    fixture.press(Key.Enter).once();
+    fixture.type('Third line');
 
     // Select from middle of first (col 6) to middle of third (col 6)
-    repeatKey(node, 'ArrowUp', 2);
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 6);
-    repeatKey(node, 'ArrowDown', 2, { shift: true });
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(6);
+    fixture.press(Key.ArrowDown).withShiftKey().times(2);
 
-    type(node, 'REPLACED');
+    fixture.type('REPLACED');
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines).toHaveLength(1);
-    expect(wb.Model.lines[0]).toBe('First REPLACEDine');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines).toHaveLength(1);
+    expect(fixture.wb.Model.lines[0]).toBe('First REPLACEDine');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 14 });
     expect(end).toEqual({ row: 0, col: 14 });
   }, "Replace partial multi-line with text");
 
   runner.it('should replace backward selection with typed text', () => {
-    type(node, 'Hello World');
+    fixture.type('Hello World');
     // Select "World" backward
-    repeatKey(node, 'ArrowLeft', 5, { shift: true });
+    fixture.press(Key.ArrowLeft).withShiftKey().times(5);
 
-    type(node, 'Everyone');
+    fixture.type('Everyone');
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines[0]).toBe('Hello Everyone');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines[0]).toBe('Hello Everyone');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 14 });
     expect(end).toEqual({ row: 0, col: 14 });
   }, "Replace backward selection");
 
   runner.it('should replace selection with space', () => {
-    type(node, 'HelloWorld');
-    dispatchKey(node, 'ArrowLeft', { meta: true });
-    repeatKey(node, 'ArrowRight', 5);
-    repeatKey(node, 'ArrowRight', 5, { shift: true });
+    fixture.type('HelloWorld');
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+    fixture.press(Key.ArrowRight).times(5);
+    fixture.press(Key.ArrowRight).withShiftKey().times(5);
 
-    dispatchKey(node, ' ');
+    fixture.press(' ').once();
 
-    expect(wb.Selection.isSelection).toBe(false);
-    expect(wb.Model.lines[0]).toBe('Hello ');
-    const [start, end] = wb.Selection.ordered;
+    expect(fixture.wb.Selection.isSelection).toBe(false);
+    expect(fixture.wb.Model.lines[0]).toBe('Hello ');
+    const [start, end] = fixture.wb.Selection.ordered;
     expect(start).toEqual({ row: 0, col: 6 });
     expect(end).toEqual({ row: 0, col: 6 });
   }, "Replace 'World' with space");

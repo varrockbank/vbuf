@@ -85,3 +85,18 @@ function expect(actual) {
     }
   };
 }
+
+// Low-level key dispatch utility
+function dispatchKey(node, key, modifiers = {}) {
+  const event = new KeyboardEvent('keydown', {
+    key,
+    code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
+    bubbles: true,
+    cancelable: true,
+    metaKey: modifiers.meta || false,
+    ctrlKey: modifiers.ctrl || false,
+    shiftKey: modifiers.shift || false,
+    altKey: modifiers.alt || false
+  });
+  node.dispatchEvent(event);
+}
