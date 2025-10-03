@@ -387,7 +387,7 @@ function WarrenBuf(node,
   };
 
   const Model = {
-    lines: [],
+    lines: [''],
     byteCount: "",
     originalLineCount: 0,
     treeSitterTree: null,
