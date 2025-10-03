@@ -281,6 +281,26 @@ runner.describe('Selection', () => {
     expect(firstEdge).toEqual({ row: 0, col: 0 });
     expect(SecondEdge).toEqual({ row: 0, col: 5 });
   }, "Extend selection with multiple Shift+Arrow");
+
+  runner.it('should return ordered selection correctly for forward and backward selections', () => {
+    fixture.type('Hello World');
+
+    // Forward selection (left to right)
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // Move to start (col 0)
+    fixture.press(Key.ArrowRight).withShiftKey().times(5); // Select right to col 5
+    expect(fixture.wb.Selection.isForwardSelection).toBe(true);
+    let [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
+    expect(firstEdge).toEqual({ row: 0, col: 0 }); // Should be leftmost
+    expect(SecondEdge).toEqual({ row: 0, col: 5 }); // Should be rightmost
+
+    // Backward selection (right to left)
+    fixture.press(Key.ArrowRight).withMetaKey().once(); // Move to end (col 11)
+    fixture.press(Key.ArrowLeft).withShiftKey().times(5); // Select left to col 6
+    expect(fixture.wb.Selection.isForwardSelection).toBe(false);
+    [firstEdge, SecondEdge] = fixture.wb.Selection.ordered;
+    expect(firstEdge).toEqual({ row: 0, col: 6 }); // Should still be leftmost
+    expect(SecondEdge).toEqual({ row: 0, col: 11 }); // Should still be rightmost
+  }, "Regression: Selection.ordered returns correct order for forward/backward selections");
 });
 
 // Cursor movement between lines of varying length
@@ -991,4 +1011,74 @@ runner.describe('Replacing selections', () => {
     expect(start).toEqual({ row: 0, col: 6 });
     expect(end).toEqual({ row: 0, col: 6 });
   }, "Replace 'World' with space");
+});
+
+// Regression tests for Selection.ordered and isForwardSelection
+runner.describe('Regression: Selection.ordered and isForwardSelection', () => {
+  let fixture;
+
+  runner.beforeEach(() => {
+    fixture = new EditorFixture();
+  });
+
+  runner.it('should correctly identify forward selection when tail < head', () => {
+    fixture.type('Hello');
+    fixture.press(Key.ArrowLeft).withMetaKey().once(); // tail at col 0
+    fixture.press(Key.ArrowRight).withShiftKey().times(3); // head at col 3
+
+    // Forward selection: tail (0) < head (3)
+    expect(fixture.wb.Selection.isForwardSelection).toBe(true);
+  }, "isForwardSelection true when tail < head");
+
+  runner.it('should correctly identify backward selection when head < tail', () => {
+    fixture.type('Hello');
+    // tail at col 5, select backward
+    fixture.press(Key.ArrowLeft).withShiftKey().times(3); // head at col 2
+
+    // Backward selection: head (2) < tail (5)
+    expect(fixture.wb.Selection.isForwardSelection).toBe(false);
+  }, "isForwardSelection false when head < tail");
+
+  runner.it('should use head.row not tail.row when moving head up between different length lines', () => {
+    fixture.type('a'); // Short line, length 1
+    fixture.press(Key.Enter).once();
+    fixture.type('bar');
+
+    fixture.press(Key.ArrowLeft).withShiftKey().times(3); // Select entire line backward
+
+    // tail at (1,0), head at (1,4), now move head up
+    fixture.press(Key.ArrowUp).withShiftKey().once();
+
+    // head moved to row 0, which has length 1
+    // Should clamp to col 1 (using head.row), not col 14 (if using tails.row)
+    const [start, end] = fixture.wb.Selection.ordered;
+    expect(start).toEqual({row: 0, col: 0});
+    expect(end).toEqual({row: 1, col: 3});
+
+  }, "Uses head.row when clamping column after moving head");
+
+  runner.it('should use head.row not tail.row when moving head down', () => {
+    fixture.type('Short'); // length 5
+    fixture.press(Key.Enter).once();
+    fixture.type('A'); // length 1
+    fixture.press(Key.Enter).once();
+    fixture.type('Long line'); // length 9
+
+    // Start at beginning of first line
+    fixture.press(Key.ArrowUp).times(2);
+    fixture.press(Key.ArrowLeft).withMetaKey().once();
+
+    // Select to col 5 on first line
+    fixture.press(Key.ArrowRight).withShiftKey().times(5);
+
+    // tail at (0,0), head at (0,5)
+    // Move head down to line with length 1
+    fixture.press(Key.ArrowDown).withShiftKey().once();
+
+    // head moved to row 1, which has length 1
+    // Should clamp to col 1 using Viewport.lines[head.row=1], not tail.row=0
+    const [start, end] = fixture.wb.Selection.ordered;
+    expect(start).toEqual({ row: 0, col: 0 });
+    expect(end).toEqual({row: 2, col: 0});
+  }, "Clamps using head.row when head moves to shorter line");
 });

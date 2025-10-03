@@ -157,6 +157,7 @@
     const primary = new WarrenBuf(mainElement, null, null);
     // primary.Model.text = "This is my first text document\nWoohoo\nFoobar\njfdhfjhfdg\njfdhj\ndh";
     mainElement.focus();
+    window.primary = primary;
 
     const notesElement = document.getElementById('notes');
     const notes = new WarrenBuf(notesElement, null, null, 20);
