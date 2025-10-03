@@ -1,0 +1,153 @@
+* Overview
+
+WarrenBuf uses a native browser-based test suite with no dependencies on Jest or NPM.
+
+* Running Tests
+
+Open ~test.html~ in your browser. Tests run automatically on page load.
+
+* Test Files
+
+- *test.html* - Test runner UI with results display
+- *test-framework.js* - Simple test framework with ~describe~, ~it~, ~xit~, ~expect~
+- *test.spec.js* - All test definitions
+
+* Writing Tests
+
+** Basic Structure
+
+#+begin_src javascript
+runner.describe('Feature Name', () => {
+  let wb, node;
+
+  runner.beforeEach(() => {
+    const editor = createTestEditor();
+    wb = editor.wb;
+    node = editor.node;
+  });
+
+  runner.it('should do something', () => {
+    // Test code
+    expect(actual).toBe(expected);
+  }, "Optional description");
+});
+#+end_src
+
+** Test Isolation
+
+Each test gets a *fresh DOM node and WarrenBuf instance* via ~createTestEditor()~. This ensures proper test isolation with no state leakage between tests.
+
+** Simulating User Input
+
+Tests use keyboard event simulation instead of calling methods directly:
+
+#+begin_src javascript
+// Type characters
+dispatchKey(node, 'a');
+type(node, 'Hello');  // Types multiple characters
+
+// Navigation
+dispatchKey(node, 'ArrowLeft');
+dispatchKey(node, 'ArrowRight', { meta: true });  // Cmd/Ctrl+Arrow
+
+// Create selection
+dispatchKey(node, 'ArrowRight', { shift: true });  // Shift+Arrow
+
+// Other keys
+dispatchKey(node, 'Enter');
+dispatchKey(node, 'Backspace');
+dispatchKey(node, 'Tab');
+#+end_src
+
+** Assertions
+
+The test framework provides basic assertions:
+
+#+begin_src javascript
+expect(value).toBe(expected)           // Strict equality
+expect(value).toEqual(expected)        // Deep equality (JSON)
+expect(array).toHaveLength(3)          // Array/string length
+#+end_src
+
+** Testing Model State
+
+#+begin_src javascript
+// Check text content
+expect(wb.Model.lines[0]).toBe('Hello');
+expect(wb.Model.lines).toHaveLength(2);
+#+end_src
+
+** Testing Cursor/Selection
+
+#+begin_src javascript
+// Get cursor position (head and tail are same for cursor)
+const [head, tail] = wb.Selection.ordered;
+expect(head).toEqual({ row: 0, col: 5 });
+expect(tail).toEqual({ row: 0, col: 5 });
+
+// Check if selection exists
+expect(wb.Selection.isSelection).toBe(true);
+
+// Selection positions
+const [head, tail] = wb.Selection.ordered;
+expect(head).toEqual({ row: 0, col: 0 });  // Start of selection
+expect(tail).toEqual({ row: 0, col: 5 });  // End of selection
+#+end_src
+
+** Skipping Tests
+
+Use ~xit~ instead of ~it~ to skip a test:
+
+#+begin_src javascript
+runner.xit('should do something later', () => {
+  // This test won't run
+}, "Description");
+#+end_src
+
+* Test Suites
+
+** Basic Typing
+- Single character insertion
+- Multiple character insertion
+- Typing with spaces
+
+** Backspace
+- Delete single/multiple characters
+- Delete all characters
+
+** Enter Key
+- Create new lines
+- Split lines at cursor
+
+** Complex Sequences
+- Mixed operations (type, delete, retype)
+- Multi-line editing
+- Delete across line boundaries
+
+** Selection
+- Shift+Arrow navigation
+- Multi-line selection
+- Forward/backward selection
+
+** Cursor Movement - Varying Line Lengths
+- Column preservation with maxCol
+- Clamping to shorter lines
+- Restoring column position
+
+* Understanding the Cursor Model
+
+- Cursor position is a *fencepost* - it sits between characters
+- ~row~ and ~col~ are viewport-relative (not absolute line numbers)
+- After typing "Hello", cursor is at col 5 (one past the last 'o')
+- Lines are implicitly delimited by ~\n~ (not stored in Model.lines)
+- To delete a newline, cursor must be at the start of the next line
+
+** maxCol Behavior
+
+~maxCol~ preserves the intended column when moving vertically:
+
+1. Type "Long line here" → cursor at col 14, maxCol = 14
+2. ArrowDown to shorter line "Hi" → cursor clamped to col 2
+3. ArrowDown to another long line → cursor restores to col 14 (using maxCol)
+
+This matches vim/VSCode behavior for vertical navigation.
