@@ -216,7 +216,7 @@ function WarrenBuf(node,
       } else {
         const { index, left, right } = this.partitionLine(head);
         Model.lines[index] = left + s + right;
-        tail.col += s.length;
+        maxCol = tail.col += s.length;
       }
       render(true);
     },

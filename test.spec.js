@@ -64,11 +64,17 @@ runner.describe('Basic Typing', () => {
   runner.it('should insert single character', () => {
     dispatchKey(node, 'a');
     expect(wb.Model.lines[0]).toBe('a');
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 1 });
+    expect(tail).toEqual({ row: 0, col: 1 });
   }, "Insert single character 'a'");
 
   runner.it('should insert multiple characters', () => {
     type(node, 'Hello');
     expect(wb.Model.lines[0]).toBe('Hello');
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 5 });
+    expect(tail).toEqual({ row: 0, col: 5 });
   }, "Insert 'Hello'");
 
   runner.it('should insert word with spaces', () => {
@@ -209,6 +215,9 @@ runner.describe('Complex Sequences', () => {
     dispatchKey(node, 'Backspace');
     expect(wb.Model.lines).toHaveLength(1);
     expect(wb.Model.lines[0]).toBe('HelloWorld');
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 5 });
+    expect(tail).toEqual({ row: 0, col: 5 });
   }, "Delete across boundaries");
 
   runner.it('should create paragraph and edit middle', () => {
@@ -225,4 +234,83 @@ runner.describe('Complex Sequences', () => {
     expect(wb.Model.lines[1]).toBe('Line 2 edited');
     expect(wb.Model.lines[2]).toBe('Line 3');
   }, "Edit middle of paragraph");
+});
+
+// Selection Tests
+runner.describe('Selection', () => {
+  let wb, node;
+
+  runner.beforeEach(() => {
+    const editor = createTestEditor();
+    wb = editor.wb;
+    node = editor.node;
+  });
+
+  runner.it('should create selection with Shift+ArrowRight', () => {
+    type(node, 'Hello');
+    dispatchKey(node, 'ArrowLeft', { meta: true }); // Move to start
+    dispatchKey(node, 'ArrowRight', { shift: true }); // Select 1 char
+    expect(wb.Selection.isSelection).toBe(true);
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 0 });
+    expect(tail).toEqual({ row: 0, col: 1 });
+  }, "Select one character with Shift+ArrowRight");
+
+  runner.it('should create selection with Shift+ArrowLeft', () => {
+    type(node, 'Hello');
+    dispatchKey(node, 'ArrowLeft', { shift: true }); // Select 1 char backward
+    expect(wb.Selection.isSelection).toBe(true);
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 4 });
+    expect(tail).toEqual({ row: 0, col: 5 });
+  }, "Select one character with Shift+ArrowLeft");
+
+  runner.it('should create multi-line selection with Shift+ArrowDown', () => {
+    type(node, 'Line 1');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 2');
+    dispatchKey(node, 'ArrowUp');
+    dispatchKey(node, 'ArrowLeft', { meta: true }); // Start of Line 1
+    dispatchKey(node, 'ArrowDown', { shift: true }); // Select to Line 2
+    expect(wb.Selection.isSelection).toBe(true);
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 0 });
+    expect(tail).toEqual({ row: 1, col: 0 });
+  }, "Select multiple lines with Shift+ArrowDown");
+
+  runner.it('should move cursor up without selection', () => {
+    type(node, 'Line 1');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 2');
+    dispatchKey(node, 'ArrowUp');
+    expect(wb.Selection.isSelection).toBe(false);
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 6 });
+    expect(tail).toEqual({ row: 0, col: 6 });
+  }, "Move cursor up without selection");
+
+  runner.it('should create multi-line selection with Shift+ArrowUp', () => {
+    type(node, 'Line 1');
+    dispatchKey(node, 'Enter');
+    type(node, 'Line 2');
+    dispatchKey(node, 'ArrowUp', { shift: true });
+    expect(wb.Selection.isSelection).toBe(true);
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 6 });
+    expect(tail).toEqual({ row: 1, col: 6 });
+  }, "Select upward with Shift+ArrowUp");
+
+  runner.it('should extend selection with multiple Shift+Arrow', () => {
+    type(node, 'Hello World');
+    dispatchKey(node, 'ArrowLeft', { meta: true }); // Start
+    dispatchKey(node, 'ArrowRight', { shift: true }); // H
+    dispatchKey(node, 'ArrowRight', { shift: true }); // He
+    dispatchKey(node, 'ArrowRight', { shift: true }); // Hel
+    dispatchKey(node, 'ArrowRight', { shift: true }); // Hell
+    dispatchKey(node, 'ArrowRight', { shift: true }); // Hello
+    expect(wb.Selection.isSelection).toBe(true);
+    const [head, tail] = wb.Selection.ordered;
+    expect(head).toEqual({ row: 0, col: 0 });
+    expect(tail).toEqual({ row: 0, col: 5 });
+  }, "Extend selection with multiple Shift+Arrow");
 });
