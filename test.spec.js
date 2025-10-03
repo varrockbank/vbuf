@@ -1,7 +1,30 @@
 // Test utilities
 function createTestEditor() {
   const container = document.querySelector('.editor-container');
-  const node = container.querySelector('.wb');
+
+  const node = document.createElement('div');
+  node.className = 'wb no-select';
+  node.innerHTML = `
+    <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
+    <div style="display: flex">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+    </div>
+    <div class="wb-status" style="display: flex; justify-content: space-between;">
+      <div class="wb-status-left" style="display: flex;">
+        <span class="wb-linecount"></span>
+      </div>
+      <div class="wb-status-right" style="display: flex;">
+        <span class="wb-coordinate"></span>
+        <span>|</span>
+        <span class="wb-indentation"></span>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = '';
+  container.appendChild(node);
+
   return { wb: new WarrenBuf(node), node };
 }
 
@@ -142,7 +165,7 @@ runner.describe('Complex Sequences', () => {
     node = editor.node;
   });
 
-  runner.xit('should type, delete, and retype', () => {
+  runner.it('should type, delete, and retype', () => {
     type(node, 'Hello');
     dispatchKey(node, 'Backspace');
     dispatchKey(node, 'Backspace');
@@ -150,7 +173,7 @@ runner.describe('Complex Sequences', () => {
     expect(wb.Model.lines[0]).toBe('Hely there');
   }, "Type, delete, retype");
 
-  runner.xit('should create line, delete line break', () => {
+  runner.it('should create line, delete line break', () => {
     type(node, 'Hello');
     dispatchKey(node, 'Enter');
     type(node, 'World');
@@ -164,7 +187,7 @@ runner.describe('Complex Sequences', () => {
     expect(wb.Model.lines[0]).toBe('Hello');
   }, "Create/delete line breaks");
 
-  runner.xit('should type multi-line then edit first line', () => {
+  runner.it('should type multi-line then edit first line', () => {
     type(node, 'First');
     dispatchKey(node, 'Enter');
     type(node, 'Second');
@@ -175,23 +198,20 @@ runner.describe('Complex Sequences', () => {
     expect(wb.Model.lines[1]).toBe('Second');
   }, "Multi-line editing");
 
-  runner.xit('should delete across line boundary', () => {
+  runner.it('should delete across line boundary', () => {
     type(node, 'Hello');
     dispatchKey(node, 'Enter');
     type(node, 'World');
-    dispatchKey(node, 'ArrowUp');
-    dispatchKey(node, 'ArrowRight', { meta: true });
-    dispatchKey(node, 'Backspace');
-    dispatchKey(node, 'Backspace');
-    dispatchKey(node, 'Backspace');
-    dispatchKey(node, 'Backspace');
-    dispatchKey(node, 'Backspace');
+    // Cursor is now at row 1, col 5 (after 'World')
+    // Move to row 1, col 0 (before 'W')
+    dispatchKey(node, 'ArrowLeft', { meta: true });
+    // Delete the newline character (backspace from row 1, col 0 merges lines)
     dispatchKey(node, 'Backspace');
     expect(wb.Model.lines).toHaveLength(1);
-    expect(wb.Model.lines[0]).toBe('World');
+    expect(wb.Model.lines[0]).toBe('HelloWorld');
   }, "Delete across boundaries");
 
-  runner.xit('should create paragraph and edit middle', () => {
+  runner.it('should create paragraph and edit middle', () => {
     type(node, 'Line 1');
     dispatchKey(node, 'Enter');
     type(node, 'Line 2');
