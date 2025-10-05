@@ -1,8 +1,8 @@
 // Assertion library for WarrenBuf tests
 
 function expect(actual) {
-  // Check if actual is an EditorFixture instance
-  if (typeof EditorFixture !== 'undefined' && actual instanceof EditorFixture) {
+  // Check if actual is an EditorTestHarness instance
+  if (typeof EditorTestHarness !== 'undefined' && actual instanceof EditorTestHarness) {
     return {
       toHaveLines(...expectedLines) {
         if (actual.wb.Model.lines.length !== expectedLines.length) {

@@ -40,38 +40,49 @@ const Key = {
 const VALID_KEYS = new Set(Object.values(Key));
 
 /**
+ * Helper to create a new DOM node for EditorTestHarness
+ */
+function createEditorNode() {
+  const container = document.querySelector('.editor-container');
+  const node = document.createElement('div');
+  node.className = 'wb no-select';
+  node.innerHTML = `
+    <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
+    <div style="display: flex">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+    </div>
+    <div class="wb-status" style="display: flex; justify-content: space-between;">
+      <div class="wb-status-left" style="display: flex;">
+        <span class="wb-linecount"></span>
+      </div>
+      <div class="wb-status-right" style="display: flex;">
+        <span class="wb-coordinate"></span>
+        <span>|</span>
+        <span class="wb-indentation"></span>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = '';
+  container.appendChild(node);
+  return node;
+}
+
+/**
  * Test environment for a single editor instance.
  * Provides literate methods for user interactions.
+ *
+ * @param {HTMLElement} node - Required DOM node to attach to
  */
-class EditorFixture {
-  constructor() {
-    const container = document.querySelector('.editor-container');
-
-    const node = document.createElement('div');
-    node.className = 'wb no-select';
-    node.innerHTML = `
-      <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-      <div style="display: flex">
-        <div class="wb-gutter"></div>
-        <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
-      </div>
-      <div class="wb-status" style="display: flex; justify-content: space-between;">
-        <div class="wb-status-left" style="display: flex;">
-          <span class="wb-linecount"></span>
-        </div>
-        <div class="wb-status-right" style="display: flex;">
-          <span class="wb-coordinate"></span>
-          <span>|</span>
-          <span class="wb-indentation"></span>
-        </div>
-      </div>
-    `;
-
-    container.innerHTML = '';
-    container.appendChild(node);
-
+class EditorTestHarness {
+  constructor(node, size = 10) {
     this.node = node;
-    this.wb = new WarrenBuf(node);
+    this.wb = new WarrenBuf(node, null, null, size);
+    this.walkthrough = new Walkthrough();
+
+    // Store reference for test framework
+    window.currentTestFixture = this;
   }
 
   /**
@@ -93,6 +104,7 @@ class EditorFixture {
     }
 
     const node = this.node;
+    const fixture = this;
     const builder = {
       _key: key,
       _modifiers: {},
@@ -108,11 +120,27 @@ class EditorFixture {
       },
 
       once() {
+        const modStr = Object.keys(this._modifiers).filter(k => this._modifiers[k]).join('+');
+        const desc = modStr ? `press(${modStr}+${this._key})` : `press(${this._key})`;
+        fixture.walkthrough.recordStep(desc, {
+          type: 'press',
+          key: this._key,
+          modifiers: { ...this._modifiers },
+          count: 1
+        });
         dispatchKey(node, this._key, this._modifiers);
         return this;
       },
 
       times(count) {
+        const modStr = Object.keys(this._modifiers).filter(k => this._modifiers[k]).join('+');
+        const desc = modStr ? `press(${modStr}+${this._key}).times(${count})` : `press(${this._key}).times(${count})`;
+        fixture.walkthrough.recordStep(desc, {
+          type: 'press',
+          key: this._key,
+          modifiers: { ...this._modifiers },
+          count: count
+        });
         for (let i = 0; i < count; i++) {
           dispatchKey(node, this._key, this._modifiers);
         }
@@ -132,8 +160,18 @@ class EditorFixture {
    *   editor.type('Hello World');
    */
   type(text) {
+    this.walkthrough.recordStep(`type('${text}')`, {
+      type: 'type',
+      text: text
+    });
     for (const char of text) {
       dispatchKey(this.node, char);
     }
   }
 }
+
+// EditorTestHarness factory
+const FixtureFactory = {
+  forTest: () => new EditorTestHarness(createEditorNode()),
+  forWalkthrough: (node) => new EditorTestHarness(node, 20)
+};

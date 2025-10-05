@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DSL Transpiler Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    h1 {
+      color: #4EC9B0;
+    }
+    .test-case {
+      margin: 20px 0;
+      padding: 16px;
+      background: #2d2d30;
+      border-radius: 4px;
+    }
+    .test-case h3 {
+      margin-top: 0;
+      color: #4EC9B0;
+    }
+    pre {
+      background: #1e1e1e;
+      padding: 12px;
+      border-radius: 3px;
+      overflow-x: auto;
+      border-left: 3px solid #4EC9B0;
+    }
+    .result {
+      margin-top: 12px;
+    }
+    .pass {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .fail {
+      color: #f44336;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>DSL Transpiler Test</h1>
+
+  <div id="test-results"></div>
+
+  <script src="transpiler.js"></script>
+  <script>
+    const transpiler = new DSLTranspiler();
+
+    const tests = [
+      {
+        name: 'TYPE command',
+        input: 'TYPE "Hello World"',
+        expected: "fixture.type('Hello World');"
+      },
+      {
+        name: 'PRESS single character',
+        input: 'PRESS a',
+        expected: "fixture.press('a').once();"
+      },
+      {
+        name: 'PRESS quoted space',
+        input: 'PRESS " "',
+        expected: "fixture.press(' ').once();"
+      },
+      {
+        name: 'PRESS quoted semicolon',
+        input: 'PRESS ";"',
+        expected: "fixture.press(';').once();"
+      },
+      {
+        name: 'Backspace once (implicit)',
+        input: 'backspace',
+        expected: 'fixture.press(Key.Backspace).once();'
+      },
+      {
+        name: 'Backspace 5 times',
+        input: 'backspace 5 times',
+        expected: 'fixture.press(Key.Backspace).times(5);'
+      },
+      {
+        name: 'Enter once',
+        input: 'enter once',
+        expected: 'fixture.press(Key.Enter).once();'
+      },
+      {
+        name: 'Left with meta',
+        input: 'left with meta',
+        expected: 'fixture.press(Key.ArrowLeft).withMetaKey().once();'
+      },
+      {
+        name: 'Right with shift',
+        input: 'right with shift',
+        expected: 'fixture.press(Key.ArrowRight).withShiftKey().once();'
+      },
+      {
+        name: 'Right 5 times with shift',
+        input: 'right 5 times with shift',
+        expected: 'fixture.press(Key.ArrowRight).withShiftKey().times(5);'
+      },
+      {
+        name: 'Right with meta, shift (normalized order)',
+        input: 'right with meta, shift',
+        expected: 'fixture.press(Key.ArrowRight).withMetaKey().withShiftKey().once();'
+      },
+      {
+        name: 'Up 2 times',
+        input: 'up 2 times',
+        expected: 'fixture.press(Key.ArrowUp).times(2);'
+      },
+      {
+        name: 'JavaScript pass-through',
+        input: 'expect(fixture).toHaveLines("Hello");',
+        expected: 'expect(fixture).toHaveLines("Hello");'
+      },
+      {
+        name: 'Empty line',
+        input: '',
+        expected: ''
+      },
+      {
+        name: 'Multi-line DSL',
+        input: `TYPE "Hello"
+enter
+TYPE "World"`,
+        expected: `fixture.type('Hello');
+fixture.press(Key.Enter).once();
+fixture.type('World');`
+      },
+      {
+        name: 'JavaScript interweaving: DSL with expect',
+        input: `TYPE "Hello"
+expect(fixture).toHaveLines('Hello');`,
+        expected: `fixture.type('Hello');
+expect(fixture).toHaveLines('Hello');`
+      },
+      {
+        name: 'JavaScript interweaving: variable declaration',
+        input: `TYPE "Test"
+const text = fixture.wb.Model.lines[0];
+expect(text).toBe('Test');`,
+        expected: `fixture.type('Test');
+const text = fixture.wb.Model.lines[0];
+expect(text).toBe('Test');`
+      },
+      {
+        name: 'JavaScript interweaving: selection check',
+        input: `TYPE "Hello"
+left 3 times with shift
+const [start, end] = fixture.wb.Selection.ordered;
+expect(start).toEqual({ row: 0, col: 2 });
+expect(end).toEqual({ row: 0, col: 5 });`,
+        expected: `fixture.type('Hello');
+fixture.press(Key.ArrowLeft).withShiftKey().times(3);
+const [start, end] = fixture.wb.Selection.ordered;
+expect(start).toEqual({ row: 0, col: 2 });
+expect(end).toEqual({ row: 0, col: 5 });`
+      },
+      {
+        name: 'JavaScript interweaving: with empty lines',
+        input: `TYPE "Hello"
+
+const text = fixture.wb.Model.lines[0];
+expect(text).toBe('Hello');
+
+backspace 5 times
+
+expect(fixture).toHaveLines('');`,
+        expected: `fixture.type('Hello');
+
+const text = fixture.wb.Model.lines[0];
+expect(text).toBe('Hello');
+
+fixture.press(Key.Backspace).times(5);
+
+expect(fixture).toHaveLines('');`
+      },
+      {
+        name: 'JavaScript interweaving: multi-line editing with checks',
+        input: `TYPE "First"
+enter
+TYPE "Second"
+expect(fixture).toHaveLines('First', 'Second');
+up
+TYPE " Line"
+expect(fixture).toHaveLines('First Line', 'Second');`,
+        expected: `fixture.type('First');
+fixture.press(Key.Enter).once();
+fixture.type('Second');
+expect(fixture).toHaveLines('First', 'Second');
+fixture.press(Key.ArrowUp).once();
+fixture.type(' Line');
+expect(fixture).toHaveLines('First Line', 'Second');`
+      },
+      {
+        name: 'JavaScript interweaving: complex selection scenario',
+        input: `TYPE "Hello World"
+left with meta
+right 5 times with shift
+expect(fixture.wb.Selection.isSelection).toBe(true);
+TYPE "X"
+expect(fixture.wb.Selection.isSelection).toBe(false);
+expect(fixture).toHaveLines('XWorld');`,
+        expected: `fixture.type('Hello World');
+fixture.press(Key.ArrowLeft).withMetaKey().once();
+fixture.press(Key.ArrowRight).withShiftKey().times(5);
+expect(fixture.wb.Selection.isSelection).toBe(true);
+fixture.type('X');
+expect(fixture.wb.Selection.isSelection).toBe(false);
+expect(fixture).toHaveLines('XWorld');`
+      }
+    ];
+
+    const resultsDiv = document.getElementById('test-results');
+
+    tests.forEach(test => {
+      const div = document.createElement('div');
+      div.className = 'test-case';
+
+      let output, passed, error;
+      try {
+        output = transpiler.transpile(test.input);
+        passed = output === test.expected;
+      } catch (e) {
+        passed = false;
+        error = e.message;
+      }
+
+      div.innerHTML = `
+        <h3>${test.name} <span class="${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'}</span></h3>
+        <div><strong>Input:</strong></div>
+        <pre>${test.input || '(empty)'}</pre>
+        <div><strong>Expected:</strong></div>
+        <pre>${test.expected || '(empty)'}</pre>
+        <div><strong>Output:</strong></div>
+        <pre>${error ? `Error: ${error}` : output || '(empty)'}</pre>
+      `;
+
+      resultsDiv.appendChild(div);
+    });
+  </script>
+</body>
+</html>

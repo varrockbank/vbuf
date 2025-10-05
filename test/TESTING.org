@@ -6,11 +6,30 @@ WarrenBuf uses a native browser-based test suite with no dependencies on Jest or
 
 Open ~test.html~ in your browser. Tests run automatically on page load.
 
+* Interactive Walkthrough
+
+Each test includes a *Walkthrough* button that opens an interactive step-by-step debugger:
+
+- *Left panel*: Test source code with inline step markers and expect highlighting
+- *Right panel*: Live WarrenBuf editor showing the test execution
+- *Step navigation*: Previous/Next buttons to replay test actions one at a time
+
+** How it works
+
+1. Click the "Walkthrough" button on any test
+2. Use Next/Previous buttons to step through the test execution
+3. Watch the editor state update in real-time on the right panel
+4. Expect statements are highlighted green (✓) or red (✗) as you step past them
+5. Step markers (1, 2, 3...) show which walkthrough step maps to which code line
+
+The walkthrough replays the exact same actions recorded during the test run, providing a visual debugging experience.
+
 * Directory Structure
 
-- *test.html* - Test runner UI with results display
+- *test.html* - Test runner UI with results display and interactive walkthrough panel
 - *test-framework.js* - Domain-agnostic test library with ~describe~, ~it~, ~xit~, ~expect~
-- *dsl.js* - Fixture to (1) isolate test state and (2) literate DSL for user actions. 
+- *harness.js* - Test harness providing (1) literate DSL for user actions and (2) step recording for walkthrough replay
+- *expect.js* - Assertion matchers with special support for EditorTestHarness
 - *test.spec.js* - All test definitions
 
 * Writing Tests
@@ -22,7 +41,7 @@ runner.describe('Feature Name', () => {
   let fixture;
 
   runner.beforeEach(() => {
-    fixture = new EditorFixture();
+    fixture = new EditorTestHarness();
   });
 
   runner.it('should do something', () => {
@@ -36,15 +55,21 @@ runner.describe('Feature Name', () => {
 
 ** Test Isolation
 
-Each test gets a *fresh DOM node and WarrenBuf instance* via ~new EditorFixture()~. This ensures proper test isolation with no state leakage between tests.
+Each test gets a *fresh DOM node and WarrenBuf instance* via ~new EditorTestHarness()~. This ensures proper test isolation with no state leakage between tests.
 
-** EditorFixture & Literate DSL
+** EditorTestHarness & Literate DSL
 
-The test fixture provides a literate, chainable DSL that reads like user actions:
+The test harness serves three purposes:
+
+1. *Test isolation* - Provides an isolated editor instance (DOM node + WarrenBuf) for each test
+2. *Test execution* - Drives the editor with a literate DSL for user actions
+3. *Step recording* - Captures all actions as metadata for interactive walkthrough replay
+
+The harness provides a literate, chainable DSL that reads like user actions:
 
 #+begin_src javascript
-// Create fixture
-const fixture = new EditorFixture();
+// Create harness
+const fixture = new EditorTestHarness();
 
 // Access WarrenBuf instance and DOM node
 fixture.wb    // WarrenBuf instance
@@ -61,6 +86,8 @@ fixture.press(Key.ArrowRight).withShiftKey().once();
 fixture.press(Key.ArrowDown).withShiftKey().withMetaKey().once();
 fixture.press(' ').once();  // Single character key
 #+end_src
+
+All actions are automatically recorded to ~fixture.steps~ as metadata, enabling step-by-step replay in the interactive walkthrough UI.
 
 ** Available Key Constants
 
