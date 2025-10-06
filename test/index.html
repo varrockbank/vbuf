@@ -249,6 +249,142 @@
             border-color: #007acc;
         }
 
+        .editor-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            background-color: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .editor-wrapper:focus-within {
+            border-color: #007acc;
+        }
+
+        .line-numbers {
+            background-color: #252526;
+            color: #858585;
+            padding: 1rem 0.75rem 1rem 1rem;
+            text-align: right;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            user-select: none;
+            white-space: pre;
+            border-right: 1px solid #3e3e42;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .editor-wrapper textarea {
+            border: none;
+            border-radius: 0;
+            flex: 1;
+        }
+
+        .editor-wrapper textarea:focus {
+            border: none;
+            outline: none;
+        }
+
+        .dsl-editor-container {
+            flex: 1;
+            position: relative;
+            background-color: #1e1e1e;
+            overflow: hidden;
+        }
+
+        .dsl-editor-textarea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            margin: 0;
+            border: none;
+            background: transparent;
+            color: transparent;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+            overflow-y: auto;
+            z-index: 2;
+            caret-color: #d4d4d4;
+        }
+
+        .dsl-editor-textarea::selection {
+            background: rgba(237, 173, 16, 0.3);
+        }
+
+        .dsl-editor-textarea::placeholder {
+            color: #858585;
+        }
+
+        .dsl-editor-highlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            margin: 0;
+            border: none;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* DSL Syntax Highlighting */
+        .dsl-keyword {
+            color: #FFB74D;
+            font-weight: 600;
+        }
+
+        .dsl-string {
+            color: #64B5F6;
+        }
+
+        .dsl-number {
+            color: #64B5F6;
+        }
+
+        .dsl-modifier {
+            color: #F48FB1;
+        }
+
+        .dsl-quantifier {
+            color: #9575CD;
+        }
+
+        .dsl-special-key {
+            color: #64B5F6;
+        }
+
+        .dsl-comment {
+            color: #6A9955;
+            font-style: italic;
+        }
+
+        .dsl-javascript {
+            color: #d4d4d4;
+        }
+
         #js-output {
             width: 100%;
             height: 100%;
@@ -920,9 +1056,9 @@
                     <div class="summary-number" style="color: #f44336" id="failed-tests">0</div>
                     <div class="summary-label">Failed</div>
                 </div>
-                <div class="summary-item" id="compile-errors-summary" style="display: none;">
+                <div class="summary-item" id="compile-errors-summary">
                     <div class="summary-number" style="color: #daa520" id="compile-error-tests">0</div>
-                    <div class="summary-label">Compile Errors</div>
+                    <div class="summary-label">with compile errors</div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-number" style="color: #757575" id="skipped-tests">0</div>
@@ -965,7 +1101,13 @@
                     </div>
                 </div>
                 <div class="pane-content">
-                    <textarea id="dsl-content" placeholder="Loading DSL content..."></textarea>
+                    <div class="editor-wrapper">
+                        <div class="line-numbers" id="dsl-line-numbers">1</div>
+                        <div class="dsl-editor-container">
+                            <div id="dsl-highlight" class="dsl-editor-highlight"></div>
+                            <textarea id="dsl-content" class="dsl-editor-textarea" spellcheck="false" placeholder="Loading DSL content..."></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="pane">
@@ -987,27 +1129,27 @@
             <div style="width: 100%; flex: 1; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 14px; line-height: 1.6; background: #1e1e1e; color: #d4d4d4; overflow-y: auto; white-space: pre;">## DSL Grammar (v4.2.0)
 <span style="color: #81C784;">&lt;command&gt;</span>          ::= <span style="color: #81C784;">&lt;press-command&gt;</span> | <span style="color: #81C784;">&lt;type&gt;</span> | <span style="color: #81C784;">&lt;expect-cursor&gt;</span> | <span style="color: #81C784;">&lt;expect-selection&gt;</span>
 <span style="color: #81C784;">&lt;type&gt;</span>             ::= <span style="color: #FFB74D;">TYPE</span> <span style="color: #64B5F6;">"text"</span>
-<span style="color: #81C784;">&lt;press-command&gt;</span>    ::= <span style="color: #81C784;">&lt;press&gt;</span> <span style="color: #9575CD;">[quantification]</span> [<span style="color: #F48FB1;">with</span> <span style="color: #F48FB1;">&lt;modifiers&gt;</span>]
-                     | <span style="color: #81C784;">&lt;press&gt;</span> [<span style="color: #F48FB1;">with</span> <span style="color: #F48FB1;">&lt;modifiers&gt;</span>] <span style="color: #9575CD;">[quantification]</span>
+<span style="color: #81C784;">&lt;press-command&gt;</span>    ::= <span style="color: #81C784;">&lt;press&gt;</span> <span style="color: #9575CD;">[quantification]</span> [<span style="color: #FFB74D;">with</span> <span style="color: #64B5F6;">&lt;modifiers&gt;</span>]
+                     | <span style="color: #81C784;">&lt;press&gt;</span> [<span style="color: #FFB74D;">with</span> <span style="color: #64B5F6;">&lt;modifiers&gt;</span>] <span style="color: #9575CD;">[quantification]</span>
 <span style="color: #81C784;">&lt;press&gt;</span>            ::= <span style="color: #FFB74D;">PRESS</span> (<span style="color: #81C784;">&lt;char&gt;</span> | <span style="color: #81C784;">&lt;special-key&gt;</span>) | <span style="color: #81C784;">&lt;special-key&gt;</span>
-<span style="color: #81C784;">&lt;expect-cursor&gt;</span>    ::= <span style="color: #FFB74D;">EXPECT cursor at</span> <span style="color: #64B5F6;">&lt;row&gt;</span><span style="opacity: 0.6;">,</span><span style="color: #64B5F6;">&lt;col&gt;</span>
-<span style="color: #81C784;">&lt;expect-selection&gt;</span> ::= <span style="color: #FFB74D;">EXPECT selection at</span> <span style="color: #64B5F6;">&lt;startRow&gt;</span><span style="opacity: 0.6;">,</span><span style="color: #64B5F6;">&lt;startCol&gt;</span><span style="opacity: 0.6;">-</span><span style="color: #64B5F6;">&lt;endRow&gt;</span><span style="opacity: 0.6;">,</span><span style="color: #64B5F6;">&lt;endCol&gt;</span>
+<span style="color: #81C784;">&lt;expect-cursor&gt;</span>    ::= <span style="color: #FFB74D;">EXPECT</span> <span style="color: #9575CD;">cursor</span> <span style="color: #FFB74D;">at</span> <span style="color: #9575CD;">&lt;row&gt;</span><span style="opacity: 0.6;">,</span><span style="color: #9575CD;">&lt;col&gt;</span>
+<span style="color: #81C784;">&lt;expect-selection&gt;</span> ::= <span style="color: #FFB74D;">EXPECT</span> <span style="color: #9575CD;">selection</span> <span style="color: #FFB74D;">at</span> <span style="color: #9575CD;">&lt;startRow&gt;</span><span style="opacity: 0.6;">,</span><span style="color: #9575CD;">&lt;startCol&gt;</span><span style="opacity: 0.6;">-</span><span style="color: #9575CD;">&lt;endRow&gt;</span><span style="opacity: 0.6;">,</span><span style="color: #9575CD;">&lt;endCol&gt;</span>
 <span style="color: #81C784;">&lt;char&gt;</span>             ::= <span style="color: #64B5F6;">a</span> | <span style="color: #64B5F6;">" "</span> | <span style="color: #64B5F6;">';'</span> | ...
 <span style="color: #81C784;">&lt;special-key&gt;</span>      ::= <span style="color: #64B5F6;">backspace</span> | <span style="color: #64B5F6;">enter</span> | <span style="color: #64B5F6;">left</span> | <span style="color: #64B5F6;">right</span> | <span style="color: #64B5F6;">up</span> | <span style="color: #64B5F6;">down</span>
 <span style="color: #81C784;">&lt;quantification&gt;</span>   ::= <span style="color: #9575CD;">once</span> | <span style="color: #9575CD;">N time(s)</span> <span style="opacity: 0.6;">(default: once)</span>
-<span style="color: #81C784;">&lt;modifiers&gt;</span>        ::= <span style="color: #F48FB1;">shift</span> | <span style="color: #F48FB1;">meta</span> | <span style="color: #F48FB1;">meta, shift</span>
+<span style="color: #81C784;">&lt;modifiers&gt;</span>        ::= <span style="color: #64B5F6;">shift</span> | <span style="color: #64B5F6;">meta</span> | <span style="color: #64B5F6;">meta, shift</span>
 
-### Examples in Normalized Form <span style="color: #4CAF50;">→</span>  Transpilation
+### Examples in Normalized Form <span style="color: #4CAF50;">  →</span>  Transpilation
 <span style="color: #FFB74D;">TYPE</span> <span style="color: #64B5F6;">"Hello"</span>                      <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">type</span>(<span style="color: #64B5F6;">'Hello'</span>);
 <span style="color: #FFB74D;">PRESS</span> <span style="color: #64B5F6;">a</span> <span style="color: #9575CD;">once</span>                      <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">'a'</span>).<span style="color: #9575CD;">once()</span>;
 <span style="color: #FFB74D;">PRESS</span> <span style="color: #64B5F6;">";"</span>                         <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">';'</span>).<span style="color: #9575CD;">once()</span>;
 <span style="color: #FFB74D;">PRESS</span> <span style="color: #64B5F6;">' '</span>                         <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">' '</span>).<span style="color: #9575CD;">times(1)</span>;
 <span style="color: #64B5F6;">enter</span> <span style="color: #9575CD;">1 time</span>                      <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">Key.Enter</span>).<span style="color: #9575CD;">once()</span>;
 <span style="color: #64B5F6;">backspace</span>                         <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">Key.Backspace</span>).<span style="color: #9575CD;">times(3)</span>;
-<span style="color: #64B5F6;">left</span> <span style="color: #9575CD;">3 times</span> <span style="color: #F48FB1;">with meta</span>            <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">Key.ArrowLeft</span>).<span style="color: #F48FB1;">withMetaKey()</span>.<span style="color: #9575CD;">once()</span>;
-<span style="color: #64B5F6;">right</span> <span style="color: #F48FB1;">with meta, shift</span>            <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">Key.ArrowRight</span>).<span style="color: #F48FB1;">withMetaKey()</span>.<span style="color: #F48FB1;">withShiftKey()</span>.<span style="color: #9575CD;">once()</span>;
-<span style="color: #FFB74D;">EXPECT cursor at</span> <span style="color: #64B5F6;">0,5</span>              <span style="color: #4CAF50;">→</span>  expect(fixture).<span style="color: #FFB74D;">toHaveCursorAt</span>(<span style="color: #64B5F6;">0</span>, <span style="color: #64B5F6;">5</span>);
-<span style="color: #FFB74D;">EXPECT selection at</span> <span style="color: #64B5F6;">1,2-4,5</span>       <span style="color: #4CAF50;">→</span>  expect(fixture).<span style="color: #FFB74D;">toHaveSelectionAt</span>(<span style="color: #64B5F6;">1</span>, <span style="color: #64B5F6;">2</span>, <span style="color: #64B5F6;">4</span>, <span style="color: #64B5F6;">5</span>);
+<span style="color: #64B5F6;">left</span> <span style="color: #9575CD;">3 times</span> <span style="color: #FFB74D;">with</span> <span style="color: #64B5F6;">meta</span>            <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">Key.ArrowLeft</span>).<span style="color: #64B5F6;">withMetaKey()</span>.<span style="color: #9575CD;">once()</span>;
+<span style="color: #64B5F6;">right</span> <span style="color: #FFB74D;">with</span> <span style="color: #64B5F6;">meta</span>, <span style="color: #64B5F6;">shift</span>            <span style="color: #4CAF50;">→</span>  fixture.<span style="color: #FFB74D;">press</span>(<span style="color: #64B5F6;">Key.ArrowRight</span>).<span style="color: #64B5F6;">withMetaKey()</span>.<span style="color: #64B5F6;">withShiftKey()</span>.<span style="color: #9575CD;">once()</span>;
+<span style="color: #FFB74D;">EXPECT</span> <span style="color: #9575CD;">cursor</span> <span style="color: #FFB74D;">at</span> <span style="color: #9575CD;">0,5</span>              <span style="color: #4CAF50;">→</span>  <span style="color: #FFB74D;">expect</span>(fixture).<span style="color: #9575CD;">toHaveCursorAt</span>(<span style="color: #9575CD;">0</span>, <span style="color: #9575CD;">5</span>);
+<span style="color: #FFB74D;">EXPECT</span> <span style="color: #9575CD;">selection</span> <span style="color: #FFB74D;">at</span> <span style="color: #9575CD;">1,2-4,5</span>       <span style="color: #4CAF50;">→</span>  <span style="color: #FFB74D;">expect</span>(fixture).<span style="color: #9575CD;">toHaveSelectionAt</span>(<span style="color: #9575CD;">1</span>, <span style="color: #9575CD;">2</span>, <span style="color: #9575CD;">4</span>, <span style="color: #9575CD;">5</span>);
 
 <span style="opacity: 0.7;">JavaScript pass-through for lines ending with ";", starting with "//" and empty lines:</span>
 expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect(3+5).toBe(8);
@@ -1085,6 +1227,90 @@ expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect
     <script src="./dsl/generate-spec.js"></script>
 
     <script>
+        // DSL Syntax Highlighter
+        function highlightDSL(code) {
+            const lines = code.split('\n');
+            const highlightedLines = lines.map((line, index) => {
+                // Empty lines - just return empty string, browser will handle line breaks
+                if (line.trim() === '') {
+                    return '';
+                }
+
+                // Comment lines starting with #, ##, ###, etc.
+                if (line.trim().startsWith('#')) {
+                    return `<span class="dsl-comment">${escapeHtml(line)}</span>`;
+                }
+
+                // JavaScript pass-through (ends with ; or starts with //)
+                if (line.trim().endsWith(';') || line.trim().startsWith('//')) {
+                    return `<span class="dsl-javascript">${escapeHtml(line)}</span>`;
+                }
+
+                // Use placeholder approach to avoid nested replacements
+                let text = escapeHtml(line);
+                const strings = [];
+                const quantifiers = [];
+
+                // Extract strings and replace with placeholders
+                text = text.replace(/"([^"]*)"/g, (match, content) => {
+                    const index = strings.length;
+                    strings.push(`<span class="dsl-string">"${content}"</span>`);
+                    return `__STRING${index}__`;
+                });
+
+                // Extract quantifiers and replace with placeholders (before numbers get highlighted)
+                text = text.replace(/\b(once)\b/g, (match) => {
+                    const index = quantifiers.length;
+                    quantifiers.push(`<span class="dsl-quantifier">${match}</span>`);
+                    return `__QUANT${index}__`;
+                });
+                text = text.replace(/\b(\d+\s+times?)\b/g, (match) => {
+                    const index = quantifiers.length;
+                    quantifiers.push(`<span class="dsl-quantifier">${match}</span>`);
+                    return `__QUANT${index}__`;
+                });
+
+                // Now do all other replacements on text without strings or quantifiers
+                // Keywords: TYPE, PRESS, EXPECT, at, with
+                text = text.replace(/\b(TYPE|PRESS|EXPECT|at|with)\b/g, '<span class="dsl-keyword">$1</span>');
+
+                // Special keys (movement keys)
+                text = text.replace(/\b(backspace|enter|left|right|up|down)\b/g, '<span class="dsl-special-key">$1</span>');
+
+                // Single character literals (like "a" in "PRESS a")
+                text = text.replace(/\b([a-zA-Z])\b/g, '<span class="dsl-special-key">$1</span>');
+
+                // Modifiers: shift, meta (blue like special keys)
+                text = text.replace(/\b(shift|meta)\b/g, '<span class="dsl-special-key">$1</span>');
+
+                // EXPECT targets: cursor, selection (purple like quantifiers)
+                text = text.replace(/\b(cursor|selection)\b/g, '<span class="dsl-quantifier">$1</span>');
+
+                // Numbers (standalone, not part of quantifiers) - also purple for coordinates
+                text = text.replace(/\b(\d+)\b/g, '<span class="dsl-quantifier">$1</span>');
+
+                // Restore quantifiers from placeholders
+                text = text.replace(/__QUANT(\d+)__/g, (match, index) => {
+                    return quantifiers[parseInt(index)];
+                });
+
+                // Restore strings from placeholders
+                text = text.replace(/__STRING(\d+)__/g, (match, index) => {
+                    return strings[parseInt(index)];
+                });
+
+                return text;
+            });
+
+            return highlightedLines.join('\n');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Tab switching
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -1121,6 +1347,7 @@ expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect
         const transpiler = new DSLTranspiler();
         const generator = new SpecGenerator(transpiler);
         const textarea = document.getElementById('dsl-content');
+        const highlightDiv = document.getElementById('dsl-highlight');
         const outputDiv = document.getElementById('js-output');
         const generateBtn = document.getElementById('generate-btn');
         const statusUpToDate = document.getElementById('status-uptodate');
@@ -1130,8 +1357,24 @@ expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect
         let lastCompileHadErrors = false;
         let lastCompileErrors = [];
 
+        // Helper functions for overlay editor
+        function getEditorContent() {
+            return textarea.value || '';
+        }
+
+        function setEditorContent(text) {
+            textarea.value = text;
+            updateHighlighting();
+        }
+
+        function updateHighlighting() {
+            const text = textarea.value;
+            const highlighted = highlightDSL(text);
+            highlightDiv.innerHTML = highlighted || '';
+        }
+
         function updateUIState() {
-            const currentSource = textarea.value;
+            const currentSource = getEditorContent();
             const isUpToDate = currentSource === lastGeneratedSource;
 
             generateBtn.disabled = isUpToDate;
@@ -1150,7 +1393,7 @@ expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect
         }
 
         function transpileDSL() {
-            const dslSource = textarea.value;
+            const dslSource = getEditorContent();
             const errorWarning = document.getElementById('error-warning');
             const errorWarningText = document.querySelector('.error-warning-text');
             const errorsModalContent = document.getElementById('compile-errors-content');
@@ -1184,13 +1427,14 @@ expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect
                     let errorHtml = '';
                     errors.forEach(err => {
                         const locationInfo = err.suite
-                            ? `Suite: ${err.suite}${err.test ? ' → Test: ' + err.test : ''}`
+                            ? `Line ${err.line} @ Suite: "${err.suite}"${err.test ? ' → Test: "' + err.test + '"' : ''}`
                             : 'Line ' + err.line;
                         errorHtml += `
                             <div class="error-item">
-                                <div class="error-location">${locationInfo} (line ${err.line})</div>
+                                <div class="error-location">${locationInfo}</div>
                                 <div class="error-code">${err.code}</div>
-                                <div class="error-message">${err.message}</div>
+                                <div class="error-message">Omitted because it caused error:</div>
+                                <div class="error-code">${err.message}</div>
                             </div>
                         `;
                     });
@@ -1253,13 +1497,15 @@ expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect
                 }
 
                 const content = await response.text();
-                textarea.value = content;
+                setEditorContent(content);
+                updateLineNumbers();
                 transpileDSL();
 
                 // Run tests after loading and transpiling
                 await runAllTests();
             } catch (error) {
-                textarea.value = `Error loading DSL file: ${error.message}`;
+                setEditorContent(`Error loading DSL file: ${error.message}`);
+                updateLineNumbers();
                 console.error('Error loading DSL:', error);
             }
         }
@@ -1271,8 +1517,28 @@ expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect
             testsCompiledSinceLastView = true;
         });
 
-        // Check for changes on input
-        textarea.addEventListener('input', updateUIState);
+        // Update line numbers
+        function updateLineNumbers() {
+            const lineNumbersDiv = document.getElementById('dsl-line-numbers');
+            const lines = getEditorContent().split('\n');
+            const lineCount = lines.length;
+            lineNumbersDiv.innerHTML = Array.from({ length: lineCount }, (_, i) => i + 1).join('\n');
+        }
+
+        // Sync scroll between textarea, highlight div, and line numbers
+        textarea.addEventListener('scroll', () => {
+            const lineNumbersDiv = document.getElementById('dsl-line-numbers');
+            lineNumbersDiv.scrollTop = textarea.scrollTop;
+            highlightDiv.scrollTop = textarea.scrollTop;
+            highlightDiv.scrollLeft = textarea.scrollLeft;
+        });
+
+        // Handle input events - update highlighting in real-time
+        textarea.addEventListener('input', () => {
+            updateUIState();
+            updateLineNumbers();
+            updateHighlighting();
+        });
 
         // Load DSL when page loads
         window.addEventListener('DOMContentLoaded', loadDSL);
@@ -1403,10 +1669,9 @@ expect(3+5).toBe(8);            <span style="color: #4CAF50;">→</span>  expect
 
                     const uniqueTestCount = testsWithErrors.size;
                     compileErrorTestsCount.textContent = uniqueTestCount;
-                    compileErrorsSummary.style.display = 'flex';
                     testErrorWarning.style.display = 'flex';
                 } else {
-                    compileErrorsSummary.style.display = 'none';
+                    compileErrorTestsCount.textContent = '0';
                     testErrorWarning.style.display = 'none';
                 }
             } catch (error) {

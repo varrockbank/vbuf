@@ -195,13 +195,17 @@ class Walkthrough {
       }
 
       dslCodeView.innerHTML = dslLines.map((line, idx) => {
-        const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // Apply DSL syntax highlighting if available
+        const highlighted = typeof highlightDSL !== 'undefined'
+          ? highlightDSL(line)
+          : line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
         const stepNum = lineToDslStep.get(idx);
         const isError = idx === errorDslLineIndex;
         const isStep = stepNum !== undefined;
 
         let className = 'code-line';
-        let content = escaped || '&nbsp;';
+        let content = highlighted || '&nbsp;';
 
         if (isError) {
           className += ' error-line';
@@ -382,6 +386,11 @@ class Walkthrough {
 
         const onclick = isStepLine ? `onclick="walkthrough.jumpToStep(${stepNum})"` : '';
 
+        // Apply DSL syntax highlighting if available
+        const highlighted = typeof highlightDSL !== 'undefined'
+          ? highlightDSL(line)
+          : escapeHtml(line);
+
         let leftMarker = '';
         let rightMarker = '';
         if (isStepLine) {
@@ -393,7 +402,7 @@ class Walkthrough {
           rightMarker += `<span class="success-marker">✓</span>`;
         }
 
-        return `<div class="${classes}" data-step="${stepNum ?? ''}" ${onclick}>${leftMarker}${escapeHtml(line)}${rightMarker}</div>`;
+        return `<div class="${classes}" data-step="${stepNum ?? ''}" ${onclick}>${leftMarker}${highlighted}${rightMarker}</div>`;
       }).join('');
 
       dslCodeView.innerHTML = dslCodeHtml;

@@ -159,7 +159,7 @@ class SpecGenerator {
             // Include error as comment
             output.push(`    // Error transpiling: ${trimmed}`);
             output.push(`    // ${error.message}`);
-            currentTestDslLines.push(`// Error: ${trimmed}`);
+            currentTestDslLines.push(`// OMITTED DUE TO ERROR: ${trimmed}`);
             dslToJsLineMap.push(currentTestJsLineCount);
             currentTestJsLineCount += 2; // Error is 2 lines
           }
