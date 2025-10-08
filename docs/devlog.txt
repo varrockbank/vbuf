@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 2.3.0-alpha.1 [2025-10-1]
+*** ✨ API 
+- Accept a configuration object for instantion 
+
 ** 2.2.5-alpha.1 [2025-10-1]
 *** 🐞 Bug Fixes
 - Editor was falsely initialized to a selection

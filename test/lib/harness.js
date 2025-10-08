@@ -78,7 +78,7 @@ function createEditorNode() {
 class EditorTestHarness {
   constructor(node, size = 10) {
     this.node = node;
-    this.wb = new WarrenBuf(node, null, null, size);
+    this.wb = new WarrenBuf(node, { initialViewportSize: size });
     this.walkthrough = new Walkthrough();
 
     // Store reference for test framework

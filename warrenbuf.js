@@ -1,15 +1,21 @@
-function WarrenBuf(node,
+function WarrenBuf(node, config = {}) {
+  this.version = "2.2.6-alpha.1";
+
+  // Extract configuration with defaults
+  const {
     treeSitterParser = null,
     treeSitterQuery = null,
     initialViewportSize = 20,
     lineHeight = 24,
-    editorPaddingPX = 4 ,
+    editorPaddingPX = 4,
     indentation = 4,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026",
-    gutterSize = 2,
-    gutterPadding = 1) {
-  this.version = "2.2.5-alpha.1";
+    gutterSize: initialGutterSize = 2,
+    gutterPadding = 1
+  } = config;
+
+  let gutterSize = initialGutterSize;
 
   const $e = node.querySelector('.wb-lines');
   Object.assign($e.style, {
