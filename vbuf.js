@@ -415,6 +415,73 @@ function Vbuf(node, config = {}) {
     }
   };
 
+  // TUI Mode: A mode for building terminal UIs where editing is disabled
+  // and elements can be placed at coordinates
+  let tuiModeEnabled = false;
+  let tuiElementIdCounter = 0;
+  const tuiElements = [];  // Array of {id, row, col, content, highlighted}
+
+  const TUI = {
+    get enabled() { return tuiModeEnabled; },
+    set enabled(value) {
+      tuiModeEnabled = !!value;
+      render(true);
+    },
+
+    // Add an element at the specified coordinate
+    // Returns the element id for later reference
+    addElement({ row, col, content }) {
+      const id = ++tuiElementIdCounter;
+      const element = { id, row, col, content, highlighted: false };
+      tuiElements.push(element);
+      render(true);
+      return id;
+    },
+
+    // Remove an element by its id
+    removeElement(id) {
+      const index = tuiElements.findIndex(el => el.id === id);
+      if (index !== -1) {
+        tuiElements.splice(index, 1);
+        render(true);
+        return true;
+      }
+      return false;
+    },
+
+    // Get all elements
+    getElements() {
+      return tuiElements.map(el => ({ ...el }));
+    },
+
+    // Get element at a specific coordinate
+    getElementAt({ row, col }) {
+      return tuiElements.find(el => el.row === row && el.col === col) || null;
+    },
+
+    // Highlight all elements
+    highlightAll() {
+      for (const el of tuiElements) {
+        el.highlighted = true;
+      }
+      render(true);
+    },
+
+    // Unhighlight all elements
+    unhighlightAll() {
+      for (const el of tuiElements) {
+        el.highlighted = false;
+      }
+      render(true);
+    },
+
+    // Clear all elements
+    clear() {
+      tuiElements.length = 0;
+      render(true);
+    }
+  };
+
   const Model = {
     lines: [''],
    
@@ -809,6 +876,32 @@ function Vbuf(node, config = {}) {
       }
     }
 
+    // * BEGIN render TUI elements (text overwrite only, highlighting done later)
+    // Elements overwrite characters at their coordinates in textContent
+    if (tuiModeEnabled && tuiElements.length > 0) {
+      for (const el of tuiElements) {
+        const viewportRow = el.row - Viewport.start;
+        if (viewportRow >= 0 && viewportRow < Viewport.size) {
+          const $line = $e.children[viewportRow];
+          let text = $line.textContent || '';
+
+          // Pad with spaces if line is shorter than element position
+          while (text.length < el.col + el.content.length) {
+            text += ' ';
+          }
+
+          // Overwrite characters at element position
+          const before = text.slice(0, el.col);
+          const after = text.slice(el.col + el.content.length);
+          $line.textContent = before + el.content + after;
+        }
+      }
+    }
+    // * END render TUI elements (text)
+
+
+  
+
     // * BEGIN render selection
     // Hide all selections
     for (let i = 0; i < $selections.length; i++) {
@@ -857,16 +950,33 @@ function Vbuf(node, config = {}) {
     }
     // * END render selection
 
+    // * BEGIN render TUI element highlights (using $selections overlay)
+    // Note: This overwrites selection highlight if on same row - simplification for now
+    if (tuiModeEnabled && tuiElements.length > 0) {
+      for (const el of tuiElements) {
+        if (el.highlighted) {
+          const viewportRow = el.row - Viewport.start;
+          if (viewportRow >= 0 && viewportRow < Viewport.size) {
+            $selections[viewportRow].style.left = el.col + 'ch';
+            $selections[viewportRow].style.width = el.content.length + 'ch';
+            $selections[viewportRow].style.visibility = 'visible';
+          }
+        }
+      }
+    }
+    // * END render TUI element highlights
+
     // TODO: this is infrequently changed. Render it ad-hoc in the mutator method.
     $indentation.innerHTML = `Spaces: ${indentation}`;
 
     $statusLineCoord.innerHTML = `Ln ${Viewport.start + head.row + 1 }, Col ${tail.col + 1 }`;
-
+  
     return this;
   }
   this.Viewport = Viewport;
   this.Model = Model;
   this.Selection = Selection;
+  this.TUI = TUI;
   // TODO: Needs rework. This temporary for the file-loader log viewer. 
   this.appendLineAtEnd = (s) => {
     if(Model.lines[0] == '') {
@@ -963,7 +1073,7 @@ function Vbuf(node, config = {}) {
           Selection.moveCol(1);
         }
       }
-    } else if (Model.useChunkedMode) { // navigation-only in chunked mode.
+    } else if (Model.useChunkedMode || tuiModeEnabled) { // navigation-only in chunked mode and TUI mode.
       return;
     } else if (event.key === "Backspace") {
       Selection.delete();
