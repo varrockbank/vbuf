@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 5.1.0-alpha.1 [2025-12-9]
+*** ✨ New features
+- Prototype TUI API: support multiple buttons on a row
+
 ** 5.0.0-alpha.1 [2025-12-3]
 *** ✨ New Features
 - Prototype TUI API to add button elements and have them highlighted

@@ -57,8 +57,10 @@ function Vbuf(node, config = {}) {
   });
 
   const $selections = [];   // We place an invisible selection on each viewport line. We only display the active selection.
+  const $highlights = new Map();  // Map from viewport row to array of highlight elements for TUI
   const fragmentLines = document.createDocumentFragment();
   const fragmentSelections = document.createDocumentFragment();
+  const fragmentHighlights = document.createDocumentFragment();
   const fragmentGutters = document.createDocumentFragment();
 
   const detachedHead = { row : 0, col : 0};
@@ -420,6 +422,7 @@ function Vbuf(node, config = {}) {
   let tuiModeEnabled = false;
   let tuiElementIdCounter = 0;
   const tuiElements = [];  // Array of {id, row, col, content, highlighted}
+  const tuiElementsByRow = new Map();  // Map from row to array of elements
 
   const TUI = {
     get enabled() { return tuiModeEnabled; },
@@ -429,11 +432,30 @@ function Vbuf(node, config = {}) {
     },
 
     // Add an element at the specified coordinate
-    // Returns the element id for later reference
+    // Returns the element id, or throws if overlapping with existing element
     addElement({ row, col, content }) {
+      const newStart = col;
+      const newEnd = col + content.length;
+
+      // Check for overlaps on this row
+      const rowElements = tuiElementsByRow.get(row) || [];
+      for (const el of rowElements) {
+        const elEnd = el.col + el.content.length;
+        if (newStart < elEnd && newEnd > el.col) {
+          throw new Error(`Element overlaps with existing element at row ${row}, col ${el.col}`);
+        }
+      }
+
       const id = ++tuiElementIdCounter;
       const element = { id, row, col, content, highlighted: false };
       tuiElements.push(element);
+
+      // Add to row map
+      if (!tuiElementsByRow.has(row)) {
+        tuiElementsByRow.set(row, []);
+      }
+      tuiElementsByRow.get(row).push(element);
+
       render(true);
       return id;
     },
@@ -442,7 +464,21 @@ function Vbuf(node, config = {}) {
     removeElement(id) {
       const index = tuiElements.findIndex(el => el.id === id);
       if (index !== -1) {
+        const element = tuiElements[index];
         tuiElements.splice(index, 1);
+
+        // Remove from row map
+        const rowElements = tuiElementsByRow.get(element.row);
+        if (rowElements) {
+          const rowIndex = rowElements.findIndex(el => el.id === id);
+          if (rowIndex !== -1) {
+            rowElements.splice(rowIndex, 1);
+          }
+          if (rowElements.length === 0) {
+            tuiElementsByRow.delete(element.row);
+          }
+        }
+
         render(true);
         return true;
       }
@@ -478,6 +514,7 @@ function Vbuf(node, config = {}) {
     // Clear all elements
     clear() {
       tuiElements.length = 0;
+      tuiElementsByRow.clear();
       render(true);
     }
   };
@@ -785,6 +822,46 @@ function Vbuf(node, config = {}) {
     }
     $e.appendChild(fragmentSelections);
   }
+
+  // Create a highlight element for TUI at a specific viewport row
+  function createHighlightElement(viewportRow) {
+    const hl = document.createElement("div");
+    hl.className = "wb-highlight";
+    Object.assign(hl.style, {
+      display: 'block',
+      visibility: 'hidden',
+      width: '1ch',
+      height: lineHeight+'px',
+      fontSize: lineHeight+'px',
+      top: viewportRow * lineHeight+'px',
+      left: '0ch',
+      backgroundColor: '#EDAD10',
+      position: 'absolute',
+      mixBlendMode: 'difference'
+    });
+    return hl;
+  }
+
+  function populateHighlights() {
+    $highlights.clear();
+    for (let i = 0; i < Viewport.size; i++) {
+      const hl = createHighlightElement(i);
+      fragmentHighlights.appendChild(hl);
+      $highlights.set(i, [hl]);
+    }
+    $e.appendChild(fragmentHighlights);
+  }
+
+  // Add an extra highlight element for a viewport row (when multiple elements on same row)
+  function addHighlightForRow(viewportRow) {
+    const hl = createHighlightElement(viewportRow);
+    $e.appendChild(hl);
+    if (!$highlights.has(viewportRow)) {
+      $highlights.set(viewportRow, []);
+    }
+    $highlights.get(viewportRow).push(hl);
+    return hl;
+  }
   function render(renderLineContainers = false) {
     if (lastRender.lineCount !== Model.lastIndex + 1 ) {
       const lineCount = lastRender.lineCount = Model.lastIndex + 1;
@@ -807,7 +884,7 @@ function Vbuf(node, config = {}) {
 
     $gutter.appendChild(fragmentGutters);
 
-    // Renders the containers for the viewport lines, as well as selections
+    // Renders the containers for the viewport lines, as well as selections and highlights
     // TODO: can be made more efficient by only removing delta of selections
     if(renderLineContainers) {
       $e.textContent = null;
@@ -818,6 +895,13 @@ function Vbuf(node, config = {}) {
       // Remove all the selections
       while($selections.length > 0) $selections.pop().remove();
       populateSelections();
+
+      // Reset highlights (keep elements, just reinitialize the map)
+      for (const [_, hlArray] of $highlights) {
+        for (const hl of hlArray) hl.remove();
+      }
+      $highlights.clear();
+      populateHighlights();
     }
 
     // Update contents of line containers
@@ -950,17 +1034,49 @@ function Vbuf(node, config = {}) {
     }
     // * END render selection
 
-    // * BEGIN render TUI element highlights (using $selections overlay)
-    // Note: This overwrites selection highlight if on same row - simplification for now
+    // * BEGIN render TUI element highlights (using $highlights overlay)
+    // Hide all highlights
+    for (const [_, hlArray] of $highlights) {
+      for (const hl of hlArray) {
+        hl.style.visibility = 'hidden';
+      }
+    }
+
     if (tuiModeEnabled && tuiElements.length > 0) {
+      // Group highlighted elements by viewport row
+      const highlightedByRow = new Map();
       for (const el of tuiElements) {
         if (el.highlighted) {
           const viewportRow = el.row - Viewport.start;
           if (viewportRow >= 0 && viewportRow < Viewport.size) {
-            $selections[viewportRow].style.left = el.col + 'ch';
-            $selections[viewportRow].style.width = el.content.length + 'ch';
-            $selections[viewportRow].style.visibility = 'visible';
+            if (!highlightedByRow.has(viewportRow)) {
+              highlightedByRow.set(viewportRow, []);
+            }
+            highlightedByRow.get(viewportRow).push(el);
           }
+        }
+      }
+
+      // Render highlights, adding extra highlight elements if needed
+      for (const [viewportRow, elements] of highlightedByRow) {
+        let hlArray = $highlights.get(viewportRow);
+        if (!hlArray) {
+          hlArray = [];
+          $highlights.set(viewportRow, hlArray);
+        }
+
+        // Add more highlight elements if needed (never remove)
+        while (hlArray.length < elements.length) {
+          addHighlightForRow(viewportRow);
+        }
+
+        // Show highlights for each element
+        for (let i = 0; i < elements.length; i++) {
+          const el = elements[i];
+          const hl = hlArray[i];
+          hl.style.left = el.col + 'ch';
+          hl.style.width = el.content.length + 'ch';
+          hl.style.visibility = 'visible';
         }
       }
     }
