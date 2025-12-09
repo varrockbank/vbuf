@@ -645,8 +645,7 @@
 
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
       <button id="tui-toggle-btn">Enable TUI Mode</button>
-      <button id="tui-highlight-btn">Highlight All</button>
-      <button id="tui-unhighlight-btn">Unhighlight All</button>
+      <button id="tui-highlight-toggle-btn" class="hidden">Highlight All</button>
     </div>
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
       <label>Row:</label>
@@ -1538,25 +1537,31 @@
     tuiDemo.Model.text = Array(15).fill('').map((_, i) =>
       ' '.repeat(80)
     ).join('\n');
+    const tuiHighlightBtn = document.getElementById('tui-highlight-toggle-btn');
+    let tuiHighlighted = false;
+
     document.getElementById('tui-toggle-btn').addEventListener('click', () => {
       tuiDemo.TUI.enabled = !tuiDemo.TUI.enabled;
       document.getElementById('tui-toggle-btn').textContent = tuiDemo.TUI.enabled ? 'Disable TUI Mode' : 'Enable TUI Mode';
+      tuiHighlightBtn.classList.toggle('hidden', !tuiDemo.TUI.enabled);
     });
 
-    document.getElementById('tui-highlight-btn').addEventListener('click', () => {
-      tuiDemo.TUI.highlightAll();
-    });
-
-    document.getElementById('tui-unhighlight-btn').addEventListener('click', () => {
-      tuiDemo.TUI.unhighlightAll();
+    tuiHighlightBtn.addEventListener('click', () => {
+      tuiHighlighted = !tuiHighlighted;
+      if (tuiHighlighted) {
+        tuiDemo.TUI.highlightAll();
+        tuiHighlightBtn.textContent = 'Unhighlight All';
+      } else {
+        tuiDemo.TUI.unhighlightAll();
+        tuiHighlightBtn.textContent = 'Highlight All';
+      }
     });
 
     document.getElementById('tui-add-btn').addEventListener('click', () => {
-      const row = parseInt(document.getElementById('tui-row').value) || 5;
-      const col = parseInt(document.getElementById('tui-col').value) || 7;
+      const row = parseInt(document.getElementById('tui-row').value) || 0;
+      const col = parseInt(document.getElementById('tui-col').value) || 0;
       const content = document.getElementById('tui-content').value || 'Button';
       tuiDemo.TUI.addElement({ row, col, content });
-      updateTuiStatus();
     });
     // Expose for debugging
     window.tuiDemo = tuiDemo;
