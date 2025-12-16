@@ -1,5 +1,5 @@
 function Vbuf(node, config = {}) {
-  this.version = "5.4.2-alpha.1";
+  this.version = "5.4.3-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -427,7 +427,22 @@ function Vbuf(node, config = {}) {
 
   // Private: Add an element at the specified coordinate
   // Returns the element id, or throws if overlapping with existing element
-  function addElement({ type, row, col, width, height, contents, onActivate }) {
+  // width and height are derived from contents - all content lines must have same length
+  function addElement({ type, row, col, contents, onActivate }) {
+    if (!contents || contents.length === 0) {
+      throw new Error('Element must have at least one content line');
+    }
+
+    const height = contents.length;
+    const width = contents[0].length;
+
+    // Validate all lines have the same length
+    for (let i = 1; i < contents.length; i++) {
+      if (contents[i].length !== width) {
+        throw new Error(`Content line ${i} has length ${contents[i].length}, expected ${width}`);
+      }
+    }
+
     const newStart = col;
     const newEnd = col + width;
 
@@ -483,9 +498,9 @@ function Vbuf(node, config = {}) {
       if (border) {
         const line = '+' + '-'.repeat(label.length) + '+';
         const contents = [line, '|' + label + '|', line];
-        return addElement({ type: 'button', row, col, width: label.length + 2, height: 3, contents, onActivate });
+        return addElement({ type: 'button', row, col, contents, onActivate });
       } else {
-        return addElement({ type: 'button', row, col, width: label.length, height: 1, contents: [label], onActivate });
+        return addElement({ type: 'button', row, col, contents: [label], onActivate });
       }
     },
 
