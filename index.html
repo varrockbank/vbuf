@@ -1626,11 +1626,11 @@ const fileTemplate = `
         if (fileElementIds[fname]) {
           tuiDemo.TUI.removeElement(fileElementIds[fname]);
         }
-        const content = fname === name ? '> ' + fname : '  ' + fname;
-        fileElementIds[fname] = tuiDemo.TUI.addElement({
+        const label = fname === name ? '> ' + fname : '  ' + fname;
+        fileElementIds[fname] = tuiDemo.TUI.addButton({
           row: i + 3,
           col: 2,
-          content,
+          label,
           onActivate: () => loadFile(fname)
         });
       });
@@ -1692,8 +1692,8 @@ const fileTemplate = `
     document.getElementById('tui-add-btn').addEventListener('click', () => {
       const row = parseInt(document.getElementById('tui-row').value) || 0;
       const col = parseInt(document.getElementById('tui-col').value) || 0;
-      const content = document.getElementById('tui-content').value || 'Button';
-      tuiDemo.TUI.addElement({ row, col, content });
+      const label = document.getElementById('tui-content').value || 'Button';
+      tuiDemo.TUI.addButton({ row, col, label });
     });
 
     // Bind Tab to nextElement, Enter to activateElement in TUI mode

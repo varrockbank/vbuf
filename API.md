@@ -219,13 +219,17 @@ TUI mode places interactive elements at coordinates. Editing is disabled when en
 // Enable/disable
 editor.TUI.enabled = true;
 
-// Add element (returns ID)
-const id = editor.TUI.addElement({
+// Add button (returns ID)
+const id = editor.TUI.addButton({
   row: 5,           // Absolute row (0-indexed)
   col: 10,          // Column (0-indexed)
-  content: "[ Button ]",
+  label: "Button",
+  border: true,     // Optional: draws +--+ border around label
   onActivate: (el) => console.log("Clicked!", el)
 });
+
+// Add prompt (stub - not yet implemented)
+editor.TUI.addPrompt({ row, col, width, title, onActivate });
 
 // Remove
 editor.TUI.removeElement(id);

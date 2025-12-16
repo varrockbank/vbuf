@@ -1,5 +1,5 @@
 function Vbuf(node, config = {}) {
-  this.version = "5.4.0-alpha.1";
+  this.version = "5.4.2-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -422,8 +422,37 @@ function Vbuf(node, config = {}) {
   let tuiModeEnabled = false;
   let tuiElementIdCounter = 0;
   let tuiHighlightState = true;  // Global highlight state for new elements
-  const tuiElements = [];  // Array of {id, row, col, content, highlighted}
+  const tuiElements = [];  // Array of {id, type, row, col, width, height, contents, onActivate}
   const tuiElementsByRow = new Map();  // Map from row to array of elements
+
+  // Private: Add an element at the specified coordinate
+  // Returns the element id, or throws if overlapping with existing element
+  function addElement({ type, row, col, width, height, contents, onActivate }) {
+    const newStart = col;
+    const newEnd = col + width;
+
+    // Check for overlaps on this row
+    const rowElements = tuiElementsByRow.get(row) || [];
+    for (const el of rowElements) {
+      const elEnd = el.col + el.width;
+      if (newStart < elEnd && newEnd > el.col) {
+        throw new Error(`Element overlaps with existing element at row ${row}, col ${el.col}`);
+      }
+    }
+
+    const id = ++tuiElementIdCounter;
+    const element = { id, type, row, col, width, height, contents, onActivate: onActivate || null };
+    tuiElements.push(element);
+
+    // Add to row map
+    if (!tuiElementsByRow.has(row)) {
+      tuiElementsByRow.set(row, []);
+    }
+    tuiElementsByRow.get(row).push(element);
+
+    render(true);
+    return id;
+  }
 
   const TUI = {
     get enabled() { return tuiModeEnabled; },
@@ -449,34 +478,20 @@ function Vbuf(node, config = {}) {
       render(true);
     },
 
-    // Add an element at the specified coordinate
-    // Returns the element id, or throws if overlapping with existing element
-    // onActivate is an optional callback called when element is activated
-    addElement({ row, col, content, onActivate }) {
-      const newStart = col;
-      const newEnd = col + content.length;
-
-      // Check for overlaps on this row
-      const rowElements = tuiElementsByRow.get(row) || [];
-      for (const el of rowElements) {
-        const elEnd = el.col + el.content.length;
-        if (newStart < elEnd && newEnd > el.col) {
-          throw new Error(`Element overlaps with existing element at row ${row}, col ${el.col}`);
-        }
+    // Add a button element
+    addButton({ row, col, label, border, onActivate }) {
+      if (border) {
+        const line = '+' + '-'.repeat(label.length) + '+';
+        const contents = [line, '|' + label + '|', line];
+        return addElement({ type: 'button', row, col, width: label.length + 2, height: 3, contents, onActivate });
+      } else {
+        return addElement({ type: 'button', row, col, width: label.length, height: 1, contents: [label], onActivate });
       }
+    },
 
-      const id = ++tuiElementIdCounter;
-      const element = { id, row, col, content, onActivate: onActivate || null };
-      tuiElements.push(element);
-
-      // Add to row map
-      if (!tuiElementsByRow.has(row)) {
-        tuiElementsByRow.set(row, []);
-      }
-      tuiElementsByRow.get(row).push(element);
-
-      render(true);
-      return id;
+    // Add a prompt element (stub)
+    addPrompt({ row, col, width, title, onActivate }) {
+      // TODO: implement prompt element
     },
 
     // Remove an element by its id
@@ -557,7 +572,7 @@ function Vbuf(node, config = {}) {
       const cursorCol = head.col;
 
       for (const el of tuiElements) {
-        if (el.row === cursorRow && cursorCol >= el.col && cursorCol < el.col + el.content.length) {
+        if (el.row === cursorRow && cursorCol >= el.col && cursorCol < el.col + el.width) {
           return { ...el };
         }
       }
@@ -570,7 +585,7 @@ function Vbuf(node, config = {}) {
       const cursorCol = head.col;
 
       for (const el of tuiElements) {
-        if (el.row === cursorRow && cursorCol >= el.col && cursorCol < el.col + el.content.length) {
+        if (el.row === cursorRow && cursorCol >= el.col && cursorCol < el.col + el.width) {
           if (el.onActivate) {
             el.onActivate(el);
           }
@@ -1026,20 +1041,22 @@ function Vbuf(node, config = {}) {
     // Elements overwrite characters at their coordinates in textContent
     if (tuiModeEnabled && tuiElements.length > 0) {
       for (const el of tuiElements) {
-        const viewportRow = el.row - Viewport.start;
-        if (viewportRow >= 0 && viewportRow < Viewport.size) {
-          const $line = $e.children[viewportRow];
-          let text = $line.textContent || '';
+        for (let i = 0; i < el.contents.length; i++) {
+          const viewportRow = el.row + i - Viewport.start;
+          if (viewportRow >= 0 && viewportRow < Viewport.size) {
+            const $line = $e.children[viewportRow];
+            let text = $line.textContent || '';
 
-          // Pad with spaces if line is shorter than element position
-          while (text.length < el.col + el.content.length) {
-            text += ' ';
+            // Pad with spaces if line is shorter than element position
+            while (text.length < el.col + el.width) {
+              text += ' ';
+            }
+
+            // Overwrite characters at element position
+            const before = text.slice(0, el.col);
+            const after = text.slice(el.col + el.width);
+            $line.textContent = before + el.contents[i] + after;
           }
-
-          // Overwrite characters at element position
-          const before = text.slice(0, el.col);
-          const after = text.slice(el.col + el.content.length);
-          $line.textContent = before + el.content + after;
         }
       }
     }
@@ -1105,16 +1122,18 @@ function Vbuf(node, config = {}) {
     }
 
     if (tuiModeEnabled && tuiElements.length > 0) {
-      // Group highlighted elements by viewport row
+      // Group highlighted elements by viewport row (for each content line)
       const highlightedByRow = new Map();
       for (const el of tuiElements) {
         if (tuiHighlightState) {
-          const viewportRow = el.row - Viewport.start;
-          if (viewportRow >= 0 && viewportRow < Viewport.size) {
-            if (!highlightedByRow.has(viewportRow)) {
-              highlightedByRow.set(viewportRow, []);
+          for (let i = 0; i < el.contents.length; i++) {
+            const viewportRow = el.row + i - Viewport.start;
+            if (viewportRow >= 0 && viewportRow < Viewport.size) {
+              if (!highlightedByRow.has(viewportRow)) {
+                highlightedByRow.set(viewportRow, []);
+              }
+              highlightedByRow.get(viewportRow).push(el);
             }
-            highlightedByRow.get(viewportRow).push(el);
           }
         }
       }
@@ -1137,7 +1156,7 @@ function Vbuf(node, config = {}) {
           const el = elements[i];
           const hl = hlArray[i];
           hl.style.left = el.col + 'ch';
-          hl.style.width = el.content.length + 'ch';
+          hl.style.width = el.width + 'ch';
           hl.style.visibility = 'visible';
         }
       }

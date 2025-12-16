@@ -90,42 +90,34 @@
     });
 
     editor.Model.text = `
-╔══════════════════════════════╗
-║        MAIN MENU             ║
-╠══════════════════════════════╣
-║                              ║
-║      [ New Game ]            ║
-║                              ║
-║      [ Load Game ]           ║
-║                              ║
-║      [ Settings ]            ║
-║                              ║
-║      [ Exit ]                ║
-║                              ║
-╚══════════════════════════════╝
+        MAIN MENU
 `.trim();
 
-    editor.TUI.addElement({
-      row: 4, col: 6,
-      content: "[ New Game ]",
+    editor.TUI.addButton({
+      row: 2, col: 4,
+      label: " New Game ",
+      border: true,
       onActivate: () => { output.textContent = "Starting new game..."; }
     });
 
-    editor.TUI.addElement({
-      row: 6, col: 6,
-      content: "[ Load Game ]",
+    editor.TUI.addButton({
+      row: 6, col: 4,
+      label: " Load Game ",
+      border: true,
       onActivate: () => { output.textContent = "Loading saved game..."; }
     });
 
-    editor.TUI.addElement({
-      row: 8, col: 6,
-      content: "[ Settings ]",
+    editor.TUI.addButton({
+      row: 10, col: 4,
+      label: " Settings ",
+      border: true,
       onActivate: () => { output.textContent = "Opening settings..."; }
     });
 
-    editor.TUI.addElement({
-      row: 10, col: 6,
-      content: "[ Exit ]",
+    editor.TUI.addButton({
+      row: 14, col: 4,
+      label: " Exit ",
+      border: true,
       onActivate: () => { output.textContent = "Goodbye!"; }
     });
 
