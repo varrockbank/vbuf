@@ -108,7 +108,7 @@ For input fields and buttons:
 
 ### 7. Configuration Hints
 
-Always show the constructor and relevant API calls used. Show JS code line by line:
+Always show the **exact** constructor and API calls used in the sample with **actual values**, not generic parameter names. Show JS code line by line:
 
 ```html
 <p class="text-neutral-500 text-xs">JS:</p>
@@ -117,14 +117,17 @@ Always show the constructor and relevant API calls used. Show JS code line by li
 </p>
 ```
 
-For multiple lines of JS:
+For multiple lines of JS, use the exact values from the sample:
 ```html
 <p class="text-neutral-500 text-xs">JS:</p>
-<p class="text-neutral-500 text-xs"><code class="text-green-400">new Vbuf(el, { initialViewportSize: 18, showGutter: false })</code></p>
-<p class="text-neutral-500 text-xs"><code class="text-green-400">TUI.addButton({ row, col, label, border: true, onActivate })</code></p>
-<p class="text-neutral-500 text-xs"><code class="text-green-400">TUI.addPrompt({ row, col, width, title, onActivate })</code></p>
+<p class="text-neutral-500 text-xs"><code class="text-green-400">new Vbuf(el, { initialViewportSize: 8, showGutter: false })</code></p>
+<p class="text-neutral-500 text-xs"><code class="text-green-400">TUI.addPrompt({ row: 1, col: 2, width: 30, title: 'Search' })</code></p>
 <p class="text-neutral-500 text-xs mb-4"><code class="text-green-400">TUI.enabled = true</code></p>
 ```
+
+**Important:** Do NOT use generic parameter names like `row, col, width`. Show the actual values:
+- Bad: `TUI.addButton({ row, col, label, border: true })`
+- Good: `TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true })`
 
 For multiple variants, use h2 headings:
 ```html

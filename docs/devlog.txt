@@ -1,8 +1,12 @@
 * Project Devlog
 
+** 5.5.1-alpha.1 [2025-12-16]
+*** 🔧 API Changes
+- TUI: add #addScrollbox API for scrollbox element
+
 ** 5.5.0-alpha.1 [2025-12-16]
 *** 🔧 API Changes
-- TUI: add #addPrompt API
+- TUI: add #addPrompt API for prompt element 
 
 ** 5.4.2-alpha.1 [2025-12-16]
 *** 🔧 API Changes

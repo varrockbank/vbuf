@@ -237,6 +237,17 @@ const promptId = editor.TUI.addPrompt({
   onActivate: (el) => console.log("Submitted:", el.input)
 });
 
+// Add scrollbox (returns ID)
+const scrollId = editor.TUI.addScrollBox({
+  row: 12,
+  col: 2,
+  width: 40,
+  height: 8,        // Total height including borders
+  title: "Logs",
+  lines: ["Line 1", "Line 2", "..."],
+  onActivate: (el) => console.log("Selected at offset:", el.scrollOffset)
+});
+
 // Remove
 editor.TUI.removeElement(id);
 editor.TUI.clear();
@@ -269,19 +280,27 @@ editor.TUI.setHighlight(false);  // Disable
 - Backspace deletes last character
 - Enter submits (triggers `onActivate` with `el.input`)
 
+**ScrollBox** (`type: 'scrollbox'`)
+- Displays scrollable content with box-drawing border
+- ArrowUp/k scrolls up, ArrowDown/j scrolls down
+- Stops when last line is visible at bottom
+- Enter activates (triggers `onActivate` with `el.scrollOffset`)
+
 ### Element Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
 | `id` | number | Unique identifier |
-| `type` | string | `'button'` or `'prompt'` |
+| `type` | string | `'button'`, `'prompt'`, or `'scrollbox'` |
 | `row` | number | Absolute row position |
 | `col` | number | Column position |
 | `width` | number | Element width in characters |
 | `height` | number | Element height in rows |
 | `contents` | string[] | Array of rendered lines |
 | `input` | string | User input (prompts only) |
-| `title` | string | Prompt title (prompts only) |
+| `title` | string | Title (prompts and scrollboxes) |
+| `contentLines` | string[] | Content lines (scrollboxes only) |
+| `scrollOffset` | number | Current scroll position (scrollboxes only) |
 | `onActivate` | function | Callback when activated |
 
 ### Keyboard Binding

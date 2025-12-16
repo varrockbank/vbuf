@@ -37,7 +37,8 @@
 
   <h2 class="text-neutral-300 text-sm mt-8 mb-2">Buttons (no border)</h2>
   <p class="text-neutral-500 text-xs">JS:</p>
-  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">TUI.addButton({ row, col, label, onActivate })</code></p>
+  <p class="text-neutral-500 text-xs"><code class="text-green-400">new Vbuf(el, { initialViewportSize: 3, showGutter: false })</code></p>
+  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">TUI.addButton({ row: 1, col: 20, label: '[Save]' })</code></p>
   <blockquote class="wb no-select border border-neutral-700 w-[500px] mb-4" tabindex="0" id="buttons-plain">
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
     <div class="flex">
@@ -56,7 +57,8 @@
 
   <h2 class="text-neutral-300 text-sm mt-8 mb-2">Buttons (with border)</h2>
   <p class="text-neutral-500 text-xs">JS:</p>
-  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">TUI.addButton({ row, col, label, border: true, onActivate })</code></p>
+  <p class="text-neutral-500 text-xs"><code class="text-green-400">new Vbuf(el, { initialViewportSize: 5, showGutter: false })</code></p>
+  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true })</code></p>
   <blockquote class="wb no-select border border-neutral-700 w-[500px] mb-4" tabindex="0" id="buttons-border">
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
     <div class="flex">
@@ -75,9 +77,30 @@
 
   <h2 class="text-neutral-300 text-sm mt-8 mb-2">Prompt (type to input, Enter to submit)</h2>
   <p class="text-neutral-500 text-xs">JS:</p>
-  <p class="text-neutral-500 text-xs"><code class="text-green-400">TUI.addPrompt({ row, col, width, title, onActivate })</code></p>
+  <p class="text-neutral-500 text-xs"><code class="text-green-400">new Vbuf(el, { initialViewportSize: 8, showGutter: false })</code></p>
+  <p class="text-neutral-500 text-xs"><code class="text-green-400">TUI.addPrompt({ row: 1, col: 2, width: 30, title: 'Search' })</code></p>
   <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">TUI.handleKeyDown(e.key)</code></p>
   <blockquote class="wb no-select border border-neutral-700 w-[500px] mb-4" tabindex="0" id="prompt-demo">
+    <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
+    <div class="flex">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines flex-1 overflow-hidden"></div>
+    </div>
+    <div class="wb-status flex justify-between p-1.5" style="background: #212026; color: #B2B2B2;">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
+      <div class="wb-status-right flex">
+        <span class="wb-coordinate"></span>
+        <span>|</span>
+        <span class="wb-indentation"></span>
+      </div>
+    </div>
+  </blockquote>
+
+  <h2 class="text-neutral-300 text-sm mt-8 mb-2">ScrollBox (Arrow keys to scroll)</h2>
+  <p class="text-neutral-500 text-xs">JS:</p>
+  <p class="text-neutral-500 text-xs"><code class="text-green-400">new Vbuf(el, { initialViewportSize: 10, showGutter: false })</code></p>
+  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [...] })</code></p>
+  <blockquote class="wb no-select border border-neutral-700 w-[80ch] mb-4" tabindex="0" id="scrollbox-demo">
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
     <div class="flex">
       <div class="wb-gutter"></div>
@@ -151,6 +174,44 @@
     promptEl.addEventListener('keydown', (e) => {
       if (e.key === 'Tab') { e.preventDefault(); promptEditor.TUI.nextElement(); }
       else { e.preventDefault(); promptEditor.TUI.handleKeyDown(e.key); }
+    });
+
+    // ScrollBox
+    const scrollEl = document.getElementById('scrollbox-demo');
+    const scrollEditor = new Vbuf(scrollEl, {
+      initialViewportSize: 10,
+      showGutter: false,
+      colorPrimary: "#B2B2B2",
+      colorSecondary: "#212026"
+    });
+    scrollEditor.Model.text = '\n\n\n\n\n\n\n\n\n';
+    const logLines = [
+      '[INFO] Server started on port 3000',
+      '[INFO] Database connected',
+      '[DEBUG] Loading configuration...',
+      '[INFO] Config loaded: production',
+      '[WARN] Cache miss for key: user_123',
+      '[INFO] Request: GET /api/users',
+      '[DEBUG] Query executed in 45ms',
+      '[INFO] Response: 200 OK',
+      '[ERROR] Connection timeout',
+      '[INFO] Retrying connection...',
+      '[INFO] Connection restored',
+      '[DEBUG] Heartbeat sent',
+      '[INFO] Request: POST /api/login',
+      '[INFO] User authenticated: admin',
+      '[INFO] Session created'
+    ];
+    scrollEditor.TUI.addScrollBox({
+      row: 1, col: 2, width: 40, height: 8,
+      title: 'Logs',
+      lines: logLines,
+      onActivate: (el) => { output.textContent = 'Selected log at offset: ' + el.scrollOffset; }
+    });
+    scrollEditor.TUI.enabled = true;
+    scrollEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') { e.preventDefault(); scrollEditor.TUI.nextElement(); }
+      else { e.preventDefault(); scrollEditor.TUI.handleKeyDown(e.key); }
     });
 
     // Focus first editor

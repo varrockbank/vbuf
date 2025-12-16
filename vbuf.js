@@ -1,5 +1,5 @@
 function Vbuf(node, config = {}) {
-  this.version = "5.5.0-alpha.1";
+  this.version = "5.5.1-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -456,7 +456,14 @@ function Vbuf(node, config = {}) {
     }
 
     const id = ++tuiElementIdCounter;
-    const element = { id, type, row, col, width, height, contents, onActivate: onActivate || null, input: '', title: '' };
+    const element = {
+      id, type, row, col, width, height, contents,
+      onActivate: onActivate || null,
+      input: '',           // For prompts
+      title: '',           // For prompts and scrollboxes
+      contentLines: [],    // For scrollboxes
+      scrollOffset: 0      // For scrollboxes
+    };
     tuiElements.push(element);
 
     // Add to row map
@@ -483,6 +490,38 @@ function Vbuf(node, config = {}) {
     const line3 = '└' + '─'.repeat(width - 2) + '┘';
 
     return [line1, line2, line3];
+  }
+
+  // Helper to build scrollbox contents from width, height, title, lines, and scrollOffset
+  function buildScrollBoxContents(width, height, title, lines, scrollOffset) {
+    const contents = [];
+    const contentWidth = width - 2; // space inside │ │
+    const contentHeight = height - 2; // lines between top and bottom border
+
+    // Line 1: ┌─ title ─────┐
+    const dashesAfterTitle = width - 5 - title.length;
+    contents.push('┌─ ' + title + ' ' + '─'.repeat(dashesAfterTitle) + '┐');
+
+    // Content lines
+    for (let i = 0; i < contentHeight; i++) {
+      const lineIndex = scrollOffset + i;
+      const lineContent = lines[lineIndex] || '';
+      // Truncate or pad to fit contentWidth
+      const displayContent = lineContent.length > contentWidth
+        ? lineContent.slice(0, contentWidth)
+        : lineContent + ' '.repeat(contentWidth - lineContent.length);
+      contents.push('│' + displayContent + '│');
+    }
+
+    // Bottom border with scroll percentage
+    const maxOffset = Math.max(0, lines.length - contentHeight);
+    const percent = maxOffset === 0 ? 100 : Math.round((scrollOffset / maxOffset) * 100);
+    const percentStr = ' ' + percent + '% ';
+    const dashesTotal = width - 2 - percentStr.length; // minus corners and percent string
+    const dashesLeft = dashesTotal - 1; // leave 1 dash before corner
+    contents.push('└' + '─'.repeat(dashesLeft) + percentStr + '─┘');
+
+    return contents;
   }
 
   const TUI = {
@@ -533,6 +572,30 @@ function Vbuf(node, config = {}) {
       // Store title on the element for rebuilding contents when input changes
       const el = tuiElements.find(e => e.id === id);
       if (el) el.title = title;
+
+      return id;
+    },
+
+    // Add a scrollbox element
+    addScrollBox({ row, col, width, height, title, lines, onActivate }) {
+      const minWidth = title.length + 5;
+      if (width < minWidth) {
+        throw new Error(`Width must be at least ${minWidth} for title "${title}"`);
+      }
+      if (height < 3) {
+        throw new Error('Height must be at least 3');
+      }
+
+      const contents = buildScrollBoxContents(width, height, title, lines, 0);
+      const id = addElement({ type: 'scrollbox', row, col, width, height, contents, onActivate });
+
+      // Store additional properties for scrolling
+      const el = tuiElements.find(e => e.id === id);
+      if (el) {
+        el.title = title;
+        el.contentLines = lines;
+        el.scrollOffset = 0;
+      }
 
       return id;
     },
@@ -678,6 +741,34 @@ function Vbuf(node, config = {}) {
           currentEl.input += key;
           currentEl.contents = buildPromptContents(currentEl.width, currentEl.title, currentEl.input);
           render(true);
+          return true;
+        }
+      } else if (currentEl.type === 'scrollbox') {
+        const contentHeight = currentEl.height - 2;
+        const maxOffset = Math.max(0, currentEl.contentLines.length - contentHeight);
+
+        if (key === 'ArrowDown' || key === 'j') {
+          if (currentEl.scrollOffset < maxOffset) {
+            currentEl.scrollOffset++;
+            currentEl.contents = buildScrollBoxContents(
+              currentEl.width, currentEl.height, currentEl.title,
+              currentEl.contentLines, currentEl.scrollOffset
+            );
+            render(true);
+          }
+          return true;
+        } else if (key === 'ArrowUp' || key === 'k') {
+          if (currentEl.scrollOffset > 0) {
+            currentEl.scrollOffset--;
+            currentEl.contents = buildScrollBoxContents(
+              currentEl.width, currentEl.height, currentEl.title,
+              currentEl.contentLines, currentEl.scrollOffset
+            );
+            render(true);
+          }
+          return true;
+        } else if (key === 'Enter') {
+          if (currentEl.onActivate) currentEl.onActivate(currentEl);
           return true;
         }
       }
