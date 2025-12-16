@@ -1,7 +1,7 @@
 /**
  * @fileoverview Vbuf - A high-performance virtual buffer text editor for the browser.
  * Renders fixed-width character cells in a grid layout with virtual scrolling.
- * @version 5.6.3-alpha.1
+ * @version 5.6.4-alpha.1
  */
 
 /**
@@ -46,7 +46,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Vbuf(node, config = {}) {
-  this.version = "5.6.3-alpha.1";
+  this.version = "5.6.4-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -146,8 +146,11 @@ function Vbuf(node, config = {}) {
       } else {
         if (head.row === 0) {
           // First line of viewport, scroll viewport up
-          Viewport.scroll(-1);
-          head.col = Math.min(head.col, Math.max(0, Viewport.lines[head.row].length));
+          if (Viewport.start !== 0) {
+            Viewport.scroll(-1);
+            head.col = Math.min(head.col, Math.max(0, Viewport.lines[head.row].length));
+          }
+          // else: first line of file, No-Op.
         } else {                                                                 // Inner line, move up.
           head.row--;
           // There ARE characters in the same column as the tail of the selection

@@ -845,6 +845,16 @@ EXPECT cursor at 0,9
 right with alt
 EXPECT cursor at 0,9
 
+## should not scroll viewport negative when pressing up at first line
+### Regression: Up at first line of file does not scroll viewport negative
+// Empty editor, cursor at 0,0
+EXPECT cursor at 0,0
+expect(fixture.wb.Viewport.start).toBe(0);
+// Press up - should be no-op
+up
+expect(fixture.wb.Viewport.start).toBe(0);
+EXPECT cursor at 0,0
+
 
 # Gutter resizing
 
