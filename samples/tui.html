@@ -5,6 +5,7 @@
   <title>vbuf - TUI Elements</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="../vbuf.js"></script>
+  <script src="../tui.js"></script>
   <style>
     .wb {
       background-color: #282C34;
@@ -131,6 +132,7 @@
       colorPrimary: "#B2B2B2",
       colorSecondary: "#212026"
     });
+    VbufTUI(plainEditor);  // Initialize TUI extension
     plainEditor.Model.text = '\n  Select action:';
     plainEditor.TUI.addButton({ row: 1, col: 20, label: '[Save]', onActivate: () => { output.textContent = 'Save clicked'; } });
     plainEditor.TUI.addButton({ row: 1, col: 28, label: '[Load]', onActivate: () => { output.textContent = 'Load clicked'; } });
@@ -149,6 +151,7 @@
       colorPrimary: "#B2B2B2",
       colorSecondary: "#212026"
     });
+    VbufTUI(borderEditor);  // Initialize TUI extension
     borderEditor.Model.text = '\n\n\n\n';
     borderEditor.TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true, onActivate: () => { output.textContent = 'OK clicked'; } });
     borderEditor.TUI.addButton({ row: 1, col: 12, label: ' Cancel ', border: true, onActivate: () => { output.textContent = 'Cancel clicked'; } });
@@ -167,6 +170,7 @@
       colorPrimary: "#B2B2B2",
       colorSecondary: "#212026"
     });
+    VbufTUI(promptEditor);  // Initialize TUI extension
     promptEditor.Model.text = '\n\n\n\n\n\n\n';
     promptEditor.TUI.addPrompt({ row: 1, col: 2, width: 30, title: 'Search', onActivate: (el) => { output.textContent = 'Search: ' + el.input; } });
     promptEditor.TUI.addPrompt({ row: 5, col: 2, width: 40, title: 'Command', onActivate: (el) => { output.textContent = 'Command: ' + el.input; } });
@@ -184,6 +188,7 @@
       colorPrimary: "#B2B2B2",
       colorSecondary: "#212026"
     });
+    VbufTUI(scrollEditor);  // Initialize TUI extension
     scrollEditor.Model.text = '\n\n\n\n\n\n\n\n\n';
     const logLines = [
       '[INFO] Server started on port 3000',

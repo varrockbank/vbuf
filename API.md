@@ -145,6 +145,18 @@ const editor = new Vbuf(document.getElementById('editor'), {
 
 ---
 
+## Line Height (`editor.lineHeight`)
+
+```javascript
+editor.lineHeight;  // 24 (default)
+```
+
+Read-only. Returns the line height in pixels. Useful for extensions that need to position elements.
+
+**Warning:** Do not modify this value - changing it will cause rendering issues.
+
+---
+
 ## Model (`editor.Model`)
 
 ```javascript
@@ -211,12 +223,20 @@ editor.Selection.unindent();
 
 ---
 
-## TUI Mode (`editor.TUI`)
+## TUI Extension (`editor.TUI`)
 
-TUI mode places interactive elements at coordinates. Editing is disabled when enabled.
+TUI is an optional extension for interactive terminal-style UI elements. Include the separate script and initialize:
+
+```html
+<script src="vbuf.js"></script>
+<script src="tui.js"></script>
+```
 
 ```javascript
-// Enable/disable
+const editor = new Vbuf(document.getElementById('editor'), options);
+VbufTUI(editor);  // Initialize TUI extension
+
+// Now use editor.TUI
 editor.TUI.enabled = true;
 
 // Add button (returns ID)
@@ -352,4 +372,81 @@ Chunked mode requires `appendLines()` which handles compression. The `.text` set
 ```javascript
 // Append line and scroll to bottom (useful for logs)
 editor.appendLineAtEnd("Log entry");
+```
+
+---
+
+## Navigation Control (`editor.setNavigationDisabled`)
+
+Disable arrow key navigation and text editing to make the editor read-only:
+
+```javascript
+// Disable navigation (arrow keys do nothing, no text input)
+editor.setNavigationDisabled(true);
+
+// Re-enable navigation
+editor.setNavigationDisabled(false);
+```
+
+---
+
+## Extension API (`editor._internals`)
+
+The `_internals` object exposes internal state for building extensions. Extensions can hook into the render cycle without vbuf needing to know about them.
+
+```javascript
+const {
+  head,           // Cursor position { row, col } (viewport-relative)
+  $e,             // Lines container DOM element
+  render,         // render(rebuildContainers?) function
+  renderHooks     // Hook registration object
+} = editor._internals;
+
+// Public properties (use these instead of _internals)
+const { Viewport, Selection, Model, lineHeight } = editor;
+```
+
+### Render Hooks
+
+Extensions register callbacks that run during the render cycle:
+
+```javascript
+// Called when viewport containers are rebuilt (resize, initial render)
+renderHooks.onContainerRebuild.push(($container, viewport) => {
+  // Set up DOM elements, highlights, etc.
+});
+
+// Called after text content is set (for overlaying elements)
+renderHooks.onRenderContent.push(($container, viewport) => {
+  // Modify textContent, add overlays, etc.
+});
+
+// Called at end of render (for final touches)
+renderHooks.onRenderComplete.push(($container, viewport) => {
+  // Update highlights, animations, etc.
+});
+```
+
+### Example: Custom Extension
+
+```javascript
+function MyExtension(vbuf) {
+  const { renderHooks, render } = vbuf._internals;
+
+  // Register render hook
+  renderHooks.onRenderComplete.push(($e, viewport) => {
+    // Custom rendering logic
+  });
+
+  // Expose API on vbuf instance
+  vbuf.MyExtension = {
+    enable() { vbuf.setNavigationDisabled(true); render(true); },
+    disable() { vbuf.setNavigationDisabled(false); render(true); }
+  };
+}
+
+// Usage
+const editor = new Vbuf(el, options);
+MyExtension(editor);
+editor.MyExtension.enable();
 ```
