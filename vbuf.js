@@ -1,5 +1,70 @@
+/**
+ * @fileoverview Vbuf - A high-performance virtual buffer text editor for the browser.
+ * Renders fixed-width character cells in a grid layout with virtual scrolling.
+ * @version 5.5.2-alpha.1
+ */
+
+/**
+ * @typedef {Object} VbufConfig
+ * @property {Object} [treeSitterParser=null] - Tree-sitter parser instance for syntax highlighting
+ * @property {Object} [treeSitterQuery=null] - Tree-sitter query for capturing syntax nodes
+ * @property {number} [initialViewportSize=20] - Number of visible lines in the viewport
+ * @property {number} [lineHeight=24] - Height of each line in pixels
+ * @property {number} [editorPaddingPX=4] - Padding around the editor in pixels
+ * @property {number} [indentation=4] - Number of spaces per indentation level
+ * @property {string} [colorPrimary="#B2B2B2"] - Primary text color
+ * @property {string} [colorSecondary="#212026"] - Secondary/background color for gutter and status
+ * @property {number} [gutterSize=2] - Initial width of line number gutter in characters
+ * @property {number} [gutterPadding=1] - Padding for the gutter in characters
+ * @property {function(string): void} [logger=console.log] - Logging function for debug output
+ * @property {boolean} [showGutter=true] - Whether to show line numbers
+ * @property {boolean} [showStatusLine=true] - Whether to show the status line
+ */
+
+/**
+ * @typedef {Object} Position
+ * @property {number} row - Row index (viewport-relative, 0-indexed)
+ * @property {number} col - Column index (0-indexed)
+ */
+
+/**
+ * @typedef {Object} TUIElement
+ * @property {number} id - Unique element identifier
+ * @property {string} type - Element type: 'button', 'prompt', or 'scrollbox'
+ * @property {number} row - Absolute row position in the buffer
+ * @property {number} col - Column position
+ * @property {number} width - Element width in characters
+ * @property {number} height - Element height in lines
+ * @property {string[]} contents - Array of strings representing each line of the element
+ * @property {function(TUIElement): void} [onActivate] - Callback when element is activated
+ * @property {string} input - Current input text (for prompts)
+ * @property {string} title - Title text (for prompts and scrollboxes)
+ * @property {string[]} contentLines - Scrollable content (for scrollboxes)
+ * @property {number} scrollOffset - Current scroll position (for scrollboxes)
+ */
+
+/**
+ * Creates a new Vbuf virtual buffer editor instance.
+ * @constructor
+ * @param {HTMLElement} node - Container element with required child elements:
+ *   - .wb-lines: Container for text lines
+ *   - .wb-status: Status bar container
+ *   - .wb-coordinate: Cursor position display
+ *   - .wb-linecount: Line count display
+ *   - .wb-indentation: Indentation display
+ *   - .wb-clipboard-bridge: Hidden textarea for clipboard operations
+ *   - .wb-gutter: Line number gutter
+ * @param {VbufConfig} [config={}] - Configuration options
+ * @example
+ * const editor = new Vbuf(document.getElementById('editor'), {
+ *   initialViewportSize: 25,
+ *   showGutter: true,
+ *   lineHeight: 20
+ * });
+ * editor.Model.text = 'Hello, World!';
+ */
 function Vbuf(node, config = {}) {
-  this.version = "5.5.1-alpha.1";
+  this.version = "5.5.2-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -68,8 +133,23 @@ function Vbuf(node, config = {}) {
   let head = { row: 0, col: 0 };
   let tail = head;
   let maxCol = head.col;
+
+  /**
+   * Selection management for cursor and text selection operations.
+   * Handles cursor movement, text selection, insertion, and deletion.
+   * @namespace Selection
+   */
   const Selection = {
+    /**
+     * Returns selection bounds in document order [start, end].
+     * @returns {[Position, Position]} Array of [start, end] positions
+     */
     get ordered() { return this.isForwardSelection ? [tail, head] : [head, tail] },
+
+    /**
+     * Moves the cursor/selection head vertically.
+     * @param {number} value - Direction to move: 1 for down, -1 for up
+     */
     moveRow(value) {
       if (value > 0) {
         if (head.row < (Viewport.end - Viewport.start)) {                      // Inner line, Move down
@@ -102,6 +182,12 @@ function Vbuf(node, config = {}) {
       }
       render(true);
     },
+
+    /**
+     * Moves the cursor/selection head horizontally.
+     * Handles line wrapping when moving past line boundaries.
+     * @param {number} value - Direction to move: 1 for right, -1 for left
+     */
     moveCol(value) {
       if (value === 1) {
         if (head.col < Viewport.lines[head.row].length - (this.isSelection ? 1 : 0 )) {    // Move right 1 character.
@@ -136,13 +222,27 @@ function Vbuf(node, config = {}) {
       }
       render();
     },
+
+    /**
+     * Whether there is an active text selection (vs just a cursor).
+     * @returns {boolean} True if text is selected
+     */
     get isSelection() {
       return head !== tail
     },
-    // Assumes we are in selection
+
+    /**
+     * Whether the selection direction is forward (tail before head).
+     * @returns {boolean} True if selection goes left-to-right/top-to-bottom
+     */
     get isForwardSelection() {
       return tail.row === head.row && tail.col < head.col || tail.row < head.row;
     },
+
+    /**
+     * Sets cursor position with bounds checking for iOS compatibility.
+     * @param {Position} position - Target cursor position
+     */
     iosSetCursorAndRender({row, col}) {
       const linesFromViewportStart = Model.lastIndex - Viewport.start;
       // Case 1: linesFromViewportStart is outside viewport. case 2: linesFromViewportStart is less than viewport.
@@ -156,11 +256,21 @@ function Vbuf(node, config = {}) {
       );
       render(true);
     },
+
+    /**
+     * Sets the cursor to an absolute position.
+     * @param {Position} position - Target cursor position
+     */
     setCursor({row, col}) {
       head.row = row;
       head.col = col;
       this.makeCursor();
     },
+
+    /**
+     * Gets the selected text as an array of lines.
+     * @returns {string[]} Array of selected line contents
+     */
     get lines() {
       const [left, right] = this.ordered;
       if(left.row === right.row) {
@@ -172,16 +282,30 @@ function Vbuf(node, config = {}) {
         return [firstLine, ...middle, lastLine]
       }
     },
+
+    /**
+     * Collapses selection to a cursor (head === tail).
+     */
     makeCursor() {
       tail.row = head.row;
       tail.col = head.col;
       head = tail;
     },
+
+    /**
+     * Begins a new selection from current cursor position.
+     * Detaches head from tail to allow independent movement.
+     */
     makeSelection() {
       head = detachedHead;
       head.row = tail.row;
       head.col = tail.col;
     },
+
+    /**
+     * Moves cursor to start of current line (first non-space character).
+     * If already at first non-space, moves to column 0.
+     */
     moveCursorStartOfLine() {
       const row = head.row;
       const realRow = Viewport.start + row;
@@ -196,13 +320,21 @@ function Vbuf(node, config = {}) {
       maxCol = head.col = col < tail.col ? col : 0
       render(true);
     },
+
+    /**
+     * Moves cursor to end of current line.
+     */
     moveCursorEndOfLine() {
       const row = head.row;
       const realRow = Viewport.start + row;
       maxCol = head.col = Model.lines[realRow].length;
       render(true);
     },
-    // Inserts list of string lines into the selection
+
+    /**
+     * Inserts multiple lines at cursor/selection, handling line breaks.
+     * @param {string[]} lines - Array of lines to insert
+     */
     insertLines(lines) {
       if(lines.length === 1) return this.insert(lines[0]);
 
@@ -217,7 +349,11 @@ function Vbuf(node, config = {}) {
       this.setCursor({row: index + lines.length - 1, col: lines[lines.length-1].length});
       render(true);
     },
-    // Inserts the string s into the selection
+
+    /**
+     * Inserts a string at cursor position, replacing any selection.
+     * @param {string} s - String to insert
+     */
     insert(s) {
       const t0 = performance.now();
       if (this.isSelection) {
@@ -241,6 +377,10 @@ function Vbuf(node, config = {}) {
       const millis = parseFloat(t1 - t0);
       console.log(`Took ${millis.toFixed(2)} millis to insert with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
     },
+
+    /**
+     * Deletes the character before cursor or the current selection.
+     */
     delete() {
       // TODO: Possibly, insert can be defined in terms of delete.
       if (this.isSelection) {
@@ -265,6 +405,10 @@ function Vbuf(node, config = {}) {
       const millis = parseFloat(t1 - t0);
       console.log(`Took ${millis.toFixed(2)} millis to delete ${type} with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
     },
+
+    /**
+     * Inserts a new line at cursor position, splitting the current line.
+     */
     newLine() {
       // TODO: handle redundant rendering
       if (this.isSelection) Selection.insert('');
@@ -284,6 +428,11 @@ function Vbuf(node, config = {}) {
       const millis = parseFloat(t1 - t0);
       console.log(`Took ${millis.toFixed(2)} millis to insert new line with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
     },
+
+    /**
+     * Moves cursor backward by one word.
+     * Word boundaries are whitespace, word characters, or punctuation runs.
+     */
     moveBackWord() {
       const s = Model.lines[head.row];
       const n = s.length;
@@ -314,6 +463,11 @@ function Vbuf(node, config = {}) {
 
       render(true);
     },
+
+    /**
+     * Moves cursor forward by one word.
+     * Word boundaries are whitespace, word characters, or punctuation runs.
+     */
     moveWord() {
       const s = Model.lines[head.row];
       const n = s.length;
@@ -343,6 +497,11 @@ function Vbuf(node, config = {}) {
 
       render(true);
     },
+
+    /**
+     * Indents all lines in the current selection by the configured indentation.
+     * No-op if there is no selection.
+     */
     indent() {
       if(!this.isSelection) return;
       const [first, second] = this.ordered;
@@ -358,6 +517,11 @@ function Vbuf(node, config = {}) {
 
       render(true);
     },
+
+    /**
+     * Removes indentation from all lines in the current selection.
+     * Follows IntelliJ-style behavior: removes up to `indentation` spaces from line start.
+     */
     unindent() {
       // Note: Vim, VSCode, Intellij all has slightly different unindent behavior.
       // VSCode: for lines not aligned at a multiple of indentation number of spaces, align them to the
@@ -401,8 +565,16 @@ function Vbuf(node, config = {}) {
 
       render(true);
     },
-    // Utility to extract the text left, right, and character at the col of the
-    // position for the row of the position.
+
+    /**
+     * Partitions a line into left and right segments at the given position.
+     * @param {Position} position - Position to partition at
+     * @returns {{index: number, left: string, right: string, rightExclusive: string}}
+     *   - index: Absolute line index in Model.lines
+     *   - left: Text before the column
+     *   - right: Text from the column onwards
+     *   - rightExclusive: Text after the column (excludes character at column)
+     */
     partitionLine({ row, col }) {
       const index = Viewport.start + row;
       const line = Model.lines[index];
@@ -417,17 +589,36 @@ function Vbuf(node, config = {}) {
     }
   };
 
+  // ============================================================================
   // TUI Mode: A mode for building terminal UIs where editing is disabled
   // and elements can be placed at coordinates
-  let tuiModeEnabled = false;
-  let tuiElementIdCounter = 0;
-  let tuiHighlightState = true;  // Global highlight state for new elements
-  const tuiElements = [];  // Array of {id, type, row, col, width, height, contents, onActivate}
-  const tuiElementsByRow = new Map();  // Map from row to array of elements
+  // ============================================================================
 
-  // Private: Add an element at the specified coordinate
-  // Returns the element id, or throws if overlapping with existing element
-  // width and height are derived from contents - all content lines must have same length
+  /** @type {boolean} */
+  let tuiModeEnabled = false;
+  /** @type {number} */
+  let tuiElementIdCounter = 0;
+  /** @type {boolean} */
+  let tuiHighlightState = true;
+  /** @type {TUIElement[]} */
+  const tuiElements = [];
+  /** @type {Map<number, TUIElement[]>} */
+  const tuiElementsByRow = new Map();
+
+  /**
+   * Adds a TUI element at the specified coordinate.
+   * Width and height are derived from contents - all content lines must have same length.
+   * @private
+   * @param {Object} params - Element parameters
+   * @param {string} params.type - Element type ('button', 'prompt', 'scrollbox')
+   * @param {number} params.row - Absolute row position
+   * @param {number} params.col - Column position
+   * @param {string[]} params.contents - Array of strings for each line of the element
+   * @param {function(TUIElement): void} [params.onActivate] - Activation callback
+   * @returns {number} The element ID
+   * @throws {Error} If contents is empty or lines have inconsistent lengths
+   * @throws {Error} If element overlaps with existing element
+   */
   function addElement({ type, row, col, contents, onActivate }) {
     if (!contents || contents.length === 0) {
       throw new Error('Element must have at least one content line');
@@ -476,7 +667,14 @@ function Vbuf(node, config = {}) {
     return id;
   }
 
-  // Helper to build prompt contents from width, title, and input
+  /**
+   * Builds the visual contents for a prompt element.
+   * @private
+   * @param {number} width - Total width of the prompt box
+   * @param {string} title - Title displayed in the top border
+   * @param {string} input - Current input text
+   * @returns {string[]} Array of 3 strings representing the prompt box lines
+   */
   function buildPromptContents(width, title, input) {
     const dashesAfterTitle = width - 5 - title.length;
     const line1 = '┌─ ' + title + ' ' + '─'.repeat(dashesAfterTitle) + '┐';
@@ -492,7 +690,16 @@ function Vbuf(node, config = {}) {
     return [line1, line2, line3];
   }
 
-  // Helper to build scrollbox contents from width, height, title, lines, and scrollOffset
+  /**
+   * Builds the visual contents for a scrollbox element.
+   * @private
+   * @param {number} width - Total width of the scrollbox
+   * @param {number} height - Total height of the scrollbox
+   * @param {string} title - Title displayed in the top border
+   * @param {string[]} lines - All scrollable content lines
+   * @param {number} scrollOffset - Current scroll position (first visible line index)
+   * @returns {string[]} Array of strings representing the scrollbox lines
+   */
   function buildScrollBoxContents(width, height, title, lines, scrollOffset) {
     const contents = [];
     const contentWidth = width - 2; // space inside │ │
@@ -524,7 +731,18 @@ function Vbuf(node, config = {}) {
     return contents;
   }
 
+  /**
+   * TUI (Terminal User Interface) mode API.
+   * Provides methods for creating interactive terminal-style UI elements.
+   * When enabled, editing is disabled and navigation between elements is active.
+   * @namespace TUI
+   */
   const TUI = {
+    /**
+     * Whether TUI mode is currently enabled.
+     * When set to true, cursor moves to first element if not already on one.
+     * @type {boolean}
+     */
     get enabled() { return tuiModeEnabled; },
     set enabled(value) {
       const wasEnabled = tuiModeEnabled;
@@ -548,7 +766,16 @@ function Vbuf(node, config = {}) {
       render(true);
     },
 
-    // Add a button element
+    /**
+     * Adds a button element at the specified position.
+     * @param {Object} params - Button parameters
+     * @param {number} params.row - Absolute row position
+     * @param {number} params.col - Column position
+     * @param {string} params.label - Button text
+     * @param {boolean} [params.border=false] - Whether to draw a border around the button
+     * @param {function(TUIElement): void} [params.onActivate] - Callback when button is activated
+     * @returns {number} The element ID
+     */
     addButton({ row, col, label, border, onActivate }) {
       if (border) {
         const line = '+' + '-'.repeat(label.length) + '+';
@@ -559,7 +786,17 @@ function Vbuf(node, config = {}) {
       }
     },
 
-    // Add a prompt element
+    /**
+     * Adds a prompt (text input) element at the specified position.
+     * @param {Object} params - Prompt parameters
+     * @param {number} params.row - Absolute row position
+     * @param {number} params.col - Column position
+     * @param {number} params.width - Total width of the prompt box
+     * @param {string} params.title - Title displayed in the top border
+     * @param {function(TUIElement): void} [params.onActivate] - Callback when Enter is pressed
+     * @returns {number} The element ID
+     * @throws {Error} If width is too small for the title
+     */
     addPrompt({ row, col, width, title, onActivate }) {
       const minWidth = title.length + 5; // 2 corners + 1 dash + 2 spaces + title
       if (width < minWidth) {
@@ -576,7 +813,20 @@ function Vbuf(node, config = {}) {
       return id;
     },
 
-    // Add a scrollbox element
+    /**
+     * Adds a scrollbox element at the specified position.
+     * Scrollboxes display scrollable content with up/down navigation.
+     * @param {Object} params - Scrollbox parameters
+     * @param {number} params.row - Absolute row position
+     * @param {number} params.col - Column position
+     * @param {number} params.width - Total width of the scrollbox
+     * @param {number} params.height - Total height of the scrollbox
+     * @param {string} params.title - Title displayed in the top border
+     * @param {string[]} params.lines - Content lines to display
+     * @param {function(TUIElement): void} [params.onActivate] - Callback when Enter is pressed
+     * @returns {number} The element ID
+     * @throws {Error} If width is too small for the title or height < 3
+     */
     addScrollBox({ row, col, width, height, title, lines, onActivate }) {
       const minWidth = title.length + 5;
       if (width < minWidth) {
@@ -600,7 +850,11 @@ function Vbuf(node, config = {}) {
       return id;
     },
 
-    // Remove an element by its id
+    /**
+     * Removes an element by its ID.
+     * @param {number} id - The element ID to remove
+     * @returns {boolean} True if element was found and removed
+     */
     removeElement(id) {
       const index = tuiElements.findIndex(el => el.id === id);
       if (index !== -1) {
@@ -625,23 +879,34 @@ function Vbuf(node, config = {}) {
       return false;
     },
 
-    // Raw elements array for direct inspection
+    /**
+     * Direct access to the elements array for inspection.
+     * @type {TUIElement[]}
+     */
     elements: tuiElements,
 
-    // Set highlight state for all elements
+    /**
+     * Enables or disables highlight rendering for all elements.
+     * @param {boolean} enabled - Whether to show highlights
+     */
     setHighlight(enabled) {
       tuiHighlightState = !!enabled;
       render(true);
     },
 
-    // Clear all elements
+    /**
+     * Removes all TUI elements.
+     */
     clear() {
       tuiElements.length = 0;
       tuiElementsByRow.clear();
       render(true);
     },
 
-    // Move cursor to first element after cursor position. If none, go to first element.
+    /**
+     * Moves cursor to the next element after current position.
+     * Wraps to the first element if at the end.
+     */
     nextElement() {
       if (tuiElements.length === 0) return;
 
@@ -672,7 +937,10 @@ function Vbuf(node, config = {}) {
       render(true);
     },
 
-    // Get element at cursor position, or null if cursor is not on an element
+    /**
+     * Gets the element at the current cursor position.
+     * @returns {TUIElement|null} Copy of the element, or null if cursor is not on an element
+     */
     currentElement() {
       const cursorRow = Viewport.start + head.row;
       const cursorCol = head.col;
@@ -685,7 +953,10 @@ function Vbuf(node, config = {}) {
       return null;
     },
 
-    // Activate the element at cursor position (calls its onActivate callback)
+    /**
+     * Activates the element at cursor position by calling its onActivate callback.
+     * @returns {boolean} True if an element was activated
+     */
     activateElement() {
       const cursorRow = Viewport.start + head.row;
       const cursorCol = head.col;
@@ -701,9 +972,14 @@ function Vbuf(node, config = {}) {
       return false;
     },
 
-    // Handle keydown for current element (type-specific behavior)
-    // For buttons: Enter activates
-    // For prompts: printable chars insert, Backspace deletes, Enter submits
+    /**
+     * Handles keydown events for the current element with type-specific behavior.
+     * - Buttons: Enter activates
+     * - Prompts: printable chars insert, Backspace deletes, Enter submits
+     * - Scrollboxes: Arrow keys/j/k scroll, Enter activates
+     * @param {string} key - The key that was pressed (e.g., 'Enter', 'a', 'ArrowDown')
+     * @returns {boolean} True if the key was handled
+     */
     handleKeyDown(key) {
       const cursorRow = Viewport.start + head.row;
       const cursorCol = head.col;
@@ -777,24 +1053,50 @@ function Vbuf(node, config = {}) {
     }
   };
 
+  /**
+   * Document model managing text content and chunked storage for large files.
+   * Supports both simple array mode and compressed chunked mode for large documents.
+   * @namespace Model
+   */
   const Model = {
+    /** @type {string[]} Array of text lines (used in simple mode) */
     lines: [''],
-   
+
+    /** @type {string} Total byte count of the document */
     byteCount: "",
+    /** @type {number} Original line count when document was loaded */
     originalLineCount: 0,
+    /** @type {Object|null} Tree-sitter parse tree for syntax highlighting */
     treeSitterTree: null,
+    /** @type {Array} Tree-sitter captures for syntax highlighting */
     treeSitterCaptures: [],
 
+    /** @type {boolean} Whether chunked mode is active for large files */
     useChunkedMode: false,
+    /** @type {Uint8Array[]} Compressed chunks of lines */
     chunks: [],
+    /** @type {number} Number of lines per chunk */
     chunkSize: 50_000,
+    /** @type {number} Total number of lines across all chunks */
     totalLines: 0,
-    buffer: [],           // Current chunk decompressed
-    currentChunkIndex: -1, // -1 = buffer is incomplete last chunk, 0+ = buffer holds chunks[currentChunkIndex] decompressed
-    prevBuffer: [],       // Previous chunk decompressed (currentChunkIndex - 1)
-    nextBuffer: [],       // Next chunk decompressed (currentChunkIndex + 1)
+    /** @type {string[]} Current chunk decompressed */
+    buffer: [],
+    /** @type {number} Current chunk index (-1 = incomplete last chunk) */
+    currentChunkIndex: -1,
+    /** @type {string[]} Previous chunk decompressed (for viewport straddling) */
+    prevBuffer: [],
+    /** @type {string[]} Next chunk decompressed (for viewport straddling) */
+    nextBuffer: [],
+    /** @private */
     _textEncoder: new TextEncoder(),
+    /** @private */
     _textDecoder: new TextDecoder(),
+
+    /**
+     * Activates chunked mode for handling large files with gzip compression.
+     * @param {number} [chunkSize=50000] - Number of lines per chunk
+     * @throws {Error} If viewport size is larger than chunk size
+     */
     activateChunkMode(chunkSize = 50_000) {
         // Ensure Viewport does not straddle more than 2 chunks.
         // TODO: we don't enforce this invariant when setting Viewport.size
@@ -812,8 +1114,17 @@ function Vbuf(node, config = {}) {
         this.chunkSize = chunkSize;
     },
 
+    /**
+     * Index of the last line in the document.
+     * @returns {number} Zero-based index of the last line
+     */
     get lastIndex() { return this.useChunkedMode ? this.totalLines - 1 : this.lines.length - 1 },
 
+    /**
+     * Sets the document content from a string.
+     * Splits on newlines and optionally parses with tree-sitter.
+     * @param {string} text - The full document text
+     */
     set text(text) {
       this.lines = text.split("\n");
       this.byteCount = new TextEncoder().encode(text).length
@@ -825,15 +1136,32 @@ function Vbuf(node, config = {}) {
       render(true);
     },
 
+    /**
+     * Splices lines into the document at the given index.
+     * @param {number} i - Index to insert at
+     * @param {string[]} lines - Lines to insert
+     * @param {number} [n=0] - Number of lines to remove
+     */
     splice(i, lines, n = 0) {
       this.lines.splice(i , n, ...lines);
       render();
     },
 
+    /**
+     * Deletes a single line at the given index.
+     * @param {number} i - Index of line to delete
+     */
     delete(i) {
       this.lines.splice(i, 1);
     },
 
+    /**
+     * Appends lines to the end of the document.
+     * In chunked mode, handles compression and chunk management.
+     * @param {string[]} newLines - Lines to append
+     * @param {boolean} [skipRender=false] - Whether to skip re-rendering
+     * @returns {Promise<void>}
+     */
     async appendLines(newLines, skipRender = false) {
       if (this.useChunkedMode) {
         // Calculate chunk indices based on totalLines
@@ -896,7 +1224,13 @@ function Vbuf(node, config = {}) {
       if (!skipRender) render();
     },
 
-    // Compress chunk at given index using gzip
+    /**
+     * Compresses lines into a gzip chunk and stores it.
+     * @private
+     * @param {number} chunkIndex - Index in the chunks array
+     * @param {string[]} lines - Lines to compress
+     * @returns {Promise<void>}
+     */
     async _compressChunk(chunkIndex, lines) {
       logger(`[Compress] Compressing chunk ${chunkIndex} (${lines.length} lines)`);
       const text = lines.join('\n');
@@ -931,7 +1265,12 @@ function Vbuf(node, config = {}) {
       logger(`[Compress] Chunk ${chunkIndex} compressed: ${(result.length / 1024).toFixed(2)} KB`);
     },
 
-    // Decompress chunk at given index
+    /**
+     * Decompresses a gzip chunk and returns the lines.
+     * @private
+     * @param {number} chunkIndex - Index in the chunks array
+     * @returns {Promise<string[]>} Array of decompressed lines
+     */
     async _decompressChunk(chunkIndex) {
       logger(`[Decompress] Decompressing chunk ${chunkIndex}`);
       const compressed = this.chunks[chunkIndex];
@@ -962,15 +1301,30 @@ function Vbuf(node, config = {}) {
       return lines;
     },
   }
+
+  /**
+   * Viewport management for virtual scrolling.
+   * Controls which portion of the document is currently visible.
+   * @namespace Viewport
+   */
   const Viewport = {
-    start: 0, // 0-indexed line number in Model buffer.
+    /** @type {number} Index of the first visible line (0-indexed) */
+    start: 0,
+    /** @type {number} Number of visible lines */
     size: initialViewportSize,
 
+    /**
+     * Index of the last visible line.
+     * @returns {number} Index of the last line in the viewport
+     */
     get end() {
       return Math.min(this.start + this.size - 1, Model.lastIndex);
     },
 
-    // @param i, amount to scroll viewport by.
+    /**
+     * Scrolls the viewport by a relative amount.
+     * @param {number} i - Number of lines to scroll (positive = down, negative = up)
+     */
     scroll(i) {
       const t0 = performance.now();
       this.start += i;
@@ -982,6 +1336,11 @@ function Vbuf(node, config = {}) {
       console.log(`Took ${millis.toFixed(2)} millis to scroll viewport with ${lineCount} lines. That's ${1000/millis} FPS.`);
     },
 
+    /**
+     * Sets the viewport position and size.
+     * @param {number} start - Line number to start at (1-indexed for user display)
+     * @param {number} size - Number of lines to display
+     */
     set(start, size) {
       this.start = $clamp(start-1, 0, Model.lastIndex);
       if(this.size !== size) {
@@ -992,6 +1351,11 @@ function Vbuf(node, config = {}) {
       }
     },
 
+    /**
+     * Gets the lines currently visible in the viewport.
+     * In chunked mode, may return placeholders while loading.
+     * @returns {string[]} Array of visible line contents
+     */
     get lines() {
       if (Model.useChunkedMode) {
         const startChunkIndex = Math.floor(this.start / Model.chunkSize);
@@ -1060,10 +1424,15 @@ function Vbuf(node, config = {}) {
     },
   };
 
+  /** @private Tracks last render state for optimization */
   const lastRender = {
     lineCount: -1
   };
 
+  /**
+   * Creates and appends selection overlay elements for each viewport line.
+   * @private
+   */
   function populateSelections() {
     for (let i = 0; i < Viewport.size; i++) {
       const sel = document.createElement("div");
@@ -1081,7 +1450,12 @@ function Vbuf(node, config = {}) {
     $e.appendChild(fragmentSelections);
   }
 
-  // Create a highlight element for TUI at a specific viewport row
+  /**
+   * Creates a highlight element for TUI at a specific viewport row.
+   * @private
+   * @param {number} viewportRow - The viewport row index
+   * @returns {HTMLDivElement} The highlight element
+   */
   function createHighlightElement(viewportRow) {
     const hl = document.createElement("div");
     hl.className = "wb-highlight";
@@ -1100,6 +1474,10 @@ function Vbuf(node, config = {}) {
     return hl;
   }
 
+  /**
+   * Creates and appends initial highlight elements for TUI mode.
+   * @private
+   */
   function populateHighlights() {
     $highlights.clear();
     for (let i = 0; i < Viewport.size; i++) {
@@ -1110,7 +1488,13 @@ function Vbuf(node, config = {}) {
     $e.appendChild(fragmentHighlights);
   }
 
-  // Add an extra highlight element for a viewport row (when multiple elements on same row)
+  /**
+   * Adds an additional highlight element for a viewport row.
+   * Used when multiple TUI elements share the same row.
+   * @private
+   * @param {number} viewportRow - The viewport row index
+   * @returns {HTMLDivElement} The new highlight element
+   */
   function addHighlightForRow(viewportRow) {
     const hl = createHighlightElement(viewportRow);
     $e.appendChild(hl);
@@ -1120,6 +1504,14 @@ function Vbuf(node, config = {}) {
     $highlights.get(viewportRow).push(hl);
     return hl;
   }
+
+  /**
+   * Renders the editor viewport, selection, and TUI elements.
+   * @private
+   * @param {boolean} [renderLineContainers=false] - Whether to rebuild line containers
+   *   (needed when viewport size changes or on initial render)
+   * @returns {Vbuf} The Vbuf instance for chaining
+   */
   function render(renderLineContainers = false) {
     if (lastRender.lineCount !== Model.lastIndex + 1 ) {
       const lineCount = lastRender.lineCount = Model.lastIndex + 1;
@@ -1351,11 +1743,40 @@ function Vbuf(node, config = {}) {
   
     return this;
   }
+
+  // ============================================================================
+  // Public API - exposed on the Vbuf instance
+  // ============================================================================
+
+  /**
+   * Viewport management API.
+   * @type {Object}
+   */
   this.Viewport = Viewport;
+
+  /**
+   * Document model API.
+   * @type {Object}
+   */
   this.Model = Model;
+
+  /**
+   * Selection and cursor management API.
+   * @type {Object}
+   */
   this.Selection = Selection;
+
+  /**
+   * TUI (Terminal User Interface) mode API.
+   * @type {Object}
+   */
   this.TUI = TUI;
-  // TODO: Needs rework. This temporary for the file-loader log viewer. 
+
+  /**
+   * Appends a line at the end of the document and scrolls to show it.
+   * @deprecated Use Model.appendLines instead
+   * @param {string} s - Line to append
+   */
   this.appendLineAtEnd = (s) => {
     if(Model.lines[0] == '') {
       Model.lines[0] = s;
@@ -1489,6 +1910,13 @@ function Vbuf(node, config = {}) {
   });
 }
 
+/**
+ * Clamps a value between a minimum and maximum, logging a warning if out of bounds.
+ * @param {number} value - The value to clamp
+ * @param {number} min - Minimum allowed value
+ * @param {number} max - Maximum allowed value
+ * @returns {number} The clamped value
+ */
 function $clamp(value, min, max) {
   if (value < min) {
     console.warn("Out of bounds");
