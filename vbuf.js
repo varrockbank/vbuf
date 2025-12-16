@@ -1,5 +1,5 @@
 function Vbuf(node, config = {}) {
-  this.version = "5.3.1-alpha.1";
+  this.version = "5.4.0-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -504,25 +504,12 @@ function Vbuf(node, config = {}) {
       return false;
     },
 
-    // Get all elements
-    getElements() {
-      return tuiElements.map(el => ({ ...el }));
-    },
+    // Raw elements array for direct inspection
+    elements: tuiElements,
 
-    // Get element at a specific coordinate
-    getElementAt({ row, col }) {
-      return tuiElements.find(el => el.row === row && el.col === col) || null;
-    },
-
-    // Highlight all elements
-    highlightAll() {
-      tuiHighlightState = true;
-      render(true);
-    },
-
-    // Unhighlight all elements
-    unhighlightAll() {
-      tuiHighlightState = false;
+    // Set highlight state for all elements
+    setHighlight(enabled) {
+      tuiHighlightState = !!enabled;
       render(true);
     },
 

@@ -232,8 +232,7 @@ editor.TUI.removeElement(id);
 editor.TUI.clear();
 
 // Query
-editor.TUI.getElements();
-editor.TUI.getElementAt({ row, col });
+editor.TUI.elements;          // Raw array of elements (not a copy - mutations are shared)
 editor.TUI.currentElement();
 
 // Navigation
@@ -241,8 +240,8 @@ editor.TUI.nextElement();      // Move to next (bind to Tab)
 editor.TUI.activateElement();  // Trigger callback (bind to Enter)
 
 // Highlighting (enabled by default)
-editor.TUI.highlightAll();
-editor.TUI.unhighlightAll();
+editor.TUI.setHighlight(true);   // Enable
+editor.TUI.setHighlight(false);  // Disable
 ```
 
 **Keyboard binding for TUI:**

@@ -1685,13 +1685,8 @@ const fileTemplate = `
 
     tuiHighlightBtn.addEventListener('click', () => {
       tuiHighlighted = !tuiHighlighted;
-      if (tuiHighlighted) {
-        tuiDemo.TUI.highlightAll();
-        tuiHighlightBtn.textContent = 'Unhighlight All';
-      } else {
-        tuiDemo.TUI.unhighlightAll();
-        tuiHighlightBtn.textContent = 'Highlight All';
-      }
+      tuiDemo.TUI.setHighlight(tuiHighlighted);
+      tuiHighlightBtn.textContent = tuiHighlighted ? 'Unhighlight All' : 'Highlight All';
     });
 
     document.getElementById('tui-add-btn').addEventListener('click', () => {
