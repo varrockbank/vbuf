@@ -1,7 +1,7 @@
 /**
  * @fileoverview Vbuf - A high-performance virtual buffer text editor for the browser.
  * Renders fixed-width character cells in a grid layout with virtual scrolling.
- * @version 5.6.4-alpha.1
+ * @version 5.6.5-alpha.1
  */
 
 /**
@@ -46,7 +46,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Vbuf(node, config = {}) {
-  this.version = "5.6.4-alpha.1";
+  this.version = "5.6.5-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -171,14 +171,14 @@ function Vbuf(node, config = {}) {
      */
     moveCol(value) {
       if (value === 1) {
-        if (head.col < Viewport.lines[head.row].length - (this.isSelection ? 1 : 0 )) {    // Move right 1 character.
+        if (head.col < Viewport.lines[head.row].length) {     // Move right 1 character (including to newline position).
           maxCol = ++head.col;
         } else {
-          if (head.row < (Viewport.end - Viewport.start)) {     // Move to beginning of next line.
+          if (head.row < (Viewport.end - Viewport.start)) {   // Move to beginning of next line.
             maxCol = head.col = 0;
             head.row++;
           } else {
-            if (Viewport.end < Model.lastIndex) {               // Scroll from last line.
+            if (Viewport.end < Model.lastIndex) {             // Scroll from last line.
               head.col = 0;
               Viewport.scroll(1);
             } else {}                                         // End of file
@@ -188,9 +188,9 @@ function Vbuf(node, config = {}) {
         if (head.col > 0) {                                   // Move left 1 character.
           maxCol = --head.col;
         } else {
-          if (head.row > 0) {                                 // Move to end of previous line
+          if (head.row > 0) {                                 // Move to end of previous line (on last char, not past it)
             head.row--;
-            maxCol = head.col = Math.max(0, Viewport.lines[head.row].length - (this.isSelection ? 1 : 0));
+            maxCol = head.col = Math.max(0, Viewport.lines[head.row].length - 1);
           } else {
             if (Viewport.start !== 0) {                       // Scroll then move head to end of new current line.
               Viewport.scroll(-1);
@@ -255,7 +255,16 @@ function Vbuf(node, config = {}) {
     get lines() {
       const [left, right] = this.ordered;
       if(left.row === right.row) {
-        return [Model.lines[Viewport.start + left.row].slice(left.col, right.col + 1)];
+        const text = Model.lines[Viewport.start + left.row];
+        const absRow = Viewport.start + left.row;
+        const isLastLine = absRow === Model.lastIndex;
+        const selectedText = text.slice(left.col, right.col + 1);
+
+        // If selection extends to phantom newline position and there is a newline
+        if (right.col >= text.length && !isLastLine) {
+          return [selectedText, ''];  // Include empty string to represent newline
+        }
+        return [selectedText];
       } else {
         const firstLine = Model.lines[Viewport.start + left.row].slice(left.col);
         const lastLine = Model.lines[Viewport.start + right.row].slice(0, right.col + 1);
@@ -1070,36 +1079,53 @@ function Vbuf(node, config = {}) {
       $selections[i].style.left = 0;
       if (i < Viewport.lines.length) { // TODO: this can be removed if selection is constrained to source content
         const content = Viewport.lines[i];
-        if(content.length > 0 ) {
-          $selections[i].style.width = content.length+'ch';
-        } else {
-          // For empty line, we still render 1 character selection
-          $selections[i].style.width = '1ch';
-        }
+        // +1 for phantom newline character (shows newline is part of selection)
+        $selections[i].style.width = (content.length + 1) + 'ch';
       }
     }
 
     // Render the leading and heading selection line
     $selections[firstEdge.row].style.left = firstEdge.col+'ch';
     if (secondEdge.row === firstEdge.row) {
-      $selections[firstEdge.row].style.width = secondEdge.col - firstEdge.col + 1 +'ch';
+      let width = secondEdge.col - firstEdge.col + 1;
+      const text = Viewport.lines[firstEdge.row];
+      const absRow = Viewport.start + firstEdge.row;
+      const isLastLine = absRow === Model.lastIndex;
+
+      // When selecting backwards from EOL position, don't show phantom newline
+      // (we're moving away from the newline, not selecting into it)
+      if (!Selection.isForwardSelection && secondEdge.col > firstEdge.col && secondEdge.col >= text.length) {
+        width--;
+      }
+      // When on last line (no newline exists), clamp width to actual text
+      else if (isLastLine && secondEdge.col >= text.length && firstEdge.col < secondEdge.col) {
+        width = Math.min(width, text.length - firstEdge.col);
+      }
+
+      $selections[firstEdge.row].style.width = width + 'ch';
       $selections[firstEdge.row].style.visibility = 'visible';
     } else {
       if(firstEdge.row < Viewport.lines.length) { // TODO: this can be removed if selection is constrained to source content
         const text = Viewport.lines[firstEdge.row];
-
-        // There is edge case where text.length - firstEdge.col is 0. Namely, if the selection started
-        // on the last cursor position, menaing the cursor is between the last char and new line.
-        // We want to render 1 char to represent this new line.
-        $selections[firstEdge.row].style.width = Math.max(1, text.length - firstEdge.col)+'ch';
+        // +1 for phantom newline character (shows newline is part of selection)
+        $selections[firstEdge.row].style.width = (text.length - firstEdge.col + 1) + 'ch';
         $selections[firstEdge.row].style.visibility = 'visible';
       }
       if(secondEdge.row < Viewport.lines.length) {
         const text = Viewport.lines[secondEdge.row];
-        if(secondEdge.col >= text.length) {
-          logger.warn(`secondEdge's column ${secondEdge.col} is too far beyond the text with length: `, text.length);
+        const absRow = Viewport.start + secondEdge.row;
+        const isLastLine = absRow === Model.lastIndex;
+
+        $selections[secondEdge.row].style.left = '0';  // Last line of selection starts from column 0
+
+        let width;
+        if (secondEdge.col >= text.length && !isLastLine) {
+          // Selection extends to phantom newline position, and there is a newline
+          width = text.length + 1;
+        } else {
+          width = Math.min(secondEdge.col + 1, text.length);
         }
-        $selections[secondEdge.row].style.width = Math.min(secondEdge.col + 1, text.length)+'ch';
+        $selections[secondEdge.row].style.width = width + 'ch';
         $selections[secondEdge.row].style.visibility = 'visible';
       }
     }
@@ -1292,7 +1318,6 @@ function Vbuf(node, config = {}) {
           Selection.moveRow(1);
         }
       } else { // no meta key.
-        // TODO: handle special case where begin a selection and we are at last character on line
         if (event.shiftKey && !Selection.isSelection) Selection.makeSelection();
 
         if (event.key === "ArrowDown") {

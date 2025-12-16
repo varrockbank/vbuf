@@ -467,8 +467,11 @@ TYPE "Third"
 up 2 times
 left
 right with shift
+// Selection at 0,4-0,5 (last char + phantom newline)
+EXPECT selection at 0,4-0,5
 down with shift
-EXPECT selection at 0,4-2,0
+// Head moves to row 1 "Second" (length 6), col stays at 5
+EXPECT selection at 0,4-1,5
 
 ## should select down 4 rows from beginning
 ### Select down 4 rows from beginning
@@ -716,8 +719,11 @@ TYPE "Long line"
 up 2 times
 left with meta
 right 5 times with shift
+// Selection at 0,0-0,5 (includes phantom newline)
+EXPECT selection at 0,0-0,5
 down with shift
-EXPECT selection at 0,0-2,0
+// Head moves to row 1 "A" (length 1), col clamped to 1
+EXPECT selection at 0,0-1,1
 
 
 # Walkthrough feature - regression tests
@@ -1028,4 +1034,159 @@ expect(fixture).toHaveLines("XWorld");
 EXPECT cursor at 0,1
 fixture.wb.History.undo();
 expect(fixture).toHaveLines("Hello World");
+EXPECT cursor at 0,0
+
+
+# Selection rendering
+
+## should show cursor on empty line
+### Regression: Cursor visible on empty line (width=1ch)
+// Empty editor, cursor at 0,0 should render with width 1ch
+const $sel = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel.style.width).toBe("1ch");
+expect($sel.style.visibility).toBe("visible");
+
+## should show cursor after typing
+### Regression: Cursor visible after typing text
+TYPE "Hello"
+const $sel = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel.style.width).toBe("1ch");
+expect($sel.style.visibility).toBe("visible");
+
+## should not show phantom newline when no newline exists
+### Regression: Single line with no newline shows exact text length
+TYPE "Hello"
+left with meta
+right 5 times with shift
+// Selection from col 0 to col 5 on "Hello" (len 5), no second line
+// Should show 5ch (no phantom - there's no newline character)
+const $sel = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel.style.width).toBe("5ch");
+
+## should show phantom newline when selecting forward to EOL with newline
+### Regression: Forward selection to EOL includes phantom newline when newline exists
+TYPE "Hello"
+enter
+TYPE "World"
+up
+left with meta
+right 5 times with shift
+// Selection from col 0 to col 5 on "Hello" (len 5), with newline after
+// Forward selection to EOL should show 6ch (5 chars + phantom newline)
+const $sel = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel.style.width).toBe("6ch");
+
+## should not show phantom newline when selecting backward from EOL (no newline)
+### Regression: Backward selection from EOL excludes phantom (single line)
+TYPE "Hello"
+left with shift
+// Selection from col 4 to col 5, but selecting LEFT from col 5
+// Backward selection should show 1ch (just "o", no phantom)
+const $sel = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel.style.width).toBe("1ch");
+
+## should not show phantom newline when selecting backward from EOL (with newline)
+### Regression: Backward selection from EOL excludes phantom even when newline exists
+TYPE "Hello"
+enter
+TYPE "World"
+up
+right with meta
+left with shift
+// On first line "Hello" with newline, select backward from col 5 to col 4
+// Backward selection should show 1ch (just "o", not the newline)
+const $sel = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel.style.width).toBe("1ch");
+
+## should show phantom newline on first line of multi-line selection
+### Regression: Multi-line selection first line includes phantom newline
+TYPE "Hello"
+enter
+TYPE "World"
+up
+left with meta
+down with shift
+// First line "Hello" from col 0 should show 6ch (5 chars + phantom)
+const $sel0 = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel0.style.width).toBe("6ch");
+
+## should show phantom newline on middle lines of multi-line selection
+### Regression: Multi-line selection middle lines include phantom newline
+TYPE "First"
+enter
+TYPE "Middle"
+enter
+TYPE "Last"
+up 2 times
+left with meta
+down 2 times with shift
+// Middle line "Middle" (row 1) should show 7ch (6 chars + phantom)
+const $sel1 = fixture.node.querySelectorAll(".wb-selection")[1];
+expect($sel1.style.width).toBe("7ch");
+
+## should select newline before wrapping to next line
+### Regression: Selecting right at EOL selects newline first, then wraps
+TYPE "Hello"
+enter
+TYPE "a"
+up
+left with meta
+// Select "Hello" (5 chars): 4 shift+rights from col 0 to col 4
+right 4 times with shift
+EXPECT selection at 0,0-0,4
+const $sel4 = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel4.style.width).toBe("5ch");
+// Select one more to include newline (col 5, still on row 0)
+right with shift
+EXPECT selection at 0,0-0,5
+const $sel5 = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel5.style.width).toBe("6ch");
+// Select one more to wrap to next line (row 1, col 0)
+right with shift
+EXPECT selection at 0,0-1,0
+// Select one more to include "a"
+right with shift
+EXPECT selection at 0,0-1,1
+
+## should show phantom on last line of multi-line selection
+### Regression: Multi-line selection last line shows phantom when at newline position
+TYPE "a"
+enter
+TYPE "b"
+enter
+TYPE "c"
+up 2 times
+right with meta
+// Cursor at col 1 row 0 (phantom position of "a")
+// Select right: wrap to row 1 col 0
+right with shift
+EXPECT selection at 0,1-1,0
+const $r0a = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($r0a.style.width).toBe("1ch");
+const $r1a = fixture.node.querySelectorAll(".wb-selection")[1];
+expect($r1a.style.width).toBe("1ch");
+// Select right again: row 1 col 1 (phantom position of "b")
+right with shift
+EXPECT selection at 0,1-1,1
+const $r0b = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($r0b.style.width).toBe("1ch");
+const $r1b = fixture.node.querySelectorAll(".wb-selection")[1];
+expect($r1b.style.width).toBe("2ch");
+// Select right again: wrap to row 2
+right with shift
+EXPECT selection at 0,1-2,0
+
+## should delete text and newline when selection includes phantom
+### Regression: Deleting selection that includes phantom newline joins lines
+TYPE "a"
+enter
+TYPE "b"
+up
+left with meta
+// Select "a" + phantom newline (col 0 to col 1)
+right with shift
+EXPECT selection at 0,0-0,1
+// Delete should remove "a" and the newline, leaving just "b" on line 0
+backspace
+expect(fixture).toHaveLines("b");
 EXPECT cursor at 0,0
