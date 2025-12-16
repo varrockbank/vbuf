@@ -1,7 +1,6 @@
 * Unhandled bugs
 
 - At last character of last last line. Behaviors such as move next row, move next col should add new line to buffer
-- tab character messes up the rendering
 
 * Rendering improvements
 

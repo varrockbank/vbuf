@@ -138,10 +138,23 @@ const editor = new Vbuf(document.getElementById('editor'), {
 | `colorSecondary` | string | `"#212026"` | Gutter and status background |
 | `initialViewportSize` | number | `20` | Visible lines |
 | `lineHeight` | number | `24` | Line height in pixels |
-| `indentation` | number | `4` | Spaces per tab |
+| `indentation` | number | `4` | Spaces for indent/unindent |
+| `expandtab` | number | `4` | Tab width (0 = hard tabs) |
 | `showGutter` | boolean | `true` | Show line numbers |
 | `showStatusLine` | boolean | `true` | Show status bar |
 | `logger` | function | `console.log` | Custom logger |
+
+---
+
+## Tabs (`editor.expandtab`)
+
+Soft tabs are enabled by default. Tab characters are replaced with spaces.
+
+```javascript
+editor.expandtab = 4;  // Tab key inserts 4 spaces, \t chars become 4 spaces
+editor.expandtab = 2;  // Use 2 spaces instead
+editor.expandtab = 0;  // Hard tabs (not recommended - cursor positioning may break)
+```
 
 ---
 

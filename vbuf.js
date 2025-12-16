@@ -1,7 +1,7 @@
 /**
  * @fileoverview Vbuf - A high-performance virtual buffer text editor for the browser.
  * Renders fixed-width character cells in a grid layout with virtual scrolling.
- * @version 5.6.8-alpha.1
+ * @version 5.6.9-alpha.1
  */
 
 /**
@@ -46,7 +46,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Vbuf(node, config = {}) {
-  this.version = "5.6.8-alpha.1";
+  this.version = "5.6.9-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -54,6 +54,7 @@ function Vbuf(node, config = {}) {
     lineHeight = 24,
     editorPaddingPX = 4,
     indentation: initialIndentation = 4,
+    expandtab: initialExpandtab = 4,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026",
     gutterSize: initialGutterSize = 2,
@@ -65,13 +66,18 @@ function Vbuf(node, config = {}) {
 
   let gutterSize = initialGutterSize;
   let indentation = initialIndentation;
+  let expandtab = initialExpandtab;
+
+  /** Replaces tabs with spaces (expandtab = number of spaces, 0 = keep tabs) */
+  const expandTabs = (s) => expandtab ? s.replace(/\t/g, ' '.repeat(expandtab)) : s;
 
   const $e = node.querySelector('.wb-lines');
   Object.assign($e.style, {
     lineHeight: lineHeight+'px',
     fontSize: lineHeight+'px',
     position: 'relative',
-    margin: editorPaddingPX+'px'
+    margin: editorPaddingPX+'px',
+    tabSize: expandtab || 4
   });
 
   const $status = node.querySelector('.wb-status');
@@ -337,6 +343,7 @@ function Vbuf(node, config = {}) {
      * @param {boolean} [skipRender=false] - Skip rendering (for batched operations)
      */
     insert(s, skipRender = false) {
+      s = expandTabs(s);
       const t0 = performance.now();
       if (this.isSelection) {
         const [first, second] = this.ordered;
@@ -653,6 +660,7 @@ function Vbuf(node, config = {}) {
      * @param {string} text - The full document text
      */
     set text(text) {
+      text = expandTabs(text);
       this.lines = text.split("\n");
       this.byteCount = new TextEncoder().encode(text).length
       this.originalLineCount = this.lines.length;
@@ -684,7 +692,7 @@ function Vbuf(node, config = {}) {
      * @param {boolean} [skipRender=false] - Whether to skip re-rendering
      */
     appendLines(newLines, skipRender = false) {
-      this.lines.push(...newLines);
+      this.lines.push(...newLines.map(expandTabs));
       if (!skipRender) render();
     },
   }
@@ -1223,6 +1231,15 @@ function Vbuf(node, config = {}) {
   });
   this.indentation = indentation; // trigger setter to initialize display
 
+  Object.defineProperty(this, 'expandtab', {
+    get: () => expandtab,
+    set: (value) => {
+      expandtab = value;
+      $e.style.tabSize = expandtab || 4;
+    },
+    enumerable: true
+  });
+
   /**
    * Internal API for extensions.
    * Extensions can use renderHooks to register callbacks.
@@ -1241,6 +1258,7 @@ function Vbuf(node, config = {}) {
    * @param {string} s - Line to append
    */
   this.appendLineAtEnd = (s) => {
+    s = expandTabs(s);
     if(Model.lines[0] == '') {
       Model.lines[0] = s;
     } else {
@@ -1387,7 +1405,7 @@ function Vbuf(node, config = {}) {
         if(event.shiftKey) {
           Selection.unindent();
         } else {
-          Selection.insert(" ".repeat(indentation));
+          Selection.insert(" ".repeat(expandtab));
         }
       }
     } else if (event.key.length > 1) {
