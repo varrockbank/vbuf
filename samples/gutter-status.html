@@ -3,27 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>vbuf - Gutter and Status Bar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="../vbuf.js"></script>
   <style>
-    body {
-      background: #1a1a1a;
-      padding: 20px;
-      font-family: sans-serif;
-    }
-    h1 { color: #fff; font-size: 18px; }
-    h2 { color: #aaa; font-size: 14px; margin-top: 30px; }
-    p { color: #666; font-size: 13px; }
-    code { color: #0f0; }
-
     .wb {
       background-color: #282C34;
       color: #B2B2B2;
       position: relative;
       outline: none;
       font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-      border: 1px solid #444;
-      width: 70ch;
-      margin-bottom: 10px;
     }
     .no-select { user-select: none; }
     .wb-clipboard-bridge {
@@ -40,21 +28,24 @@
     .wb .wb-status span { padding-right: 4px; }
   </style>
 </head>
-<body>
-  <h1>Gutter (Line Numbers) and Status Bar</h1>
-  <p>Control visibility via constructor options: <code>showGutter</code> and <code>showStatusLine</code></p>
+<body class="bg-neutral-900 p-5 font-sans">
+  <h1 class="text-white text-lg mb-2">Gutter (Line Numbers) and Status Bar</h1>
+  <p class="text-neutral-400 text-sm mb-6">
+    Control visibility via constructor options: <code class="text-green-400">showGutter</code> and <code class="text-green-400">showStatusLine</code>
+  </p>
 
-  <h2>Default (gutter + status bar)</h2>
-  <p>JS: <code>new Vbuf(el, { showGutter: true, showStatusLine: true })</code></p>
-  <blockquote class="wb no-select" tabindex="0" id="editor-default">
+  <h2 class="text-neutral-300 text-sm mt-8 mb-2">Default (gutter + status bar)</h2>
+  <p class="text-neutral-500 text-xs">JS:</p>
+  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">new Vbuf(el, { showGutter: true, showStatusLine: true })</code></p>
+  <blockquote class="wb no-select border border-neutral-700 w-[500px] mb-4" tabindex="0" id="editor-default">
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-    <div style="display: flex;">
+    <div class="flex">
       <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+      <div class="wb-lines flex-1 overflow-hidden"></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026; color: #B2B2B2;">
+    <div class="wb-status flex justify-between p-1.5" style="background: #212026; color: #B2B2B2;">
       <div class="wb-status-left"><span class="wb-linecount"></span></div>
-      <div class="wb-status-right">
+      <div class="wb-status-right flex">
         <span class="wb-coordinate"></span>
         <span>|</span>
         <span class="wb-indentation"></span>
@@ -62,17 +53,18 @@
     </div>
   </blockquote>
 
-  <h2>No gutter (line numbers hidden)</h2>
-  <p>JS: <code>new Vbuf(el, { showGutter: false })</code></p>
-  <blockquote class="wb no-select" tabindex="0" id="editor-no-gutter">
+  <h2 class="text-neutral-300 text-sm mt-8 mb-2">No gutter (line numbers hidden)</h2>
+  <p class="text-neutral-500 text-xs">JS:</p>
+  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">new Vbuf(el, { showGutter: false })</code></p>
+  <blockquote class="wb no-select border border-neutral-700 w-[500px] mb-4" tabindex="0" id="editor-no-gutter">
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-    <div style="display: flex;">
+    <div class="flex">
       <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+      <div class="wb-lines flex-1 overflow-hidden"></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026; color: #B2B2B2;">
+    <div class="wb-status flex justify-between p-1.5" style="background: #212026; color: #B2B2B2;">
       <div class="wb-status-left"><span class="wb-linecount"></span></div>
-      <div class="wb-status-right">
+      <div class="wb-status-right flex">
         <span class="wb-coordinate"></span>
         <span>|</span>
         <span class="wb-indentation"></span>
@@ -80,17 +72,18 @@
     </div>
   </blockquote>
 
-  <h2>No status bar</h2>
-  <p>JS: <code>new Vbuf(el, { showStatusLine: false })</code></p>
-  <blockquote class="wb no-select" tabindex="0" id="editor-no-status">
+  <h2 class="text-neutral-300 text-sm mt-8 mb-2">No status bar</h2>
+  <p class="text-neutral-500 text-xs">JS:</p>
+  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">new Vbuf(el, { showStatusLine: false })</code></p>
+  <blockquote class="wb no-select border border-neutral-700 w-[500px] mb-4" tabindex="0" id="editor-no-status">
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-    <div style="display: flex;">
+    <div class="flex">
       <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+      <div class="wb-lines flex-1 overflow-hidden"></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026; color: #B2B2B2;">
+    <div class="wb-status flex justify-between p-1.5" style="background: #212026; color: #B2B2B2;">
       <div class="wb-status-left"><span class="wb-linecount"></span></div>
-      <div class="wb-status-right">
+      <div class="wb-status-right flex">
         <span class="wb-coordinate"></span>
         <span>|</span>
         <span class="wb-indentation"></span>
@@ -98,17 +91,18 @@
     </div>
   </blockquote>
 
-  <h2>Minimal (no gutter, no status bar)</h2>
-  <p>JS: <code>new Vbuf(el, { showGutter: false, showStatusLine: false })</code></p>
-  <blockquote class="wb no-select" tabindex="0" id="editor-minimal">
+  <h2 class="text-neutral-300 text-sm mt-8 mb-2">Minimal (no gutter, no status bar)</h2>
+  <p class="text-neutral-500 text-xs">JS:</p>
+  <p class="text-neutral-500 text-xs mb-2"><code class="text-green-400">new Vbuf(el, { showGutter: false, showStatusLine: false })</code></p>
+  <blockquote class="wb no-select border border-neutral-700 w-[500px] mb-4" tabindex="0" id="editor-minimal">
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-    <div style="display: flex;">
+    <div class="flex">
       <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+      <div class="wb-lines flex-1 overflow-hidden"></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026; color: #B2B2B2;">
+    <div class="wb-status flex justify-between p-1.5" style="background: #212026; color: #B2B2B2;">
       <div class="wb-status-left"><span class="wb-linecount"></span></div>
-      <div class="wb-status-right">
+      <div class="wb-status-right flex">
         <span class="wb-coordinate"></span>
         <span>|</span>
         <span class="wb-indentation"></span>
@@ -127,7 +121,9 @@ hello();`;
     const edDefault = new Vbuf(document.getElementById('editor-default'), {
       initialViewportSize: 6,
       showGutter: true,
-      showStatusLine: true
+      showStatusLine: true,
+      colorPrimary: "#B2B2B2",
+      colorSecondary: "#212026"
     });
     edDefault.Model.text = content;
 
@@ -135,7 +131,9 @@ hello();`;
     const edNoGutter = new Vbuf(document.getElementById('editor-no-gutter'), {
       initialViewportSize: 6,
       showGutter: false,
-      showStatusLine: true
+      showStatusLine: true,
+      colorPrimary: "#B2B2B2",
+      colorSecondary: "#212026"
     });
     edNoGutter.Model.text = content;
 
@@ -143,7 +141,9 @@ hello();`;
     const edNoStatus = new Vbuf(document.getElementById('editor-no-status'), {
       initialViewportSize: 6,
       showGutter: true,
-      showStatusLine: false
+      showStatusLine: false,
+      colorPrimary: "#B2B2B2",
+      colorSecondary: "#212026"
     });
     edNoStatus.Model.text = content;
 
@@ -151,7 +151,9 @@ hello();`;
     const edMinimal = new Vbuf(document.getElementById('editor-minimal'), {
       initialViewportSize: 6,
       showGutter: false,
-      showStatusLine: false
+      showStatusLine: false,
+      colorPrimary: "#B2B2B2",
+      colorSecondary: "#212026"
     });
     edMinimal.Model.text = content;
   </script>
