@@ -1,5 +1,64 @@
 # Claude Instructions for vbuf
 
+## Writing Tests (specs.dsl)
+
+When writing tests in `test/specs.dsl`, follow these guidelines:
+
+### Viewport Size
+- Default viewport is **10 lines** (both tests and walkthrough)
+- To trigger scrolling, type 11+ lines of content
+
+### Use DSL Commands
+Always use DSL commands to set up test state:
+
+**Do this:**
+```
+TYPE "line0"
+enter
+TYPE "line1"
+enter
+TYPE "line2"
+```
+
+**Not this:**
+```
+fixture.wb.Model.text = "line0\nline1\nline2";
+```
+
+### Navigation
+Use arrow keys and DSL commands instead of direct API calls:
+
+**Do this:**
+```
+up 9 times
+left with meta
+```
+
+**Not this:**
+```
+fixture.wb.Viewport.scroll(2);
+```
+
+### Available Modifiers
+- `with meta` - Cmd/Ctrl key
+- `with shift` - Shift key
+- `with alt` - Alt/Option key (for word movement)
+- Can combine: `right with meta, shift`
+
+### Test Structure
+```
+## should describe what the test verifies
+### Short description for walkthrough display
+// Setup comments
+TYPE "content"
+enter
+// Action
+left with alt
+// Assertions
+expect(fixture.wb.Viewport.start).toBe(0);
+EXPECT cursor at 0,5
+```
+
 ## Cursor Model (Vim-style)
 
 vbuf uses a vim-style cursor model:

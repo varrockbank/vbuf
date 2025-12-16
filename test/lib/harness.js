@@ -119,6 +119,11 @@ class EditorTestHarness {
         return this;
       },
 
+      withAltKey() {
+        this._modifiers.alt = true;
+        return this;
+      },
+
       once() {
         const modStr = Object.keys(this._modifiers).filter(k => this._modifiers[k]).join('+');
         const desc = modStr ? `press(${modStr}+${this._key})` : `press(${this._key})`;
@@ -173,5 +178,5 @@ class EditorTestHarness {
 // EditorTestHarness factory
 const FixtureFactory = {
   forTest: (size) => new EditorTestHarness(createEditorNode(), size),
-  forWalkthrough: (node) => new EditorTestHarness(node, 20)
+  forWalkthrough: (node) => new EditorTestHarness(node, 10)
 };

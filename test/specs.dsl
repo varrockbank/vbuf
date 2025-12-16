@@ -753,6 +753,44 @@ expect(fixture).toHaveLines(';;;');
 EXPECT cursor at 0,3
 
 
+# Word movement
+
+## should scroll viewport up when moveBackWord at first viewport line
+### Alt+Left at col 0, row 0 scrolls viewport up
+// Add 11 lines (viewport shows 10, so we can scroll)
+TYPE "line0"
+enter
+TYPE "line1"
+enter
+TYPE "line2"
+enter
+TYPE "line3"
+enter
+TYPE "line4"
+enter
+TYPE "line5"
+enter
+TYPE "line6"
+enter
+TYPE "line7"
+enter
+TYPE "line8"
+enter
+TYPE "line9"
+enter
+TYPE "line10"
+// Cursor at end of last line, viewport scrolled down
+expect(fixture.wb.Viewport.start).toBe(1);
+// Move cursor to start of first viewport line
+up 9 times
+left with meta
+EXPECT cursor at 0,0
+// Alt+Left should scroll viewport up and move cursor to end of previous line
+left with alt
+expect(fixture.wb.Viewport.start).toBe(0);
+EXPECT cursor at 0,5
+
+
 # Gutter resizing
 
 ## should grow gutter when scrolling to double-digit line numbers

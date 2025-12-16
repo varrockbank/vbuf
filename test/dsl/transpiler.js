@@ -225,15 +225,19 @@ class DSLTranspiler {
     if (qualifications) {
       const mods = qualifications.split(',').map(m => m.trim().toLowerCase());
 
-      // Ensure meta comes before shift (v1.6.0 rule 8)
+      // Ensure consistent order: meta, shift, alt
       const hasMeta = mods.includes('meta');
       const hasShift = mods.includes('shift');
+      const hasAlt = mods.includes('alt');
 
       if (hasMeta) {
         chain += '.withMetaKey()';
       }
       if (hasShift) {
         chain += '.withShiftKey()';
+      }
+      if (hasAlt) {
+        chain += '.withAltKey()';
       }
     }
 

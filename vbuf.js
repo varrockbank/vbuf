@@ -1,7 +1,7 @@
 /**
  * @fileoverview Vbuf - A high-performance virtual buffer text editor for the browser.
  * Renders fixed-width character cells in a grid layout with virtual scrolling.
- * @version 5.6.1-alpha.1
+ * @version 5.6.2-alpha.1
  */
 
 /**
@@ -14,7 +14,7 @@
  * @property {string} [colorSecondary="#212026"] - Secondary/background color for gutter and status
  * @property {number} [gutterSize=2] - Initial width of line number gutter in characters
  * @property {number} [gutterPadding=1] - Padding for the gutter in characters
- * @property {function(string): void} [logger=console.log] - Logging function for debug output
+ * @property {function(string): void} [logger=console] - Logger with log and warning methods
  * @property {boolean} [showGutter=true] - Whether to show line numbers
  * @property {boolean} [showStatusLine=true] - Whether to show the status line
  */
@@ -46,7 +46,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Vbuf(node, config = {}) {
-  this.version = "5.6.1-alpha.1";
+  this.version = "5.6.2-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -58,9 +58,7 @@ function Vbuf(node, config = {}) {
     colorSecondary = "#212026",
     gutterSize: initialGutterSize = 2,
     gutterPadding = 1,
-    logger = (s) => {
-      console.log(s);
-    },
+    logger = console,
     showGutter = true,
     showStatusLine = true,
   } = config;
@@ -198,7 +196,7 @@ function Vbuf(node, config = {}) {
           }
         }
       } else {
-        console.warning(`Do not support moving by multiple values (${value}) yet `);
+        logger.warning(`Do not support moving by multiple values (${value}) yet `);
       }
       render();
     },
@@ -366,7 +364,7 @@ function Vbuf(node, config = {}) {
       if (!skipRender) render(true);
       const t1 = performance.now();
       const millis = parseFloat(t1 - t0);
-      console.log(`Took ${millis.toFixed(2)} millis to insert with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
+      logger.log(`Took ${millis.toFixed(2)} millis to insert with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
     },
 
     /**
@@ -394,9 +392,10 @@ function Vbuf(node, config = {}) {
       }
 
       render(true);
+      
       const t1 = performance.now();
       const millis = parseFloat(t1 - t0);
-      console.log(`Took ${millis.toFixed(2)} millis to delete with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
+      logger.log(`Took ${millis.toFixed(2)} millis to delete with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
     },
 
     /**
@@ -422,7 +421,7 @@ function Vbuf(node, config = {}) {
       render(true);
       const t1 = performance.now();
       const millis = parseFloat(t1 - t0);
-      console.log(`Took ${millis.toFixed(2)} millis to insert new line with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
+      logger.log(`Took ${millis.toFixed(2)} millis to insert new line with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
     },
 
     /**
@@ -434,9 +433,12 @@ function Vbuf(node, config = {}) {
       const n = s.length;
 
       if(head.col === 0) {
-        // TODO: handle viewport scroll
         if(head.row > 0) {
           head.row--;
+          head.col = Viewport.lines[head.row].length;
+        } else if (Viewport.start !== 0) {
+          // First line of viewport but not first line of file - scroll up
+          Viewport.scroll(-1);
           head.col = Viewport.lines[head.row].length;
         }
       } else {
@@ -504,9 +506,9 @@ function Vbuf(node, config = {}) {
 
       for(let i = first.row; i <= second.row; i++) {
           const realRow = Viewport.start + i;
-          console.log("Before: " + Model.lines[realRow]);
+          logger.log("Before: " + Model.lines[realRow]);
           Model.lines[realRow] = " ".repeat(indentation) + Model.lines[realRow];
-          console.log("After: " + Model.lines[realRow]);
+          logger.log("After: " + Model.lines[realRow]);
       }
       first.col += indentation;
       second.col += indentation;
@@ -938,7 +940,7 @@ function Vbuf(node, config = {}) {
       const t1 = performance.now();
       const millis = parseFloat(t1 - t0);
       const lineCount = Model.lines.length;
-      console.log(`Took ${millis.toFixed(2)} millis to scroll viewport with ${lineCount} lines. That's ${1000/millis} FPS.`);
+      logger.log(`Took ${millis.toFixed(2)} millis to scroll viewport with ${lineCount} lines. That's ${1000/millis} FPS.`);
     },
 
     /**
@@ -1086,7 +1088,7 @@ function Vbuf(node, config = {}) {
       if(secondEdge.row < Viewport.lines.length) {
         const text = Viewport.lines[secondEdge.row];
         if(secondEdge.col >= text.length) {
-          console.warn(`secondEdge's column ${secondEdge.col} is too far beyond the text with length: `, text.length);
+          logger.warn(`secondEdge's column ${secondEdge.col} is too far beyond the text with length: `, text.length);
         }
         $selections[secondEdge.row].style.width = Math.min(secondEdge.col + 1, text.length)+'ch';
         $selections[secondEdge.row].style.visibility = 'visible';
@@ -1320,7 +1322,7 @@ function Vbuf(node, config = {}) {
         }
       }
     } else if (event.key.length > 1) {
-      console.warn('Ignoring unknown key: ', event.code, event.key);
+      logger.warn('Ignoring unknown key: ', event.code, event.key);
     } else if (event.key === "Shift") {
     } else if (event.key === " ") {
       event.preventDefault();
@@ -1340,11 +1342,11 @@ function Vbuf(node, config = {}) {
  */
 function $clamp(value, min, max) {
   if (value < min) {
-    console.warn("Out of bounds");
+    logger.warn("Out of bounds");
     return min;
   }
   if (value > max) {
-    console.warn("Out of bounds");
+    logger.warn("Out of bounds");
     return max;
   }
   return value;
