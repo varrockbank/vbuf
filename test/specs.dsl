@@ -898,12 +898,10 @@ expect($gutter.style.width).toBe("3ch");
 
 ## should not resize gutter when scrolling
 ### Gutter based on total lines, not viewport position
-// Create fixture with viewport size 9
-fixture = FixtureFactory.forTest(9);
-// Add 11 lines (indices 0-10)
-fixture.wb.Model.text = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11";
+// Add 15 lines (more than viewport of 10)
+fixture.wb.Model.text = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15";
 const $gutter = fixture.node.querySelector(".wb-gutter");
-// Gutter is 3ch (2 digits + 1 padding) for 11 lines
+// Gutter is 3ch (2 digits + 1 padding) for 15 lines
 expect($gutter.style.width).toBe("3ch");
 // Scroll down - gutter should NOT change
 fixture.wb.Viewport.scroll(2);
@@ -914,7 +912,6 @@ expect($gutter.style.width).toBe("3ch");
 
 ## should grow gutter at 100 lines
 ### Gutter grows from 2 to 3 digits at 100 lines
-fixture = FixtureFactory.forTest(5);
 // Create 99 lines
 fixture.wb.Model.text = Array(99).fill("x").join("\n");
 const $gutter = fixture.node.querySelector(".wb-gutter");
@@ -1224,3 +1221,115 @@ EXPECT selection at 0,0-0,1
 backspace
 expect(fixture).toHaveLines("b");
 EXPECT cursor at 0,0
+
+
+# Selection larger than viewport
+
+## should support selection spanning more lines than viewport
+### Selection can span beyond viewport size (viewport=10)
+// Add 15 lines
+TYPE "line0"
+enter
+TYPE "line1"
+enter
+TYPE "line2"
+enter
+TYPE "line3"
+enter
+TYPE "line4"
+enter
+TYPE "line5"
+enter
+TYPE "line6"
+enter
+TYPE "line7"
+enter
+TYPE "line8"
+enter
+TYPE "line9"
+enter
+TYPE "line10"
+enter
+TYPE "line11"
+enter
+TYPE "line12"
+enter
+TYPE "line13"
+enter
+TYPE "line14"
+// Go to beginning
+up 14 times
+left with meta
+expect(fixture.wb.Viewport.start).toBe(0);
+EXPECT cursor at 0,0
+// Select down 12 lines (more than viewport of 10)
+down 12 times with shift
+EXPECT selection at 0,0-12,0
+// Selection spans lines 0-12 but viewport only shows 10 lines
+
+## should render selection edges correctly before and after viewport scrolls
+### Selection tail ends change shape when viewport scrolls
+// Add 15 lines
+TYPE "FIRST"
+enter
+TYPE "line1"
+enter
+TYPE "line2"
+enter
+TYPE "line3"
+enter
+TYPE "line4"
+enter
+TYPE "line5"
+enter
+TYPE "line6"
+enter
+TYPE "line7"
+enter
+TYPE "line8"
+enter
+TYPE "line9"
+enter
+TYPE "line10"
+enter
+TYPE "line11"
+enter
+TYPE "line12"
+enter
+TYPE "LAST"
+enter
+TYPE "after"
+// Go to start, move to col 2
+up 14 times
+left with meta
+right 2 times
+expect(fixture.wb.Viewport.start).toBe(0);
+// Select down 5 rows (stays within viewport of 10)
+down 5 times with shift
+EXPECT selection at 0,2-5,2
+// First edge at row 0 should start at col 2
+const $sel0 = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($sel0.style.left).toBe("2ch");
+expect($sel0.style.visibility).toBe("visible");
+// Middle lines (rows 1-4) should be full width (left: 0)
+const $sel2 = fixture.node.querySelectorAll(".wb-selection")[2];
+expect($sel2.style.left).toBe("0px");
+expect($sel2.style.visibility).toBe("visible");
+// Continue selecting down 8 more rows - this will scroll the viewport
+down 8 times with shift
+right 2 times with shift
+EXPECT selection at 0,2-13,4
+// Viewport scrolled to keep head visible (row 13)
+// Viewport.start = 13 - 10 + 1 = 4, showing rows 4-13
+expect(fixture.wb.Viewport.start).toBe(4);
+// First edge (row 0) is now ABOVE viewport - not rendered
+// Row 4 is viewport row 0, rendered as middle line (full width)
+const $vp0 = fixture.node.querySelectorAll(".wb-selection")[0];
+expect($vp0.style.left).toBe("0px");
+expect($vp0.style.visibility).toBe("visible");
+// Row 13 is viewport row 9 (last line of selection, partial width)
+const $vp9 = fixture.node.querySelectorAll(".wb-selection")[9];
+expect($vp9.style.left).toBe("0px");
+expect($vp9.style.width).toBe("5ch");
+expect($vp9.style.visibility).toBe("visible");
+

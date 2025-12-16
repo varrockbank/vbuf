@@ -1,7 +1,7 @@
 /**
  * @fileoverview Vbuf - A high-performance virtual buffer text editor for the browser.
  * Renders fixed-width character cells in a grid layout with virtual scrolling.
- * @version 5.6.6-alpha.1
+ * @version 5.6.7-alpha.1
  */
 
 /**
@@ -46,7 +46,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Vbuf(node, config = {}) {
-  this.version = "5.6.6-alpha.1";
+  this.version = "5.6.7-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -107,6 +107,8 @@ function Vbuf(node, config = {}) {
   const fragmentGutters = document.createDocumentFragment();
 
   const detachedHead = { row : 0, col : 0};
+  // head.row and tail.row are ABSOLUTE line numbers (Model indices, not viewport-relative).
+  // This allows selections to span beyond the viewport.
   // In case where we have cursor, we want head === tail.
   let head = { row: 0, col: 0 };
   let tail = head;
@@ -126,63 +128,63 @@ function Vbuf(node, config = {}) {
 
     /**
      * Moves the cursor/selection head vertically.
+     * head.row is an ABSOLUTE line number (Model index).
      * @param {number} value - Direction to move: 1 for down, -1 for up
      */
     moveRow(value) {
       if (value > 0) {
-        if (head.row < (Viewport.end - Viewport.start)) {                      // Inner line, Move down
-          head.row ++;
-          if(Viewport.lines[head.row].length >= tail.col) {
-            head.col = Math.min(maxCol, Math.max(0, Viewport.lines[head.row].length));
-          } else {
-            head.col = Math.min(tail.col, Math.max(0, Viewport.lines[head.row].length));
+        // Move down
+        if (head.row < Model.lastIndex) {
+          head.row++;
+          // Adjust column to fit new line's length
+          const lineLen = Model.lines[head.row].length;
+          head.col = Math.min(maxCol, lineLen);
+
+          // Scroll viewport if cursor went below visible area
+          if (head.row > Viewport.end) {
+            Viewport.start = head.row - Viewport.size + 1;
           }
-        } else {                                                                // Last line of viewport, scroll viewport down
-          if (Viewport.end !== Model.lastIndex) {
-            Viewport.scroll(1);
-            head.col = Math.min(tail.col, Math.max(0, Viewport.lines[head.row].length));
-          } else { }                                                             // Last line of file, No-Op.
         }
+        // else: at last line of file, No-Op
       } else {
-        if (head.row === 0) {
-          // First line of viewport, scroll viewport up
-          if (Viewport.start !== 0) {
-            Viewport.scroll(-1);
-            head.col = Math.min(head.col, Math.max(0, Viewport.lines[head.row].length));
-          }
-          // else: first line of file, No-Op.
-        } else {                                                                 // Inner line, move up.
+        // Move up
+        if (head.row > 0) {
           head.row--;
-          // There ARE characters in the same column as the tail of the selection
-          if(Viewport.lines[head.row].length >= head.col) {
-            head.col = Math.min(maxCol, Math.max(0, Viewport.lines[head.row].length));
-          } else {
-            head.col = Math.min(head.col, Math.max(0, Viewport.lines[head.row].length));
+          // Adjust column to fit new line's length
+          const lineLen = Model.lines[head.row].length;
+          head.col = Math.min(maxCol, lineLen);
+
+          // Scroll viewport if cursor went above visible area
+          if (head.row < Viewport.start) {
+            Viewport.start = head.row;
           }
         }
+        // else: at first line of file, No-Op
       }
       render(true);
     },
 
     /**
      * Moves the cursor/selection head horizontally.
+     * head.row is an ABSOLUTE line number (Model index).
      * Handles line wrapping when moving past line boundaries.
      * @param {number} value - Direction to move: 1 for right, -1 for left
      */
     moveCol(value) {
       if (value === 1) {
-        if (head.col < Viewport.lines[head.row].length) {     // Move right 1 character (including to newline position).
+        const lineLen = Model.lines[head.row].length;
+        if (head.col < lineLen) {                             // Move right 1 character (including to newline position).
           maxCol = ++head.col;
         } else {
-          if (head.row < (Viewport.end - Viewport.start)) {   // Move to beginning of next line.
+          if (head.row < Model.lastIndex) {                   // Move to beginning of next line.
             maxCol = head.col = 0;
             head.row++;
-          } else {
-            if (Viewport.end < Model.lastIndex) {             // Scroll from last line.
-              head.col = 0;
-              Viewport.scroll(1);
-            } else {}                                         // End of file
+            // Scroll viewport if cursor went below visible area
+            if (head.row > Viewport.end) {
+              Viewport.start = head.row - Viewport.size + 1;
+            }
           }
+          // else: at end of file, No-Op
         }
       } else if (value === -1) {
         if (head.col > 0) {                                   // Move left 1 character.
@@ -190,13 +192,13 @@ function Vbuf(node, config = {}) {
         } else {
           if (head.row > 0) {                                 // Move to end of previous line (on last char, not past it)
             head.row--;
-            maxCol = head.col = Math.max(0, Viewport.lines[head.row].length - 1);
-          } else {
-            if (Viewport.start !== 0) {                       // Scroll then move head to end of new current line.
-              Viewport.scroll(-1);
-              head.col = Math.max(0, Viewport.lines[head.row].length - 1);
-            } else {}
+            maxCol = head.col = Math.max(0, Model.lines[head.row].length - 1);
+            // Scroll viewport if cursor went above visible area
+            if (head.row < Viewport.start) {
+              Viewport.start = head.row;
+            }
           }
+          // else: at start of file, No-Op
         }
       } else {
         logger.warning(`Do not support moving by multiple values (${value}) yet `);
@@ -222,17 +224,20 @@ function Vbuf(node, config = {}) {
 
     /**
      * Sets cursor position with bounds checking for iOS compatibility.
-     * @param {Position} position - Target cursor position
+     * Takes viewport-relative coordinates from touch input.
+     * @param {Position} position - Target cursor position (viewport-relative)
      */
     iosSetCursorAndRender({row, col}) {
       const linesFromViewportStart = Model.lastIndex - Viewport.start;
       // Case 1: linesFromViewportStart is outside viewport. case 2: linesFromViewportStart is less than viewport.
       const lastMeaningfulViewportRow = Math.min(Viewport.size-1, linesFromViewportStart);
       row = Math.min(row, lastMeaningfulViewportRow);
+      // Convert to absolute row
+      const absRow = Viewport.start + row;
       // Cursor 1 past last character
-      let positionOfLastChar = Model.lines[Viewport.start + row].length;
+      let positionOfLastChar = Model.lines[absRow].length;
       this.setCursor({
-        row,
+        row: absRow,
         col: Math.min(col, positionOfLastChar)}
       );
       render(true);
@@ -240,7 +245,7 @@ function Vbuf(node, config = {}) {
 
     /**
      * Sets the cursor to an absolute position.
-     * @param {Position} position - Target cursor position
+     * @param {Position} position - Target cursor position (absolute row)
      */
     setCursor({row, col}) {
       head.row = row;
@@ -255,9 +260,8 @@ function Vbuf(node, config = {}) {
     get lines() {
       const [left, right] = this.ordered;
       if(left.row === right.row) {
-        const text = Model.lines[Viewport.start + left.row];
-        const absRow = Viewport.start + left.row;
-        const isLastLine = absRow === Model.lastIndex;
+        const text = Model.lines[left.row];
+        const isLastLine = left.row === Model.lastIndex;
         const selectedText = text.slice(left.col, right.col + 1);
 
         // If selection extends to phantom newline position and there is a newline
@@ -266,9 +270,9 @@ function Vbuf(node, config = {}) {
         }
         return [selectedText];
       } else {
-        const firstLine = Model.lines[Viewport.start + left.row].slice(left.col);
-        const lastLine = Model.lines[Viewport.start + right.row].slice(0, right.col + 1);
-        const middle = Model.lines.slice(Viewport.start + left.row + 1, Viewport.start + right.row);
+        const firstLine = Model.lines[left.row].slice(left.col);
+        const lastLine = Model.lines[right.row].slice(0, right.col + 1);
+        const middle = Model.lines.slice(left.row + 1, right.row);
         return [firstLine, ...middle, lastLine]
       }
     },
@@ -297,10 +301,8 @@ function Vbuf(node, config = {}) {
      * If already at first non-space, moves to column 0.
      */
     moveCursorStartOfLine() {
-      const row = head.row;
-      const realRow = Viewport.start + row;
       let col = 0;
-      const line = Model.lines[realRow];
+      const line = Model.lines[head.row];
       for(let i = 0; i < line.length; i++) {
         if(line.charAt(i) !== ' ') {
           col = i;
@@ -315,9 +317,7 @@ function Vbuf(node, config = {}) {
      * Moves cursor to end of current line.
      */
     moveCursorEndOfLine() {
-      const row = head.row;
-      const realRow = Viewport.start + row;
-      maxCol = head.col = Model.lines[realRow].length;
+      maxCol = head.col = Model.lines[head.row].length;
       render(true);
     },
 
@@ -339,15 +339,14 @@ function Vbuf(node, config = {}) {
       const t0 = performance.now();
       if (this.isSelection) {
         const [first, second] = this.ordered;
-        const absRow = Viewport.start + first.row;
 
         // Get selected text before deleting
         const selectedText = this.lines.join('\n');
 
         // Delete selection, then insert new text (marked as combined for atomic undo)
-        History._delete(absRow, first.col, selectedText);
+        History._delete(first.row, first.col, selectedText);
         if (s.length > 0) {
-          History._insert(absRow, first.col, s, true, true); // combined=true
+          History._insert(first.row, first.col, s, true, true); // combined=true
         }
 
         // Update cursor to end of inserted text
@@ -361,8 +360,7 @@ function Vbuf(node, config = {}) {
         }
         this.makeCursor();
       } else {
-        const absRow = Viewport.start + tail.row;
-        History._insert(absRow, tail.col, s);
+        History._insert(tail.row, tail.col, s);
 
         // Update cursor
         const insertedLines = s.split('\n');
@@ -388,23 +386,26 @@ function Vbuf(node, config = {}) {
       }
 
       const t0 = performance.now();
-      const absRow = Viewport.start + tail.row;
 
       if (tail.col > 0) {
         // Delete character before cursor
-        const charToDelete = Model.lines[absRow][tail.col - 1];
-        History._delete(absRow, tail.col - 1, charToDelete);
+        const charToDelete = Model.lines[tail.row][tail.col - 1];
+        History._delete(tail.row, tail.col - 1, charToDelete);
         head.col--;
-      } else if (absRow > 0) {
+      } else if (tail.row > 0) {
         // At start of line - delete newline (join with previous line)
-        const prevLineLen = Model.lines[absRow - 1].length;
-        History._delete(absRow - 1, prevLineLen, '\n');
+        const prevLineLen = Model.lines[tail.row - 1].length;
+        History._delete(tail.row - 1, prevLineLen, '\n');
         head.col = prevLineLen;
         head.row--;
+        // Scroll viewport if cursor went above visible area
+        if (head.row < Viewport.start) {
+          Viewport.start = head.row;
+        }
       }
 
       render(true);
-      
+
       const t1 = performance.now();
       const millis = parseFloat(t1 - t0);
       logger.log(`Took ${millis.toFixed(2)} millis to delete with ${Model.lines.length} lines. That's ${1000/millis} FPS.`);
@@ -417,17 +418,17 @@ function Vbuf(node, config = {}) {
       if (this.isSelection) Selection.insert('', true); // skipRender - we render below
 
       const t0 = performance.now();
-      const absRow = Viewport.start + tail.row;
 
       // Insert newline character
-      History._insert(absRow, tail.col, '\n');
+      History._insert(tail.row, tail.col, '\n');
 
       // Move cursor to start of new line
       head.col = 0;
-      if (tail.row < Viewport.size - 1) {
-        head.row++;
-      } else {
-        Viewport.scroll(1);
+      head.row++;
+
+      // Scroll viewport if cursor went below visible area
+      if (head.row > Viewport.end) {
+        Viewport.start = head.row - Viewport.size + 1;
       }
 
       render(true);
@@ -447,12 +448,13 @@ function Vbuf(node, config = {}) {
       if(head.col === 0) {
         if(head.row > 0) {
           head.row--;
-          head.col = Viewport.lines[head.row].length;
-        } else if (Viewport.start !== 0) {
-          // First line of viewport but not first line of file - scroll up
-          Viewport.scroll(-1);
-          head.col = Viewport.lines[head.row].length;
+          head.col = Model.lines[head.row].length;
+          // Scroll viewport if cursor went above visible area
+          if (head.row < Viewport.start) {
+            Viewport.start = head.row;
+          }
         }
+        // else: at first line of file - do nothing
       } else {
         const isSpace = ch => /\s/.test(ch);
         const isWord = ch => /[\p{L}\p{Nd}_]/u.test(ch);
@@ -483,14 +485,14 @@ function Vbuf(node, config = {}) {
       const n = s.length;
 
       if(head.col === n) { // Edge case: At end of line
-        if (head.row < (Viewport.end - Viewport.start)) {
-          // Not at last viewport line - move to next line
+        if (head.row < Model.lastIndex) {
+          // Not at last line - move to next line
           head.col = 0;
           head.row++;
-        } else if (Viewport.end < Model.lastIndex) {
-          // At last viewport line but not end of file - scroll down
-          head.col = 0;
-          Viewport.scroll(1);
+          // Scroll viewport if cursor went below visible area
+          if (head.row > Viewport.end) {
+            Viewport.start = head.row - Viewport.size + 1;
+          }
         }
         // else: at end of file - do nothing
       } else {
@@ -523,10 +525,9 @@ function Vbuf(node, config = {}) {
       const [first, second] = this.ordered;
 
       for(let i = first.row; i <= second.row; i++) {
-          const realRow = Viewport.start + i;
-          logger.log("Before: " + Model.lines[realRow]);
-          Model.lines[realRow] = " ".repeat(indentation) + Model.lines[realRow];
-          logger.log("After: " + Model.lines[realRow]);
+          logger.log("Before: " + Model.lines[i]);
+          Model.lines[i] = " ".repeat(indentation) + Model.lines[i];
+          logger.log("After: " + Model.lines[i]);
       }
       first.col += indentation;
       second.col += indentation;
@@ -553,7 +554,7 @@ function Vbuf(node, config = {}) {
           // Cursor movement of first and second depends on spaces left and right of it .
           let indentableSpacesLeftOfCursor = 0;
           let indentableSpacesFromCursor = 0 ;
-          const s = Viewport.lines[cursor.row];
+          const s = Model.lines[cursor.row];
           let j = cursor.col;
           while (j < s.length && s.charAt(j) === ' ') j++;
           indentableSpacesFromCursor = j - cursor.col ;
@@ -561,21 +562,20 @@ function Vbuf(node, config = {}) {
           indentableSpacesLeftOfCursor = j;
           const unindentationsFirstLine = Math.min(indentation,
             indentableSpacesLeftOfCursor + indentableSpacesFromCursor);
-          Model.lines[Viewport.start + cursor.row] = Model.lines[cursor.row].slice(unindentationsFirstLine);
+          Model.lines[cursor.row] = Model.lines[cursor.row].slice(unindentationsFirstLine);
           if(indentableSpacesFromCursor < unindentationsFirstLine)
             cursor.col -= unindentationsFirstLine - indentableSpacesFromCursor;
         } else {
-          const realRow = Viewport.start + i;
-          const line = Model.lines[realRow];
+          const line = Model.lines[i];
           let maxUnindent = 0;
-          for(let i = 0; i < Math.min(indentation, line.length); i++) {
+          for(let k = 0; k < Math.min(indentation, line.length); k++) {
             if (line.charAt(0) === " ") {
               maxUnindent++;
             } else {
               break;
             }
           }
-          Model.lines[realRow] = line.slice(maxUnindent);
+          Model.lines[i] = line.slice(maxUnindent);
         }
       }
 
@@ -584,7 +584,7 @@ function Vbuf(node, config = {}) {
 
     /**
      * Partitions a line into left and right segments at the given position.
-     * @param {Position} position - Position to partition at
+     * @param {Position} position - Position to partition at (absolute row)
      * @returns {{index: number, left: string, right: string, rightExclusive: string}}
      *   - index: Absolute line index in Model.lines
      *   - left: Text before the column
@@ -592,10 +592,9 @@ function Vbuf(node, config = {}) {
      *   - rightExclusive: Text after the column (excludes character at column)
      */
     partitionLine({ row, col }) {
-      const index = Viewport.start + row;
-      const line = Model.lines[index];
+      const line = Model.lines[row];
       return {
-        index,
+        index: row,
         left: line.slice(0, col),
         right: line.slice(col),
         // In the case where the partitioning point is a selection, we exclude the character
@@ -1075,61 +1074,68 @@ function Vbuf(node, config = {}) {
     }
     const [firstEdge, secondEdge] = Selection.ordered;
 
-    // Render selection lines. Behavior is consistent with vim/vscode but not Intellij.
-    for (let i = firstEdge.row + 1; i <= secondEdge.row - 1; i++) {
-      $selections[i].style.visibility = 'visible';
-      $selections[i].style.left = 0;
-      if (i < Viewport.lines.length) { // TODO: this can be removed if selection is constrained to source content
-        const content = Viewport.lines[i];
+    // Convert absolute rows to viewport-relative
+    const firstViewportRow = firstEdge.row - Viewport.start;
+    const secondViewportRow = secondEdge.row - Viewport.start;
+
+    // Render middle selection lines (only those within viewport)
+    for (let absRow = firstEdge.row + 1; absRow <= secondEdge.row - 1; absRow++) {
+      const viewportRow = absRow - Viewport.start;
+      if (viewportRow >= 0 && viewportRow < Viewport.size) {
+        $selections[viewportRow].style.visibility = 'visible';
+        $selections[viewportRow].style.left = 0;
+        const content = Model.lines[absRow];
         // +1 for phantom newline character (shows newline is part of selection)
-        $selections[i].style.width = (content.length + 1) + 'ch';
+        $selections[viewportRow].style.width = (content.length + 1) + 'ch';
       }
     }
 
-    // Render the leading and heading selection line
-    $selections[firstEdge.row].style.left = firstEdge.col+'ch';
-    if (secondEdge.row === firstEdge.row) {
-      let width = secondEdge.col - firstEdge.col + 1;
-      const text = Viewport.lines[firstEdge.row];
-      const absRow = Viewport.start + firstEdge.row;
-      const isLastLine = absRow === Model.lastIndex;
+    // Render the first edge line (if within viewport)
+    if (firstViewportRow >= 0 && firstViewportRow < Viewport.size) {
+      $selections[firstViewportRow].style.left = firstEdge.col + 'ch';
 
-      // When selecting backwards from EOL position, don't show phantom newline
-      // (we're moving away from the newline, not selecting into it)
-      if (!Selection.isForwardSelection && secondEdge.col > firstEdge.col && secondEdge.col >= text.length) {
-        width--;
-      }
-      // When on last line (no newline exists), clamp width to actual text
-      else if (isLastLine && secondEdge.col >= text.length && firstEdge.col < secondEdge.col) {
-        width = Math.min(width, text.length - firstEdge.col);
-      }
+      if (secondEdge.row === firstEdge.row) {
+        // Single-line selection
+        let width = secondEdge.col - firstEdge.col + 1;
+        const text = Model.lines[firstEdge.row];
+        const isLastLine = firstEdge.row === Model.lastIndex;
 
-      $selections[firstEdge.row].style.width = width + 'ch';
-      $selections[firstEdge.row].style.visibility = 'visible';
-    } else {
-      if(firstEdge.row < Viewport.lines.length) { // TODO: this can be removed if selection is constrained to source content
-        const text = Viewport.lines[firstEdge.row];
-        // +1 for phantom newline character (shows newline is part of selection)
-        $selections[firstEdge.row].style.width = (text.length - firstEdge.col + 1) + 'ch';
-        $selections[firstEdge.row].style.visibility = 'visible';
-      }
-      if(secondEdge.row < Viewport.lines.length) {
-        const text = Viewport.lines[secondEdge.row];
-        const absRow = Viewport.start + secondEdge.row;
-        const isLastLine = absRow === Model.lastIndex;
-
-        $selections[secondEdge.row].style.left = '0';  // Last line of selection starts from column 0
-
-        let width;
-        if (secondEdge.col >= text.length && !isLastLine) {
-          // Selection extends to phantom newline position, and there is a newline
-          width = text.length + 1;
-        } else {
-          width = Math.min(secondEdge.col + 1, text.length);
+        // When selecting backwards from EOL position, don't show phantom newline
+        if (!Selection.isForwardSelection && secondEdge.col > firstEdge.col && secondEdge.col >= text.length) {
+          width--;
         }
-        $selections[secondEdge.row].style.width = width + 'ch';
-        $selections[secondEdge.row].style.visibility = 'visible';
+        // When on last line (no newline exists), clamp width to actual text
+        else if (isLastLine && secondEdge.col >= text.length && firstEdge.col < secondEdge.col) {
+          width = Math.min(width, text.length - firstEdge.col);
+        }
+
+        $selections[firstViewportRow].style.width = width + 'ch';
+        $selections[firstViewportRow].style.visibility = 'visible';
+      } else {
+        // Multi-line selection - first line
+        const text = Model.lines[firstEdge.row];
+        // +1 for phantom newline character
+        $selections[firstViewportRow].style.width = (text.length - firstEdge.col + 1) + 'ch';
+        $selections[firstViewportRow].style.visibility = 'visible';
       }
+    }
+
+    // Render the second edge line (if within viewport and multi-line selection)
+    if (secondEdge.row !== firstEdge.row && secondViewportRow >= 0 && secondViewportRow < Viewport.size) {
+      const text = Model.lines[secondEdge.row];
+      const isLastLine = secondEdge.row === Model.lastIndex;
+
+      $selections[secondViewportRow].style.left = '0';  // Last line of selection starts from column 0
+
+      let width;
+      if (secondEdge.col >= text.length && !isLastLine) {
+        // Selection extends to phantom newline position, and there is a newline
+        width = text.length + 1;
+      } else {
+        width = Math.min(secondEdge.col + 1, text.length);
+      }
+      $selections[secondViewportRow].style.width = width + 'ch';
+      $selections[secondViewportRow].style.visibility = 'visible';
     }
     // * END render selection
 
@@ -1138,7 +1144,7 @@ function Vbuf(node, config = {}) {
       hook($e, Viewport);
     }
 
-    $statusLineCoord.innerHTML = `Ln ${Viewport.start + head.row + 1 }, Col ${tail.col + 1 }`;
+    $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${tail.col + 1}`;
   
     return this;
   }
@@ -1310,14 +1316,30 @@ function Vbuf(node, config = {}) {
         } else if (event.key === "ArrowRight") {
           Selection.setCursor(Selection.ordered[1]); // Move cursor to the second edge
           render(true);
-        } else if (event.key === "ArrowUp") {
-          // TODO: bug when selection coincides will scrolling the viewport
-          Selection.setCursor(Selection.ordered[0]);
-          Selection.moveRow(-1);
-        } else if (event.key === "ArrowDown") {
-          // TODO: bug when selection coincides will scrolling the viewport
-          Selection.setCursor(Selection.ordered[1]);
-          Selection.moveRow(1);
+        } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+          const movingDown = event.key === "ArrowDown";
+          const edge = Selection.ordered[movingDown ? 1 : 0];
+          // edge.row is already absolute
+          const targetAbsRow = $clamp(
+            edge.row + (movingDown ? 1 : -1),
+            0,
+            Model.lastIndex
+          );
+
+          // Scroll viewport if target is outside visible area
+          if (targetAbsRow < Viewport.start) {
+            Viewport.start = targetAbsRow;
+          } else if (targetAbsRow > Viewport.end) {
+            Viewport.start = targetAbsRow - Viewport.size + 1;
+          }
+
+          const targetCol = Math.min(edge.col, Model.lines[targetAbsRow].length);
+          maxCol = targetCol;
+          Selection.setCursor({
+            row: targetAbsRow,
+            col: targetCol
+          });
+          render(true);
         }
       } else { // no meta key.
         if (event.shiftKey && !Selection.isSelection) Selection.makeSelection();

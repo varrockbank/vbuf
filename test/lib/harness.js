@@ -177,6 +177,6 @@ class EditorTestHarness {
 
 // EditorTestHarness factory
 const FixtureFactory = {
-  forTest: (size) => new EditorTestHarness(createEditorNode(), size),
+  forTest: () => new EditorTestHarness(createEditorNode(), 10),
   forWalkthrough: (node) => new EditorTestHarness(node, 10)
 };
