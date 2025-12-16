@@ -1,7 +1,7 @@
 /**
  * @fileoverview Vbuf - A high-performance virtual buffer text editor for the browser.
  * Renders fixed-width character cells in a grid layout with virtual scrolling.
- * @version 5.7.0-alpha.1
+ * @version 5.7.1-alpha.1
  */
 
 /**
@@ -46,7 +46,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Vbuf(node, config = {}) {
-  this.version = "5.7.0-alpha.1";
+  this.version = "5.7.1-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -80,6 +80,31 @@ function Vbuf(node, config = {}) {
     tabSize: expandtab || 4
   });
 
+  // Layer z-indexes (from bottom to top):
+  // - Selection: 100 (background highlights)
+  // - Text: 200 (actual content)
+  // - Cursor: 300 (visible above text)
+  // - Elements: 400 (UI elements like buttons, prompts)
+  const zIndexSelection = 100;
+  const zIndexText = 200;
+  const zIndexCursor = 300;
+  const zIndexElements = 400;
+
+  // Element layer - for UI elements (buttons, prompts, etc.) added by extensions
+  // Appended later (after line containers) to not interfere with children indexing
+  const $elementLayer = document.createElement("div");
+  $elementLayer.className = "wb-layer-elements";
+  Object.assign($elementLayer.style, {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    zIndex: zIndexElements,
+    pointerEvents: 'none'  // Allow clicks to pass through to elements below
+  });
+  let elementLayerAppended = false;
+
   // Cursor overlay - shows head position distinctly within a selection (appended after line containers in render)
   const $cursor = document.createElement("div");
   $cursor.className = "wb-cursor";
@@ -89,7 +114,7 @@ function Vbuf(node, config = {}) {
     width: '1ch',
     height: lineHeight+'px',
     fontSize: lineHeight+'px',
-    zIndex: '2'
+    zIndex: zIndexCursor
   });
 
   const $status = node.querySelector('.wb-status');
@@ -1078,15 +1103,21 @@ function Vbuf(node, config = {}) {
           $e.appendChild($cursor);
           cursorAppended = true;
         }
+        if (!elementLayerAppended) {
+          $e.appendChild($elementLayer);
+          elementLayerAppended = true;
+        }
       } else if (delta < 0) {
         // Remove excess line containers and selections
-        // Temporarily remove cursor so it's not affected by lastChild removal
+        // Temporarily remove cursor and element layer so they're not affected by lastChild removal
+        if (elementLayerAppended) $elementLayer.remove();
         if (cursorAppended) $cursor.remove();
         for (let i = 0; i < -delta; i++) {
           $e.lastChild?.remove();
           $selections.pop()?.remove();
         }
         if (cursorAppended) $e.appendChild($cursor);
+        if (elementLayerAppended) $e.appendChild($elementLayer);
       }
 
       lastViewportSize = Viewport.size;
@@ -1278,8 +1309,10 @@ function Vbuf(node, config = {}) {
   this._internals = {
     get head() { return head; },
     $e,
+    $elementLayer,
     render,
-    renderHooks
+    renderHooks,
+    zIndex: { selection: zIndexSelection, text: zIndexText, cursor: zIndexCursor, elements: zIndexElements }
   };
 
   /**
