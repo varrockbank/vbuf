@@ -1,28 +1,28 @@
 #!/bin/sh
 # Pre-commit hook to generate minified dist file and check version bump
 
-# Check if vbuf.js is staged for commit
-if git diff --cached --name-only | grep -q "^vbuf.js$"; then
+# Check if buffee.js is staged for commit
+if git diff --cached --name-only | grep -q "^buffee.js$"; then
     # Get old version from HEAD
-    OLD_VERSION=$(git show HEAD:vbuf.js 2>/dev/null | grep 'this.version' | sed 's/.*"\(.*\)".*/\1/')
+    OLD_VERSION=$(git show HEAD:buffee.js 2>/dev/null | grep 'this.version' | sed 's/.*"\(.*\)".*/\1/')
     # Get new version from staged file
-    NEW_VERSION=$(git show :vbuf.js | grep 'this.version' | sed 's/.*"\(.*\)".*/\1/')
+    NEW_VERSION=$(git show :buffee.js | grep 'this.version' | sed 's/.*"\(.*\)".*/\1/')
 
     if [ "$OLD_VERSION" = "$NEW_VERSION" ] && [ -n "$OLD_VERSION" ]; then
-        echo "✗ Error: vbuf.js changed but version was not bumped"
+        echo "✗ Error: buffee.js changed but version was not bumped"
         echo "  Current version: $OLD_VERSION"
-        echo "  Please update this.version in vbuf.js AND stage it."
+        echo "  Please update this.version in buffee.js AND stage it."
         exit 1
     fi
 fi
 
-echo "Generating dist/vbuf.min.js..."
+echo "Generating dist/buffee.min.js..."
 
 # Get old sizes from HEAD (last committed version)
 if git rev-parse --verify HEAD >/dev/null 2>&1; then
-    if git cat-file -e HEAD:dist/vbuf.min.js 2>/dev/null; then
-        OLD_SIZE=$(git show HEAD:dist/vbuf.min.js | wc -c | tr -d ' ')
-        OLD_GZIPPED=$(git show HEAD:dist/vbuf.min.js | gzip -c | wc -c)
+    if git cat-file -e HEAD:dist/buffee.min.js 2>/dev/null; then
+        OLD_SIZE=$(git show HEAD:dist/buffee.min.js | wc -c | tr -d ' ')
+        OLD_GZIPPED=$(git show HEAD:dist/buffee.min.js | gzip -c | wc -c)
     else
         OLD_SIZE=0
         OLD_GZIPPED=0
@@ -32,11 +32,11 @@ else
     OLD_GZIPPED=0
 fi
 
-terser vbuf.js -c -m -o dist/vbuf.min.js
+terser buffee.js -c -m -o dist/buffee.min.js
 
 if [ $? -eq 0 ]; then
-    NEW_SIZE=$(wc -c < dist/vbuf.min.js | tr -d ' ')
-    NEW_GZIPPED=$(gzip -c dist/vbuf.min.js | wc -c)
+    NEW_SIZE=$(wc -c < dist/buffee.min.js | tr -d ' ')
+    NEW_GZIPPED=$(gzip -c dist/buffee.min.js | wc -c)
     MINIFIED_KB=$(echo "$NEW_SIZE" | awk '{printf "%.2f", $1/1024}')
     GZIPPED_KB=$(echo "$NEW_GZIPPED" | awk '{printf "%.2f", $1/1024}')
 
@@ -67,7 +67,7 @@ if [ $? -eq 0 ]; then
         fi
     fi
 
-    git add dist/vbuf.min.js
+    git add dist/buffee.min.js
     exit 0
 else
     echo "✗ Minification failed"

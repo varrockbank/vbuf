@@ -5,7 +5,7 @@
 Include the JavaScript function `Buffee`
 
 ```html
-<script src="vbuf.js"></script>
+<script src="buffee.js"></script>
 ```
 
 ## Required HTML Structure
@@ -245,7 +245,7 @@ editor.Selection.unindent();
 TUI is an optional extension for interactive terminal-style UI elements. Include the separate script and initialize:
 
 ```html
-<script src="vbuf.js"></script>
+<script src="buffee.js"></script>
 <script src="extensions/tui.js"></script>
 ```
 
@@ -415,7 +415,7 @@ editor.appendLineAtEnd("Log entry");
 Tree-sitter is an optional extension for syntax highlighting. Include the separate script and initialize with a parser and query:
 
 ```html
-<script src="vbuf.js"></script>
+<script src="buffee.js"></script>
 <script src="extensions/treesitter.js"></script>
 ```
 
@@ -459,7 +459,7 @@ Tree-sitter rendering is capped at 60fps using a dirty flag pattern. Call `markD
 ChunkLoader is an optional extension for loading and viewing very large files. It compresses lines into gzip chunks and decompresses on-demand for efficient memory usage.
 
 ```html
-<script src="vbuf.js"></script>
+<script src="buffee.js"></script>
 <script src="extensions/chunkloader.js"></script>
 ```
 
