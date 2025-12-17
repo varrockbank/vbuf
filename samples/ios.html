@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>buffee - iOS Support</title>
+  <script src="../vbuf.js"></script>
+  <script src="../extensions/ios.js"></script>
+  <link rel="stylesheet" href="../reset.css">
+</head>
+<body class="sample">
+  <nav id="nav"></nav>
+  <script>
+    fetch('../navigation.html')
+      .then(r => r.text())
+      .then(html => document.getElementById('nav').innerHTML = html);
+  </script>
+  <p><a href="../index.html">home</a> / <a href="index.html">samples</a> / iOS Support</p>
+
+  <h1>iOS Support</h1>
+  <p>Touch interactions and on-screen keyboard input for iOS devices.</p>
+
+  <h2>JavaScript</h2>
+  <pre>BuffeeIOS(editor, { lineHeight: 24 })
+editor.iOS.focus()   // Show keyboard
+editor.iOS.destroy() // Cleanup</pre>
+
+  <blockquote class="wb no-select" tabindex="0" id="editor" style="border: 1px solid #444; width: 600px;">
+    <textarea class="wb-clipboard-bridge"></textarea>
+    <div style="display: flex;">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+    </div>
+    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026;">
+      <div><span class="wb-linecount"></span></div>
+      <div style="display: flex;">
+        <span class="wb-coordinate"></span>
+        <span>|</span>
+        <span class="wb-indentation"></span>
+      </div>
+    </div>
+  </blockquote>
+
+  <script>
+    const el = document.getElementById('editor');
+    const editor = new Buffee(el, {
+      initialViewportSize: 15,
+      colorPrimary: "#B2B2B2",
+      colorSecondary: "#212026"
+    });
+
+    // Initialize iOS support
+    // On non-iOS devices this still works but the touch handling
+    // is primarily useful on iOS where keyboard input needs special handling
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+      BuffeeIOS(editor, { lineHeight: 24 });
+    }
+
+    editor.Model.text = `// iOS Support Demo
+// On iOS: tap to position cursor, use on-screen keyboard
+
+function greet(name) {
+  return "Hello, " + name + "!";
+}
+
+console.log(greet("iOS"));`;
+
+    el.focus();
+  </script>
+</body>
+</html>

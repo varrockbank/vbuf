@@ -49,6 +49,16 @@ editor.ChunkLoader.activate(50000)
 await editor.ChunkLoader.appendLines(lines)</pre>
   <p><a href="samples/read-only.html">Demo →</a></p>
 
+  <h2>iOS</h2>
+  <p><code>ios.js</code></p>
+  <p>Touch interactions and on-screen keyboard input for iOS devices.</p>
+  <pre>if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+  BuffeeIOS(editor, { lineHeight: 24 })
+}
+editor.iOS.focus()   // Show keyboard
+editor.iOS.destroy() // Cleanup</pre>
+  <p><a href="samples/ios.html">Demo →</a></p>
+
   <hr>
 
   <h2>Using Multiple Extensions</h2>
