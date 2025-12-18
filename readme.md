@@ -26,6 +26,15 @@ See `comparison.html` and `performance.html` for more on Buffee's niche.
 
 ## Usage
 
+### Font Requirements
+
+Buffee assumes monospace fonts with accurate CSS `ch` values. When this assumption breaks, the cursor drifts from expected position over long lines.
+
+- **Good:** Menlo, Consolas, `monospace` (generic)
+- **Bad:** Monaco
+
+To test: type "A" 100+ times and move cursor to end. If misaligned, try a different font.
+
 ### Required CSS
 
 ```css
@@ -34,7 +43,7 @@ See `comparison.html` and `performance.html` for more on Buffee's niche.
   color: #B2B2B2;
   position: relative;
   outline: none;
-  font-family: monospace;
+  font-family: 'Menlo', 'Consolas', monospace;
 }
 .no-select { user-select: none; }
 .wb-clipboard-bridge {

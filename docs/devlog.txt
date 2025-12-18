@@ -1,5 +1,10 @@
 * Project Devlog
 
+** 6.0.2-alpha.1 [2025-12-18]
+*** docs
+- Document font requirements: some monospace fonts (Monaco) have inaccurate `ch` values causing cursor drift
+- Recommended fonts: Menlo, Consolas, generic `monospace`
+
 ** 6.0.1-alpha.1 [2025-12-17]
 *** feature
 - autoFitViewport: automatically size viewport to container height with ResizeObserver
