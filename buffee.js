@@ -1,6 +1,6 @@
 /**
  * @fileoverview Buffee, the text slayer
- * @version 7.6.2-alpha.1
+ * @version 7.6.3-alpha.1
  */
 
 /**
@@ -53,7 +53,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.6.2-alpha.1";
+  this.version = "7.6.3-alpha.1";
 
   // Extract configuration with defaults
   // Auto-fit viewport by default unless viewportRows is explicitly specified
@@ -177,9 +177,8 @@ function Buffee(node, config = {}) {
   let lastDisplayLines = 0; // Track display lines for delta-based updates
   let renderExtraLine = false; // When autoFitViewport, render +1 line for partial space
 
-  const fragmentLines = document.createDocumentFragment();
-  const fragmentSelections = document.createDocumentFragment();
-  const fragmentGutters = document.createDocumentFragment();
+  const [fragmentLines, fragmentSelections, fragmentGutters] = [0,0,0]
+    .map(() => document.createDocumentFragment());
 
   const detachedHead = { row : 0, col : 0};
   // head.row and tail.row are ABSOLUTE line numbers (Model indices, not viewport-relative).

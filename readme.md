@@ -124,3 +124,11 @@ Historically, extensibility was only via the MVC APIs. However, extensions can a
 iOS support is currently provided as an extension which maps iOS events to keyboard events. see: index.html for example.
 
 See: [Extensions](https://varrockbank.github.io/buffee/extensions.html)
+
+## Versioning 
+
+style.css and buffer.js share a version sequence. 
+
+if buffer.js changes, its version need to be bumped up, past the version of style.css.
+
+if style.css changes, its version needs to be bumped past buffer.js. 
