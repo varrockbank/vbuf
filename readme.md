@@ -1,5 +1,7 @@
 # Buffee
 
+![Screenshot Tests](https://github.com/varrockbank/buffee/actions/workflows/screenshots.yml/badge.svg)
+
 Inspired by the spartan performance and minimalism of terminal interfaces and Vim, Buffee is a
 microlibrary and efficient plaintext rendering engine for the web. Fixed-width text in a grid layout is not a bug, it's a feature! Yes - like Emacs, this microlibrary includes a text editor too.
 

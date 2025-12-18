@@ -23,6 +23,19 @@ There is no build process needed to vendor `Buffee` global function nor is there
 ln -s ../../hooks/pre-commit .git/hooks/pre-commit
 ```
 
+## Screenshot Tests
+
+Playwright screenshot tests run in GitHub Actions on every push. The workflow:
+
+1. Takes screenshots of all HTML pages
+2. If screenshots changed, auto-commits updated baselines
+3. If screenshots changed, requires manual approval before deploy
+4. Deploys to GitHub Pages
+
+To update baselines intentionally: push your changes, review the screenshot diff in the commit, then approve the deployment in GitHub Actions.
+
+Screenshot test files are in `snapshot_testing/`.
+
 ## pre-commit checks
 Further, The precommit additionally checks
 
