@@ -1,6 +1,6 @@
 /**
  * @fileoverview Buffee, the text slayer
- * @version 7.6.0-alpha.1
+ * @version 7.6.1-alpha.1
  */
 
 /**
@@ -53,7 +53,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.6.0-alpha.1";
+  this.version = "7.6.1-alpha.1";
 
   // Extract configuration with defaults
   // Auto-fit viewport by default unless viewportRows is explicitly specified
@@ -199,7 +199,7 @@ function Buffee(node, config = {}) {
    * Handles cursor movement, text selection, insertion, and deletion.
    * @namespace Selection
    */
-  const Selection = {
+  const Selection = this.Selection = {
     /**
      * Returns selection bounds in document order [start, end].
      * @returns {[Position, Position]} Array of [start, end] positions
@@ -399,15 +399,6 @@ function Buffee(node, config = {}) {
     moveCursorEndOfLine() {
       maxCol = head.col = Model.lines[head.row].length;
       render(true);
-    },
-
-    /**
-     * Inserts multiple lines at cursor/selection, handling line breaks.
-     * @param {string[]} lines - Array of lines to insert
-     */
-    insertLines(lines) {
-      // Delegate to insert() which handles multi-line via History primitives
-      this.insert(lines.join('\n'));
     },
 
     /**
@@ -692,7 +683,7 @@ function Buffee(node, config = {}) {
    * Document model managing text content.
    * @namespace Model
    */
-  const Model = {
+  const Model = this.Model = {
     /** @type {string[]} Array of text lines */
     lines: [''],
 
@@ -745,7 +736,7 @@ function Buffee(node, config = {}) {
    * Uses primitive insert/delete operations that can be inverted.
    * @namespace History
    */
-  const History = {
+  const History = this.History = {
     /** @type {Array} Stack of operations for undo */
     undoStack: [],
     /** @type {Array} Stack of undone operations for redo */
@@ -983,7 +974,7 @@ function Buffee(node, config = {}) {
    * Controls which portion of the document is currently visible.
    * @namespace Viewport
    */
-  const Viewport = {
+  const Viewport = this.Viewport = {
     /** @type {number} Index of the first visible line (0-indexed) */
     start: 0,
     /** @type {number} Number of visible lines */
@@ -1260,30 +1251,6 @@ function Buffee(node, config = {}) {
   // ============================================================================
 
   /**
-   * Viewport management API.
-   * @type {Object}
-   */
-  this.Viewport = Viewport;
-
-  /**
-   * Document model API.
-   * @type {Object}
-   */
-  this.Model = Model;
-
-  /**
-   * Selection and cursor management API.
-   * @type {Object}
-   */
-  this.Selection = Selection;
-
-  /**
-   * Edit history for undo/redo operations.
-   * @type {Object}
-   */
-  this.History = History;
-
-  /**
    * Registers an extension with this editor instance.
    * @param {Function} extension - Extension initializer function
    * @param {Object} [options] - Optional configuration for the extension
@@ -1354,10 +1321,12 @@ function Buffee(node, config = {}) {
     get head() { return head; },
     /** Content area offset from .wb-content: { ch, px, top } */
     get contentOffset() {
-      const ch = showGutter ? (gutterSize + gutterPadding) : 0;
-      const px = showGutter ? (editorPaddingPX * 3) : editorPaddingPX;
-      return { ch, px, top: editorPaddingPX };
-    },
+      return { 
+        ch: showGutter ? (gutterSize + gutterPadding) : 0, 
+        px: showGutter ? (editorPaddingPX * 3) : editorPaddingPX,
+        top: editorPaddingPX
+      };
+    },    
     $e,
     $textLayer,
     $elementLayer,
@@ -1396,7 +1365,7 @@ function Buffee(node, config = {}) {
     e.preventDefault(); // stop browser from inserting raw clipboard text
     const text = e.clipboardData.getData("text/plain");
     if (text) {
-      Selection.insertLines(text.split("\n"));
+      Selection.insert(text);
     }
   });
 
