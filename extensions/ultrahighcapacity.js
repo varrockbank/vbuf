@@ -303,8 +303,8 @@ function BuffeeUltraHighCapacity(vbuf) {
       // Replace Model.lines with a Proxy that returns chunked content
       Model.lines = createLinesProxy();
 
-      // Set navigate mode (can scroll, no editing)
-      vbuf.editMode = 'navigate';
+      // Set navigation-only mode (can move cursor, no editing)
+      vbuf.interactive = 0;
 
       // Override Model.lastIndex
       Object.defineProperty(Model, 'lastIndex', {
@@ -336,8 +336,8 @@ function BuffeeUltraHighCapacity(vbuf) {
       // Restore original appendLines
       vbuf._internals.appendLines = originalAppendLines;
 
-      // Restore write mode
-      vbuf.editMode = 'write';
+      // Restore normal mode (full editing)
+      vbuf.interactive = 1;
 
       // Clear chunk data
       chunks = [];

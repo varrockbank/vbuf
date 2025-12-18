@@ -92,8 +92,8 @@ function BuffeeElementals(vbuf) {
         focusedIndex = 0;
         updateFocus();
       }
-      // Set edit mode to prevent text editing when elementals is enabled
-      vbuf.editMode = enabled ? 'read' : 'write';
+      // Set read-only mode to hide cursor/selection when elementals is enabled
+      vbuf.interactive = enabled ? -1 : 1;
       updatePositions();
     },
 

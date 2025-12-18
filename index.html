@@ -355,6 +355,11 @@ const fileTemplate = `
         });
       });
 
+      // Focus the selected file's button
+      const selectedButtonId = fileElementIds[name];
+      const idx = tuiDemo.TUI.elements.findIndex(e => e.id === selectedButtonId);
+      if (idx !== -1) tuiDemo.TUI.setCurrentIndex(idx);
+
       const lines = tuiDemo.Model.lines;
       const content = files[name] || [];
       for (let i = 0; i < lines.length; i++) {

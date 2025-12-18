@@ -1,6 +1,6 @@
 /**
  * @fileoverview Buffee, the text slayer
- * @version 7.4.2-alpha.1
+ * @version 7.5.0-alpha.1
  */
 
 /**
@@ -53,7 +53,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.4.2-alpha.1";
+  this.version = "7.5.0-alpha.1";
 
   // Extract configuration with defaults
   // Auto-fit viewport by default unless viewportRows is explicitly specified
@@ -705,10 +705,13 @@ function Buffee(node, config = {}) {
   };
 
   /**
-   * Editor mode: 'write' (full editing), 'navigate' (read + arrow keys), 'read' (view only)
-   * @type {'write'|'navigate'|'read'}
+   * Interactive mode: 1 (normal), 0 (navigation-only), -1 (read-only)
+   * - 1: Full editing (default)
+   * - 0: Navigation only (can move cursor, no editing) - used by UltraHighCapacity
+   * - -1: Read-only (no cursor/selection rendering, no navigation) - used by TUI
+   * @type {-1|0|1}
    */
-  let editMode = 'write';
+  let interactive = 1;
 
   /**
    * Document model managing text content.
@@ -1161,6 +1164,18 @@ function Buffee(node, config = {}) {
     for (let i = 0; i < $selections.length; i++) {
       $selections[i].style.visibility = 'hidden';
     }
+
+    // In read-only mode (-1), hide cursor and skip selection rendering
+    if (interactive === -1) {
+      $cursor.style.visibility = 'hidden';
+      // Skip to render complete hooks
+      for (const hook of renderHooks.onRenderComplete) {
+        hook($e, Viewport);
+      }
+      $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${tail.col + 1}`;
+      return this;
+    }
+
     const [firstEdge, secondEdge] = Selection.ordered;
 
     // Convert absolute rows to viewport-relative
@@ -1309,15 +1324,18 @@ function Buffee(node, config = {}) {
   };
 
   /**
-   * Editor mode controlling input behavior.
-   * - 'write': Full editing (default)
-   * - 'navigate': View and navigate with arrow keys, no editing
-   * - 'read': View only, no navigation or editing
-   * @type {'write'|'navigate'|'read'}
+   * Interactive mode controlling input behavior.
+   * - 1: Full editing (default)
+   * - 0: Navigation only (can move cursor, no editing)
+   * - -1: Read-only (no cursor/selection, no navigation)
+   * @type {-1|0|1}
    */
-  Object.defineProperty(this, 'editMode', {
-    get: () => editMode,
-    set: (value) => { editMode = value; },
+  Object.defineProperty(this, 'interactive', {
+    get: () => interactive,
+    set: (value) => {
+      interactive = value;
+      render(true);
+    },
     enumerable: true
   });
 
@@ -1445,7 +1463,7 @@ function Buffee(node, config = {}) {
 
     if(event.key.startsWith("Arrow")) {
       event.preventDefault(); // prevents page scroll
-      if (editMode === 'read') return; // read mode: no navigation
+      if (interactive === -1) return; // read-only mode: no navigation
 
       if(event.metaKey) {
         if(!event.shiftKey && Selection.isSelection) Selection.makeCursor();
@@ -1510,7 +1528,7 @@ function Buffee(node, config = {}) {
           Selection.moveCol(1);
         }
       }
-    } else if (editMode !== 'write') { // navigate/read mode: no editing
+    } else if (interactive !== 1) { // navigation-only or read-only mode: no editing
       return;
     } else if (event.key === "Backspace") {
       Selection.delete();

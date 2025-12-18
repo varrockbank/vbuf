@@ -78,8 +78,17 @@ function BuffeeTUI(vbuf) {
   // Element Management
   // ============================================================================
 
+  /**
+   * Sorts elements by row-column order (row first, then column).
+   * @private
+   */
+  function sortElements() {
+    elements.sort((a, b) => a.row - b.row || a.col - b.col);
+  }
+
   function addElement(el) {
     elements.push(el);
+    sortElements();
     if (enabled) render(true);
     return el.id;
   }
@@ -94,7 +103,7 @@ function BuffeeTUI(vbuf) {
     get enabled() { return enabled; },
     set enabled(v) {
       enabled = !!v;
-      vbuf.editMode = enabled ? 'read' : 'write';
+      vbuf.interactive = enabled ? -1 : 1;  // -1 = read-only (no cursor/selection)
       if (enabled && elements.length > 0) {
         currentIndex = 0;
       }
@@ -148,7 +157,10 @@ function BuffeeTUI(vbuf) {
       const idx = elements.findIndex(e => e.id === id);
       if (idx !== -1) {
         elements.splice(idx, 1);
-        if (currentIndex >= elements.length) {
+        // Adjust currentIndex: if removed element was before current, shift down
+        if (idx < currentIndex) {
+          currentIndex--;
+        } else if (currentIndex >= elements.length) {
           currentIndex = Math.max(0, elements.length - 1);
         }
         render(true);
@@ -165,6 +177,17 @@ function BuffeeTUI(vbuf) {
 
     currentElement() {
       return elements[currentIndex] || null;
+    },
+
+    /**
+     * Sets the current focused element by index.
+     * @param {number} idx - Index of element to focus
+     */
+    setCurrentIndex(idx) {
+      if (idx >= 0 && idx < elements.length) {
+        currentIndex = idx;
+        render(true);
+      }
     },
 
     nextElement() {
