@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 7.4.1-alpha.1 [2025-12-18]
+*** refactor 
+- remove #appendLineAtEnd used for ultra-high-capacity logger 
+
 ** 7.4.0-alpha.1 [2025-12-18]
 *** refactor 
 - privatize #appendLines API. Refactor File Loader extensions. Fixed read-only.html sample.

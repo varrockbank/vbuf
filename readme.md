@@ -8,7 +8,7 @@ A capable text editor on the web. Retro text-mode graphics with fixed-width cell
 - spartan: no build step, no NPM, Just vendor the VanillaJS function. minimal surface area.
 - extensible: TUI, syntax highlighting modules, hackable API/internals
 
-![](resources/preview.png)
+![](assets/preview.png)
 
 [Demo](https://varrockbank.github.io/buffee/
 

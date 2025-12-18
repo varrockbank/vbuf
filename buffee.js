@@ -1,6 +1,6 @@
 /**
  * @fileoverview Buffee, the text slayer
- * @version 7.4.0-alpha.1
+ * @version 7.4.1-alpha.1
  */
 
 /**
@@ -53,7 +53,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.4.0-alpha.1";
+  this.version = "7.4.1-alpha.1";
 
   // Extract configuration with defaults
   // Auto-fit viewport by default unless viewportRows is explicitly specified
@@ -1369,23 +1369,6 @@ function Buffee(node, config = {}) {
       Model.lines.push(...newLines.map(expandTabs));
       if (!skipRender) render(true);
     }
-  };
-
-  /**
-   * Appends a line at the end of the document and scrolls to show it.
-   * @deprecated Use _internals.appendLines instead
-   * @param {string} s - Line to append
-   */
-  this.appendLineAtEnd = (s) => {
-    s = expandTabs(s);
-    if(Model.lines[0] == '') {
-      Model.lines[0] = s;
-    } else {
-      Model.lines[Model.lines.length] = s;
-    }
-   
-    Viewport.start = Math.max(0, Model.lines.length - Viewport.size - 1);
-    render(true);
   };
 
   // Auto-fit viewport to container height

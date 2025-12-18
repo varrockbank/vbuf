@@ -396,15 +396,6 @@ await editor.UltraHighCapacity.appendLines(["Line 1", "Line 2", ...]);
 
 ---
 
-## Utility
-
-```javascript
-// Append line and scroll to bottom (useful for logs)
-editor.appendLineAtEnd("Log entry");
-```
-
----
-
 ## Tree-sitter Extension (`editor.TreeSitter`)
 
 Tree-sitter is an optional extension for syntax highlighting. Include the separate script and initialize with a parser and query:

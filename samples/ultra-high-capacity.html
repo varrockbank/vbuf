@@ -135,7 +135,14 @@
 
     function log(s) {
       console.log(s);
-      logs.appendLineAtEnd(s);
+      // Append line and scroll to show it
+      if (logs.Model.lines[0] === '') {
+        logs.Model.lines[0] = s;
+      } else {
+        logs.Model.lines.push(s);
+      }
+      logs.Viewport.start = Math.max(0, logs.Model.lines.length - logs.Viewport.size - 1);
+      logs._internals.render(true);
     }
 
     const editor = new Buffee(editorEl, {
