@@ -1,6 +1,5 @@
 /**
  * @fileoverview Buffee, the text slayer
- * @version 7.6.3-alpha.1
  */
 
 /**
@@ -53,7 +52,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.6.3-alpha.1";
+  this.version = "7.6.4-alpha.1";
 
   // Extract configuration with defaults
   // Auto-fit viewport by default unless viewportRows is explicitly specified
@@ -567,11 +566,9 @@ function Buffee(node, config = {}) {
       if(!this.isSelection) return;
       const [first, second] = this.ordered;
 
-      for(let i = first.row; i <= second.row; i++) {
-          logger.log("Before: " + Model.lines[i]);
-          Model.lines[i] = " ".repeat(indentation) + Model.lines[i];
-          logger.log("After: " + Model.lines[i]);
-      }
+      for(let i = first.row; i <= second.row; i++)
+        Model.lines[i] = " ".repeat(indentation) + Model.lines[i];
+
       first.col += indentation;
       second.col += indentation;
 

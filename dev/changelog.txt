@@ -1,14 +1,17 @@
 * Project Devlog
 
+** 7.6.4-alpha.1 [2025-12-18]
+*** refactor
+- removed old logging code during indent
+
 ** 7.6.3-alpha.1 [2025-12-18]
 *** config
 - make zIndexText, zIndexCursor, zIndexElements options under config.advanced 
 
-** 7.6.1-alpha.1 [2025-12-18]
-*** golf
+** 7.6.2-alpha.1 [2025-12-18]
+*** golf 
+- [0,0,0].map to create document fragments
 - const Viewport = ... ; this.Viewport = Viewport, can be done in 1 line
-
-** 7.6.0-alpha.1 [2025-12-18]
 *** refactor 
 - prune performance profiling code
 
@@ -19,9 +22,6 @@
 ** 7.4.1-alpha.1 [2025-12-18]
 *** refactor 
 - remove #appendLineAtEnd used for ultra-high-capacity logger 
-
-** 7.4.0-alpha.1 [2025-12-18]
-*** refactor 
 - privatize #appendLines API. Refactor File Loader extensions. Fixed read-only.html sample.
 
 ** 7.3.0-alpha.1 [2025-12-18]
