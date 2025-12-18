@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 6.1.0-alpha.1 [2025-12-18]
+*** feature
+- Scroll viewport horizontally on long lines
+
 ** 6.0.2-alpha.1 [2025-12-18]
 *** docs
 - Document font requirements: some monospace fonts (Monaco) have inaccurate `ch` values causing cursor drift

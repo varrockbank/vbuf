@@ -1,7 +1,7 @@
 /**
  * @fileoverview Buffee - A high-performance virtual buffer text editor for the browser.
  * Renders fixed-width character cells in a grid layout with virtual scrolling.
- * @version 6.0.1-alpha.1
+ * @version 6.1.0-alpha.1
  */
 
 /**
@@ -47,7 +47,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "6.0.1-alpha.1";
+  this.version = "6.1.0-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -79,7 +79,8 @@ function Buffee(node, config = {}) {
     fontSize: lineHeight+'px',
     position: 'relative',
     margin: editorPaddingPX+'px',
-    tabSize: expandtab || 4
+    tabSize: expandtab || 4,
+    overflowX: 'hidden'
   });
 
   // Layer z-indexes (from bottom to top):
@@ -1218,6 +1219,21 @@ function Buffee(node, config = {}) {
       $cursor.style.top = headViewportRow * lineHeight + 'px';
       $cursor.style.left = head.col + 'ch';
       $cursor.style.visibility = 'visible';
+
+      // Horizontal scroll to keep cursor in view
+      const containerRect = $e.getBoundingClientRect();
+      const cursorRect = $cursor.getBoundingClientRect();
+      const charWidth = cursorRect.width || 14;
+
+      if (cursorRect.left < containerRect.left) {
+        const deficit = containerRect.left - cursorRect.left;
+        const charsToScroll = Math.ceil(deficit / charWidth);
+        $e.scrollLeft -= charsToScroll * charWidth;
+      } else if (cursorRect.right > containerRect.right) {
+        const deficit = cursorRect.right - containerRect.right;
+        const charsToScroll = Math.ceil(deficit / charWidth);
+        $e.scrollLeft += charsToScroll * charWidth;
+      }
     } else {
       $cursor.style.visibility = 'hidden';
     }

@@ -1,6 +1,3 @@
-* TODO Horizontal scroll when cursor moves offscreen
-Currently the viewport does not scroll horizontally when the cursor moves to a column that is outside the visible area. The cursor can move beyond the visible width but the view doesn't follow.
-
 * TODO Make width/height configuration more consistent
 Currently width is set via CSS on the container, while height is set via the `initialViewportSize` constructor option. Consider making these more consistent (both CSS, or both API).
 
