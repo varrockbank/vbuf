@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 6.1.1-alpha.1 [2025-12-18]
+*** fix
+- Keep grid fixed, snapping to left edge of viewport, rather than relative to cursor which may advance less than 1ch
+
 ** 6.1.0-alpha.1 [2025-12-18]
 *** feature
 - Scroll viewport horizontally on long lines
