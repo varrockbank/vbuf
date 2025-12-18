@@ -18,7 +18,7 @@ Layout the HTML for the editor.
     <div class="wb-gutter"></div>
     <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
   </div>
-  <div class="wb-status" style="display: flex; justify-content: space-between;">
+  <div class="wb-status">
     <div class="wb-status-left"><span class="wb-linecount"></span></div>
     <div class="wb-status-right">
       <span class="wb-coordinate"></span>
@@ -121,7 +121,6 @@ const editor = new Buffee(document.getElementById('editor'), {
   // viewportCols: 80,  // Omit to fill parent, or specify for fixed width
   indentation: 4,
   showGutter: true,
-  showStatusLine: true,
 });
 ```
 
@@ -134,7 +133,6 @@ const editor = new Buffee(document.getElementById('editor'), {
 | `indentation` | number | `4` | Spaces for indent/unindent |
 | `expandtab` | number | `4` | Tab width (0 = hard tabs) |
 | `showGutter` | boolean | `true` | Show line numbers |
-| `showStatusLine` | boolean | `true` | Show status bar |
 | `logger` | function | `console.log` | Custom logger |
 
 ---
@@ -537,3 +535,25 @@ const editor = new Buffee(el, options);
 MyExtension(editor);
 editor.MyExtension.enable();
 ```
+
+### Configurations
+
+#### Omitting Status line 
+
+Option 1: inline CSS `style="display: none"`
+```html
+<div class="wb-status" style="display: none">
+```
+
+Option 2: CSS selector: 
+```css
+.wb .wb-status {
+  display: none;
+}
+```
+
+Option 3: query .wb-status in JavaScript and remove 
+
+Option 4 (recommended):
+
+Omit the html in the template

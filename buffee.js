@@ -9,7 +9,6 @@
  * @property {number} [indentation=4] - Number of spaces per indentation level
  * @property {number} [gutterSize=2] - Initial width of line number gutter in characters
  * @property {boolean} [showGutter=true] - Whether to show line numbers
- * @property {boolean} [showStatusLine=true] - Whether to show the status line
  * @property {boolean} [autoFitViewport] - Automatically size viewport to fit container height (default: true if viewportRows not specified)
  * @property {number} [viewportCols] - Fixed number of text columns (auto-calculates container width including gutter)
  * @property {BuffeeAdvancedConfig} [advanced={}] - Advanced configuration options
@@ -47,7 +46,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.7.3-alpha.1";
+  this.version = "7.7.4-alpha.1";
 
   // Extract configuration with defaults
   const {
@@ -57,10 +56,11 @@ function Buffee(node, config = {}) {
     expandtab: initialExpandtab = 4,
     gutterSize: initialGutterSize = 2,
     showGutter = true,
-    showStatusLine = true,
     advanced = {}
   } = config;
 
+  const lineHeight = parseFloat(getComputedStyle(node).getPropertyValue("--wb-cell"));
+  const editorPaddingPX = parseFloat(getComputedStyle(node).getPropertyValue("--wb-padding"));
   const autoFitViewport = !viewportRows;
 
   // Advanced configuration with defaults
@@ -84,19 +84,11 @@ function Buffee(node, config = {}) {
   // Cursor layer - shows head position distinctly within a selection
   const $cursor = node.querySelector(".wb-cursor");
   const $textLayer = node.querySelector(".wb-layer-text");
-  const $status = node.querySelector('.wb-status');
   const $statusLineCoord = node.querySelector('.wb-coordinate');
   const $lineCounter = node.querySelector('.wb-linecount');
-  const $indentation = node.querySelector('.wb-indentation');
   const $clipboardBridge = node.querySelector('.wb-clipboard-bridge');
   const $gutter = node.querySelector('.wb-gutter');
 
-  const lineHeight = parseFloat(getComputedStyle(node).getPropertyValue("--wb-cell"));
-  const editorPaddingPX = parseFloat(getComputedStyle(node).getPropertyValue("--wb-padding"));
-
-  Object.assign($status.style, {
-    display: showStatusLine ? '' : 'none'
-  });
   Object.assign($gutter.style, {
     width: gutterSize+gutterPadding+'ch',
     display: showGutter ? '' : 'none'
@@ -989,7 +981,7 @@ function Buffee(node, config = {}) {
   function render(renderLineContainers = false) {
     if (lastRender.lineCount !== Model.lastIndex + 1 ) {
       const lineCount = lastRender.lineCount = Model.lastIndex + 1;
-      $lineCounter.textContent = `${lineCount.toLocaleString()}L, originally: ${Model.originalLineCount}L ${Model.byteCount} bytes`;
+      $lineCounter && ($lineCounter.textContent = `${lineCount.toLocaleString()}L, originally: ${Model.originalLineCount}L ${Model.byteCount} bytes`);
     }
 
     // Use total line count so gutter doesn't resize while scrolling
@@ -1167,7 +1159,7 @@ function Buffee(node, config = {}) {
       hook($e, Viewport);
     }
 
-    $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${tail.col + 1}`;
+    $statusLineCoord && ($statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${tail.col + 1}`);
   
     return this;
   }
@@ -1223,7 +1215,8 @@ function Buffee(node, config = {}) {
     get: () => indentation,
     set: (value) => {
       indentation = value;
-      $indentation.innerHTML = `Spaces: ${indentation}`;
+      const $indentation = node.querySelector('.wb-indentation');
+      $indentation && ($indentation.innerHTML = `Spaces: ${indentation}`);
     },
     enumerable: true
   });
@@ -1265,9 +1258,9 @@ function Buffee(node, config = {}) {
 
   // Auto-fit viewport to container height
   if (autoFitViewport) {
-    const $status = node.querySelector('.wb-status');
     const fitViewport = () => {
-      const statusHeight = showStatusLine && $status ? $status.offsetHeight : 0;
+      const $status = node.querySelector('.wb-status');
+      const statusHeight = $status ? $status.offsetHeight : 0; // TODO inline.
       const availableHeight = node.clientHeight - statusHeight - (editorPaddingPX * 2);
       const exactLines = availableHeight / lineHeight;
       const newSize = Math.floor(exactLines);

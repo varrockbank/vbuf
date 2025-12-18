@@ -1,5 +1,9 @@
 * Project Devlog 
 
+** 7.7.4-alpha.1 [2025-12-18]  gz+min: 4.69 KB (+0.02), min: 13.70 KB (-0.05)
+*** refactor(config)
+- status line display is delegated to client css, html, or javascript
+
 ** 7.7.3-alpha.1 [2025-12-18]  gz+min: 4.68 KB (-0.01), min: 13.75 KB (-0.05)
 *** refactor
 - delegate static styles for seletion from JS to stylesheet

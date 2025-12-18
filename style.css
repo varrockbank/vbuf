@@ -1,6 +1,6 @@
 /**
  * Buffee Editor - Required Styles
- * @version 7.7.3-alpha.1
+ * @version 7.7.4-alpha.1
  *
  * This stylesheet contains the essential structural CSS for Buffee.
  * Colors are intentionally omitted - define them at point of usage.
@@ -90,9 +90,12 @@
 
 /* Status bar */
 .wb .wb-status {
-  display: flex;
+  display: flex; /** config. none if want to hide status */
   justify-content: space-between;
   padding: 6px; /** refactor to css variable*/
+}
+.wb .wb-status-left, .wb .wb-status-right {
+  display: flex;
 }
 .wb .wb-status span {
   padding-right: 4px;
@@ -126,3 +129,4 @@
 .wb .wb-cursor, .wb .wb-gutter, .wb .wb-lines, .wb .wb-selection {
   font-size: var(--wb-cell); line-height: var(--wb-cell);
 }
+

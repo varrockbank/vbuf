@@ -7,7 +7,16 @@
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../themes/boring.css">
+  <style>
+  #editor-no-status .wb-status {
+    display: none;
+  }
+  #editor-minimal .wb-status {
+    display: none;
+  }
+</style>
 </head>
+
 <body class="sample">
   <nav id="nav"></nav>
   <script>
@@ -21,14 +30,14 @@
   <p>Control visibility via constructor options: <code>showGutter</code> and <code>showStatusLine</code></p>
 
   <h2>Default (gutter + status bar)</h2>
-  <p><code>new Buffee(el, { showGutter: true, showStatusLine: true })</code></p>
+  <p>JS: <code>new Buffee(el, { showGutter: true, showStatusLine: true })</code></p>
   <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-default" style="border: 1px solid #444; width: 500px;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
       <div class="wb-lines" style="flex: 1;"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; ">
+    <div class="wb-status">
       <div><span class="wb-linecount"></span></div>
       <div style="display: flex;">
         <span class="wb-coordinate"></span>|
@@ -39,54 +48,53 @@
   </blockquote>
 
   <h2>No gutter (line numbers hidden)</h2>
-  <p><code>new Buffee(el, { showGutter: false })</code></p>
-  <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-no-gutter" style="border: 1px solid #444; width: 500px;">
+  <p>JS<code>new Buffee(el, { showGutter: false })</code></p>
+  <blockquote class="wb no-selec buffee-themepack1 boring" tabindex="0" id="editor-no-gutter" style="border: 1px solid #444; width: 500px;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
       <div class="wb-lines" style="flex: 1;"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; ">
+    <div class="wb-status">
       <div><span class="wb-linecount"></span></div>
       <div style="display: flex;">
         <span class="wb-coordinate"></span>|
-        
         <span class="wb-indentation"></span>
       </div>
     </div>
   </blockquote>
 
   <h2>No status bar</h2>
-  <p><code>new Buffee(el, { showStatusLine: false })</code></p>
+  <p>JS: <code>new Buffee(el, { showStatusLine: false })</code></p>
+  <p>CSS: <code>.wb .wb-status { display: none; }</code></p>
   <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-no-status" style="border: 1px solid #444; width: 500px;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
       <div class="wb-lines" style="flex: 1;"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; ">
+    <div class="wb-status">
       <div><span class="wb-linecount"></span></div>
       <div style="display: flex;">
         <span class="wb-coordinate"></span>|
-        
         <span class="wb-indentation"></span>
       </div>
     </div>
   </blockquote>
 
   <h2>Minimal (no gutter, no status bar)</h2>
-  <p><code>new Buffee(el, { showGutter: false, showStatusLine: false })</code></p>
+  <p>JS: <code>new Buffee(el, { showGutter: false, showStatusLine: false })</code></p>
+  <p>CSS: <code>.wb .wb-status { display: none; }</code></p>
   <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-minimal" style="border: 1px solid #444; width: 500px;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
       <div class="wb-lines" style="flex: 1;"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; ">
+    <div class="wb-status">
       <div><span class="wb-linecount"></span></div>
       <div style="display: flex;">
         <span class="wb-coordinate"></span>|
-        
         <span class="wb-indentation"></span>
       </div>
     </div>
@@ -103,7 +111,6 @@ hello();`;
     const edDefault = new Buffee(document.getElementById('editor-default'), {
       viewportRows: 6,
       showGutter: true,
-      showStatusLine: true,
     });
     edDefault.Model.text = content;
 
@@ -111,7 +118,6 @@ hello();`;
     const edNoGutter = new Buffee(document.getElementById('editor-no-gutter'), {
       viewportRows: 6,
       showGutter: false,
-      showStatusLine: true,
     });
     edNoGutter.Model.text = content;
 
@@ -119,7 +125,6 @@ hello();`;
     const edNoStatus = new Buffee(document.getElementById('editor-no-status'), {
       viewportRows: 6,
       showGutter: true,
-      showStatusLine: false,
     });
     edNoStatus.Model.text = content;
 
@@ -127,7 +132,6 @@ hello();`;
     const edMinimal = new Buffee(document.getElementById('editor-minimal'), {
       viewportRows: 6,
       showGutter: false,
-      showStatusLine: false,
     });
     edMinimal.Model.text = content;
   </script>
