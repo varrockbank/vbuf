@@ -1,20 +1,16 @@
 /**
- * @fileoverview Buffee - A high-performance virtual buffer text editor for the browser.
- * Renders fixed-width character cells in a grid layout with virtual scrolling.
- * @version 6.1.3-alpha.1
+ * @fileoverview Buffee, the text slayer
+ * @version 7.0.0-alpha.1
  */
 
 /**
  * @typedef {Object} BuffeeConfig
  * @property {number} [initialViewportSize=20] - Number of visible lines in the viewport
  * @property {number} [lineHeight=24] - Height of each line in pixels
- * @property {number} [editorPaddingPX=4] - Padding around the editor in pixels
  * @property {number} [indentation=4] - Number of spaces per indentation level
  * @property {string} [colorPrimary="#B2B2B2"] - Primary text color
  * @property {string} [colorSecondary="#212026"] - Secondary/background color for gutter and status
  * @property {number} [gutterSize=2] - Initial width of line number gutter in characters
- * @property {number} [gutterPadding=1] - Padding for the gutter in characters
- * @property {function(string): void} [logger=console] - Logger with log and warning methods
  * @property {boolean} [showGutter=true] - Whether to show line numbers
  * @property {boolean} [showStatusLine=true] - Whether to show the status line
  * @property {boolean} [autoFitViewport=false] - Automatically size viewport to fit container height
@@ -23,6 +19,9 @@
 
 /**
  * @typedef {Object} BuffeeAdvancedConfig
+ * @property {number} [editorPaddingPX=4] - Padding around the editor in pixels
+ * @property {number} [gutterPadding=1] - Padding for the gutter in characters
+ * @property {function(string): void} [logger=console] - Logger with log and warning methods
  * @property {string} [rightScrollBuffer='2ch'] - Extra space after line end for horizontal scrolling
  */
 
@@ -53,20 +52,17 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "6.1.3-alpha.1";
+  this.version = "7.0.0-alpha.1";
 
   // Extract configuration with defaults
   const {
     initialViewportSize = 20,
     lineHeight = 24,
-    editorPaddingPX = 4,
     indentation: initialIndentation = 4,
     expandtab: initialExpandtab = 4,
     colorPrimary = "#B2B2B2",
     colorSecondary = "#212026",
     gutterSize: initialGutterSize = 2,
-    gutterPadding = 1,
-    logger = console,
     showGutter = true,
     showStatusLine = true,
     autoFitViewport = false,
@@ -75,6 +71,9 @@ function Buffee(node, config = {}) {
 
   // Advanced configuration with defaults
   const {
+    editorPaddingPX = 4,
+    gutterPadding = 1,
+    logger = console,
     rightScrollBuffer = '2ch'  // Extra space after line end for horizontal scrolling
   } = advanced;
 
@@ -83,7 +82,7 @@ function Buffee(node, config = {}) {
   let expandtab = initialExpandtab;
 
   /** Replaces tabs with spaces (expandtab = number of spaces, 0 = keep tabs) */
-  const expandTabs = (s) => expandtab ? s.replace(/\t/g, ' '.repeat(expandtab)) : s;
+  const expandTabs = s => expandtab ? s.replace(/\t/g, ' '.repeat(expandtab)) : s;
 
   const $e = node.querySelector('.wb-lines');
   Object.assign($e.style, {

@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 7.0.0-alpha.1 [2025-12-18]
+*** refactor 
+- move some config options to advanced
+
 ** 6.1.3-alpha.1 [2025-12-18]
 *** feature
 - Add rightScrollBuffer config (default 2ch) to ensure cursor visible at line ends
