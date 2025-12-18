@@ -4,10 +4,28 @@
   <meta charset="UTF-8">
   <title>buffee - TUI Elements</title>
   <script src="../buffee.js"></script>
+  <script src="../extensions/highlights.js"></script>
   <script src="../extensions/tui-legacy.js"></script>
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
   <style>
+    .wb {
+      background-color: #FFFFFF;
+      color: #000000;
+      border: 1px solid #ccc;
+      width: 100ch;
+    }
+    .wb .wb-lines {
+      color: #000000;
+      background-color: #FFFFFF;
+    }
+    .wb .wb-status {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px;
+      background: #212026;
+    }
+    .wb .wb-status-right { display: flex; }
     #output {
       font-family: monospace;
       color: #4ade80;
@@ -32,77 +50,73 @@
   <p>Press <kbd>Tab</kbd> to navigate, <kbd>Enter</kbd> to activate</p>
 
   <h2>Buttons (no border)</h2>
-  <pre>new Buffee(el, { viewportRows: 3, showGutter: false })
+  <pre>new Buffee(el, { viewportRows: 3, showGutter: true })
 TUI.addButton({ row: 1, col: 20, label: '[Save]' })</pre>
-  <blockquote class="wb no-select" tabindex="0" id="buttons-plain" style="border: 1px solid #444; width: 500px;">
+  <blockquote class="wb no-select" tabindex="0" id="buttons-plain">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+      <div class="wb-lines" style="flex: 1;"></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026;">
+    <div class="wb-status">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
+      <div class="wb-status-right">
         <span class="wb-coordinate"></span>
-        <span>|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
   </blockquote>
 
   <h2>Buttons (with border)</h2>
-  <pre>new Buffee(el, { viewportRows: 5, showGutter: false })
+  <pre>new Buffee(el, { viewportRows: 5, showGutter: true })
 TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true })</pre>
-  <blockquote class="wb no-select" tabindex="0" id="buttons-border" style="border: 1px solid #444; width: 500px;">
+  <blockquote class="wb no-select" tabindex="0" id="buttons-border">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+      <div class="wb-lines" style="flex: 1;"></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026;">
+    <div class="wb-status">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
+      <div class="wb-status-right">
         <span class="wb-coordinate"></span>
-        <span>|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
   </blockquote>
 
   <h2>Prompt (type to input, Enter to submit)</h2>
-  <pre>new Buffee(el, { viewportRows: 8, showGutter: false })
+  <pre>new Buffee(el, { viewportRows: 8, showGutter: true })
 TUI.addPrompt({ row: 1, col: 2, width: 30, title: 'Search' })
 TUI.handleKeyDown(e.key)</pre>
-  <blockquote class="wb no-select" tabindex="0" id="prompt-demo" style="border: 1px solid #444; width: 500px;">
+  <blockquote class="wb no-select" tabindex="0" id="prompt-demo">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+      <div class="wb-lines" style="flex: 1;"></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026;">
+    <div class="wb-status">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
+      <div class="wb-status-right">
         <span class="wb-coordinate"></span>
-        <span>|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
   </blockquote>
 
   <h2>ScrollBox (Arrow keys to scroll)</h2>
-  <pre>new Buffee(el, { viewportRows: 10, showGutter: false })
+  <pre>new Buffee(el, { viewportRows: 10, showGutter: true })
 TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [...] })</pre>
-  <blockquote class="wb no-select" tabindex="0" id="scrollbox-demo" style="border: 1px solid #444; width: 80ch;">
+  <blockquote class="wb no-select" tabindex="0" id="scrollbox-demo">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
-      <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
+      <div class="wb-lines" style="flex: 1;"></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; padding: 6px; background: #212026;">
+    <div class="wb-status">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
+      <div class="wb-status-right">
         <span class="wb-coordinate"></span>
-        <span>|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
@@ -117,9 +131,9 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     const plainEl = document.getElementById('buttons-plain');
     const plainEditor = new Buffee(plainEl, {
       viewportRows: 3,
-      showGutter: false,
-      colorPrimary: "#B2B2B2",
-      colorSecondary: "#212026"
+      showGutter: true,
+      colorPrimary: "#000000",
+      colorSecondary: "#FFFFFF"
     });
     BuffeeTUI(plainEditor);
     plainEditor.Model.text = '\n  Select action:';
@@ -136,9 +150,9 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     const borderEl = document.getElementById('buttons-border');
     const borderEditor = new Buffee(borderEl, {
       viewportRows: 5,
-      showGutter: false,
-      colorPrimary: "#B2B2B2",
-      colorSecondary: "#212026"
+      showGutter: true,
+      colorPrimary: "#000000",
+      colorSecondary: "#FFFFFF"
     });
     BuffeeTUI(borderEditor);
     borderEditor.Model.text = '\n\n\n\n';
@@ -155,9 +169,9 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     const promptEl = document.getElementById('prompt-demo');
     const promptEditor = new Buffee(promptEl, {
       viewportRows: 8,
-      showGutter: false,
-      colorPrimary: "#B2B2B2",
-      colorSecondary: "#212026"
+      showGutter: true,
+      colorPrimary: "#000000",
+      colorSecondary: "#FFFFFF"
     });
     BuffeeTUI(promptEditor);
     promptEditor.Model.text = '\n\n\n\n\n\n\n';
@@ -173,9 +187,9 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     const scrollEl = document.getElementById('scrollbox-demo');
     const scrollEditor = new Buffee(scrollEl, {
       viewportRows: 10,
-      showGutter: false,
-      colorPrimary: "#B2B2B2",
-      colorSecondary: "#212026"
+      showGutter: true,
+      colorPrimary: "#000000",
+      colorSecondary: "#FFFFFF"
     });
     BuffeeTUI(scrollEditor);
     scrollEditor.Model.text = '\n\n\n\n\n\n\n\n\n';

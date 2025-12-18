@@ -1,71 +1,30 @@
 /**
  * @fileoverview BuffeeTUI - Terminal User Interface extension for Buffee.
  * Renders text-based UI elements (buttons, prompts, scrollboxes) by modifying line content.
- * Uses a fixed layer for highlights that doesn't scroll with content.
- * @version 2.0.0
+ * Depends on BuffeeHighlights for rendering selection highlights.
+ * @version 2.1.0
  */
 
 /**
  * Initializes TUI mode for a Buffee instance.
+ * Requires BuffeeHighlights to be initialized first.
  * @param {Buffee} vbuf - The Buffee instance to extend
  * @returns {Object} The TUI API object
  */
 function BuffeeTUI(vbuf) {
-  const { $e, $textLayer, render, renderHooks, contentOffset } = vbuf._internals;
-  const { Viewport, Model, lineHeight } = vbuf;
+  // Initialize highlights extension if not already done
+  if (!vbuf.Highlights) {
+    BuffeeHighlights(vbuf);
+  }
+  const Highlights = vbuf.Highlights;
 
-  // Create fixed layer for TUI highlights (doesn't scroll with content)
-  const $fixedLayer = document.createElement('div');
-  $fixedLayer.className = 'wb-layer-fixed wb-tui-layer';
-  Object.assign($fixedLayer.style, {
-    position: 'absolute',
-    top: contentOffset.top + 'px',
-    left: `calc(${contentOffset.ch}ch + ${contentOffset.px}px)`,
-    width: '100%',
-    height: '100%',
-    zIndex: 500,
-    pointerEvents: 'none',
-    fontSize: lineHeight + 'px',
-    lineHeight: lineHeight + 'px'
-  });
-  // Ensure .wb-content is positioned for absolute children
-  $e.parentElement.style.position = 'relative';
-  $e.parentElement.appendChild($fixedLayer);
+  const { $textLayer, render, renderHooks } = vbuf._internals;
+  const { Viewport, Model } = vbuf;
 
   let enabled = false;
   let currentIndex = 0;
   let showHighlights = true;
   const elements = [];
-  const $highlights = [];
-
-  // ============================================================================
-  // Highlight Management
-  // ============================================================================
-
-  function clearHighlights() {
-    for (const hl of $highlights) {
-      hl.remove();
-    }
-    $highlights.length = 0;
-  }
-
-  function createHighlight(row, col, width) {
-    const hl = document.createElement('div');
-    hl.className = 'wb-tui-highlight';
-    Object.assign(hl.style, {
-      position: 'absolute',
-      top: row * lineHeight + 'px',
-      left: col + 'ch',
-      width: width + 'ch',
-      height: lineHeight + 'px',
-      backgroundColor: '#EDAD10',
-      mixBlendMode: 'difference',
-      pointerEvents: 'none'
-    });
-    $fixedLayer.appendChild(hl);
-    $highlights.push(hl);
-    return hl;
-  }
 
   // ============================================================================
   // Content Builders
@@ -319,9 +278,9 @@ function BuffeeTUI(vbuf) {
     }
   });
 
-  // Render highlights in fixed layer
+  // Render highlights using Highlights extension
   renderHooks.onRenderComplete.push(($container, viewport) => {
-    clearHighlights();
+    Highlights.clear();
 
     if (!enabled || !showHighlights || elements.length === 0) return;
 
@@ -334,7 +293,7 @@ function BuffeeTUI(vbuf) {
       const viewportRow = absRow - viewport.start;
 
       if (viewportRow >= 0 && viewportRow < viewport.size) {
-        createHighlight(viewportRow, currentEl.col, currentEl.width);
+        Highlights.create(viewportRow, currentEl.col, currentEl.width);
       }
     }
   });
