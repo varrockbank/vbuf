@@ -40,7 +40,7 @@ function BuffeeTUI(vbuf) {
 
   function buildPromptContents(width, title, input) {
     const innerWidth = width - 2;
-    const titleLine = '┌─ ' + title + ' ' + '─'.repeat(innerWidth - title.length - 4) + '┐';
+    const titleLine = '┌─ ' + title + ' ' + '─'.repeat(innerWidth - title.length - 3) + '┐';
     const maxInput = innerWidth - 3;
     const displayInput = input.length > maxInput ? input.slice(-maxInput) : input;
     const inputLine = '│ > ' + displayInput + ' '.repeat(maxInput - displayInput.length) + '│';
@@ -54,7 +54,7 @@ function BuffeeTUI(vbuf) {
     const contents = [];
 
     // Top border with title
-    contents.push('┌─ ' + title + ' ' + '─'.repeat(innerWidth - title.length - 4) + '┐');
+    contents.push('┌─ ' + title + ' ' + '─'.repeat(innerWidth - title.length - 3) + '┐');
 
     // Content lines
     for (let i = 0; i < innerHeight; i++) {
