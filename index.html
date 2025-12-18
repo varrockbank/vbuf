@@ -252,7 +252,7 @@
       showStatusLine: false,
     });
 
-    fetch("docs/instructions.txt")
+    fetch("assets/instructions.txt")
       .then(response => response.text())
       .then(source => primary.Model.text = source)
       .catch(err => console.error("Error reading instructions.txt:", err));
