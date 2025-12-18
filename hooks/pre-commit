@@ -16,6 +16,29 @@ if git diff --cached --name-only | grep -q "^buffee.js$"; then
     fi
 fi
 
+# Check that buffee.js and style.css versions match
+BUFFEE_VERSION=$(grep 'this.version' buffee.js | sed 's/.*"\(.*\)".*/\1/')
+STYLE_VERSION=$(grep '@version' style.css | sed 's/.*@version \(.*\)/\1/' | tr -d ' ')
+
+if [ "$BUFFEE_VERSION" != "$STYLE_VERSION" ]; then
+    echo "✗ Error: Version mismatch between buffee.js and style.css"
+    echo "  buffee.js: $BUFFEE_VERSION"
+    echo "  style.css: $STYLE_VERSION"
+    echo "  Please update @version in style.css to match buffee.js"
+    exit 1
+fi
+
+# Check that buffee.js and devlog.txt versions match
+DEVLOG_VERSION=$(grep '^\*\* ' docs/devlog.txt | head -1 | sed 's/^\*\* \([^ ]*\).*/\1/')
+
+if [ "$BUFFEE_VERSION" != "$DEVLOG_VERSION" ]; then
+    echo "✗ Error: Version mismatch between buffee.js and docs/devlog.txt"
+    echo "  buffee.js:     $BUFFEE_VERSION"
+    echo "  devlog.txt:    $DEVLOG_VERSION"
+    echo "  Please add a new entry to docs/devlog.txt for version $BUFFEE_VERSION"
+    exit 1
+fi
+
 echo "Generating dist/buffee.min.js..."
 
 # Get old sizes from HEAD (last committed version)

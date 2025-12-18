@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 7.3.0-alpha.1 [2025-12-18]
+*** refactor 
+- include necessary flexbox styles in style.css so user doesn't have to specify
+
 ** 7.2.0-alpha.1 [2025-12-18]
 *** refactor 
 - auto-row unless viewportRow specified

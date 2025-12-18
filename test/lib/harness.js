@@ -48,7 +48,7 @@ function createEditorNode() {
   node.className = 'wb no-select';
   node.innerHTML = `
     <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-    <div style="display: flex">
+    <div class="wb-content">
       <div class="wb-gutter"></div>
       <div class="wb-lines" style="flex: 1; overflow: hidden;"></div>
     </div>

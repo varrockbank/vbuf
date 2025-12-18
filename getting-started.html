@@ -39,7 +39,10 @@
   position: relative;
   outline: none;
   font-family: 'Menlo', 'Consolas', monospace;
+  display: flex;
+  flex-direction: column;
 }
+.wb-content { display: flex; flex: 1; overflow: hidden; }
 .no-select { user-select: none; }
 .wb-clipboard-bridge {
   position: fixed; left: 0; top: 1px;
@@ -60,7 +63,7 @@
   <p><strong>All elements required.</strong> Missing any causes errors.</p>
   <pre>&lt;blockquote class="wb no-select" tabindex="0" id="editor"&gt;
   &lt;textarea class="wb-clipboard-bridge" aria-hidden="true"&gt;&lt;/textarea&gt;
-  &lt;div style="display: flex"&gt;
+  &lt;div class="wb-content"&gt;
     &lt;div class="wb-gutter"&gt;&lt;/div&gt;
     &lt;div class="wb-lines" style="flex: 1;"&gt;&lt;/div&gt;
   &lt;/div&gt;
@@ -77,6 +80,7 @@
   <ul>
     <li><label><input type="checkbox"> <code>.wb</code> - container</label></li>
     <li><label><input type="checkbox"> <code>.wb-clipboard-bridge</code> - textarea</label></li>
+    <li><label><input type="checkbox"> <code>.wb-content</code> - content area (gutter + lines)</label></li>
     <li><label><input type="checkbox"> <code>.wb-gutter</code> - line numbers</label></li>
     <li><label><input type="checkbox"> <code>.wb-lines</code> - text content</label></li>
     <li><label><input type="checkbox"> <code>.wb-status</code> - status bar</label></li>
@@ -97,10 +101,12 @@
   <pre>const editor = new Buffee(document.getElementById('editor'))
 editor.Model.text = "Hello, World!"</pre>
 
-  <h2>5. Auto-fit Viewport (Optional)</h2>
-  <p>To automatically size the editor to fill its container height:</p>
-  <pre>new Buffee(el, { autoFitViewport: true })</pre>
-  <p>The container must have a defined height. The editor will resize automatically when the container changes.</p>
+  <h2>5. Auto-fit Viewport</h2>
+  <p>By default, the editor auto-fits to its container (if it has a defined height). To use fixed dimensions instead:</p>
+  <pre>new Buffee(el, { viewportRows: 20 })      // Fixed row count
+new Buffee(el, { viewportCols: 80 })      // Fixed column width
+new Buffee(el, { viewportRows: 20, viewportCols: 80 }) // Both fixed</pre>
+  <p>For auto-fit to work, editor (.wb class) must be: (a) 100% of parent or (2) set height.</p>
 
 </body>
 </html>

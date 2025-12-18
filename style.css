@@ -1,5 +1,6 @@
 /**
  * Buffee Editor - Required Styles
+ * @version 7.3.0-alpha.1
  *
  * This stylesheet contains the essential structural CSS for Buffee.
  * Colors are intentionally omitted - define them at point of usage.
@@ -16,6 +17,15 @@
   position: relative;
   outline: none;
   font-family: 'Menlo', 'Consolas', monospace;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content area (gutter + lines) */
+.wb-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
 /* Prevent text selection on editor chrome */

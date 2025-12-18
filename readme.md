@@ -62,7 +62,10 @@ Or include everything inline (structural + colors):
   position: relative;
   outline: none;
   font-family: 'Menlo', 'Consolas', monospace;
+  display: flex;
+  flex-direction: column;
 }
+.wb-content { display: flex; flex: 1; overflow: hidden; }
 .no-select { user-select: none; }
 .wb-clipboard-bridge {
   position: fixed; left: 0; top: 1px;
@@ -85,52 +88,40 @@ Or include everything inline (structural + colors):
 Editor instances bind to DOM node with this structure:
 
 ```html
-<blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select" tabindex="0" id="playground">
-  <!-- Hidden clipboard bridge lives inside the editor so copy bubbles through it -->
+<blockquote class="wb no-select" tabindex="0" id="editor">
   <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-    <div class="💪">
-      <div class="wb-gutter"></div>
-      <div class="wb-lines 🌳 🥷"></div>
+  <div class="wb-content">
+    <div class="wb-gutter"></div>
+    <div class="wb-lines"></div>
+  </div>
+  <div class="wb-status">
+    <div class="wb-status-left">
+      <span class="wb-linecount"></span>
     </div>
-    <div class="💪 wb-status 🦠">
-      <div class="wb-status-left 💪">
-        <span class="wb-linecount"></span>
-      </div>
-      <div class="wb-status-right 💪">
-        <span class="wb-coordinate"></span>
-        <span>|</span>
-        <span class="wb-indentation"></span>
+    <div class="wb-status-right">
+      <span class="wb-coordinate"></span>
+      <span>|</span>
+      <span class="wb-indentation"></span>
     </div>
   </div>
 </blockquote>
 
 <script>
-  const editorInstance = new Buffee(document.getElementById("playground"), <config>);
+  const editor = new Buffee(document.getElementById("editor"), {});
 </script>
 ```
 
 ### Auto-fit Viewport
 
-To automatically size the editor to fill its container height:
+By default, the editor auto-fits to its container. For fixed dimensions, specify:
 
 ```javascript
-new Buffee(el, { autoFitViewport: true });
+new Buffee(el, { viewportRows: 20 });      // Fixed row count
+new Buffee(el, { viewportCols: 80 });      // Fixed column width
+new Buffee(el, { viewportRows: 20, viewportCols: 80 }); // Both fixed
 ```
 
-The container must have a defined height. The editor will resize automatically when the container changes.
-
-**CSS requirement with status bar:** When using `autoFitViewport: true` with a visible status bar, the editor container needs flex layout:
-
-```css
-.wb {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-```
-
-Without status bar, only `height: 100%; width: 100%;` is needed.
+For auto-fit to work, the editor must have a defined height (either `height: 100%` of parent, or explicit pixel height).
 
 ### Model-view-controller API
 
@@ -160,6 +151,28 @@ There is no build process needed to vendor `Buffee` global function nor is there
 ln -s ../../hooks/pre-commit .git/hooks/pre-commit
 ```
 
+### precommit 
+
+The precommit additionally checks
+
+1. buffee.js changed, then version should be updated
+2. buffee.js and style.js versions are the same 
+3. buffee.js and most recent version in devlog.txt is same.
+
+```
+✗ Error: Version mismatch between buffee.js and style.css
+    buffee.js: 7.2.0-alpha.1
+    style.css: 7.1.0
+    Please update @version in style.css to match buffee.js
+```
+
+If devlog is out of sync:
+```
+  ✗ Error: Version mismatch between buffee.js and docs/devlog.txt
+    buffee.js:     7.2.0-alpha.1
+    devlog.txt:    7.1.0-alpha.1
+    Please add a new entry to docs/devlog.txt for version 7.2.0-alpha.1
+```
 
 ## Innovation 
 
