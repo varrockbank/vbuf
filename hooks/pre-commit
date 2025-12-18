@@ -1,41 +1,56 @@
 #!/bin/sh
 # Pre-commit hook to generate minified dist file and check version bump
 
-# Check if buffee.js is staged for commit
-if git diff --cached --name-only | grep -q "^buffee.js$"; then
-    # Get old version from HEAD
-    OLD_VERSION=$(git show HEAD:buffee.js 2>/dev/null | grep 'this.version' | sed 's/.*"\(.*\)".*/\1/')
-    # Get new version from staged file
-    NEW_VERSION=$(git show :buffee.js | grep 'this.version' | sed 's/.*"\(.*\)".*/\1/')
-
-    if [ "$OLD_VERSION" = "$NEW_VERSION" ] && [ -n "$OLD_VERSION" ]; then
-        echo "✗ Error: buffee.js changed but version was not bumped"
-        echo "  Current version: $OLD_VERSION"
-        echo "  Please update this.version in buffee.js AND stage it."
-        exit 1
-    fi
-fi
-
-# Check that buffee.js and style.css versions match
+# Get current versions
 BUFFEE_VERSION=$(grep 'this.version' buffee.js | sed 's/.*"\(.*\)".*/\1/')
 STYLE_VERSION=$(grep '@version' style.css | sed 's/.*@version \(.*\)/\1/' | tr -d ' ')
 
-if [ "$BUFFEE_VERSION" != "$STYLE_VERSION" ]; then
-    echo "✗ Error: Version mismatch between buffee.js and style.css"
-    echo "  buffee.js: $BUFFEE_VERSION"
-    echo "  style.css: $STYLE_VERSION"
-    echo "  Please update @version in style.css to match buffee.js"
-    exit 1
+# Check if buffee.js is staged and needs version bump
+if git diff --cached --name-only | grep -q "^buffee.js$"; then
+    OLD_BUFFEE_VERSION=$(git show HEAD:buffee.js 2>/dev/null | grep 'this.version' | sed 's/.*"\(.*\)".*/\1/')
+    NEW_BUFFEE_VERSION=$(git show :buffee.js | grep 'this.version' | sed 's/.*"\(.*\)".*/\1/')
+
+    if [ "$OLD_BUFFEE_VERSION" = "$NEW_BUFFEE_VERSION" ] && [ -n "$OLD_BUFFEE_VERSION" ]; then
+        echo "✗ Error: buffee.js changed but version was not bumped"
+        echo "  Current version: $OLD_BUFFEE_VERSION"
+        echo "  style.css version: $STYLE_VERSION"
+        echo "  Please bump this.version in buffee.js"
+        exit 1
+    fi
+    BUFFEE_VERSION=$NEW_BUFFEE_VERSION
 fi
 
-# Check that buffee.js and devlog.txt versions match
+# Check if style.css is staged and needs version bump
+if git diff --cached --name-only | grep -q "^style.css$"; then
+    OLD_STYLE_VERSION=$(git show HEAD:style.css 2>/dev/null | grep '@version' | sed 's/.*@version \(.*\)/\1/' | tr -d ' ')
+    NEW_STYLE_VERSION=$(git show :style.css | grep '@version' | sed 's/.*@version \(.*\)/\1/' | tr -d ' ')
+
+    if [ "$OLD_STYLE_VERSION" = "$NEW_STYLE_VERSION" ] && [ -n "$OLD_STYLE_VERSION" ]; then
+        echo "✗ Error: style.css changed but version was not bumped"
+        echo "  Current version: $OLD_STYLE_VERSION"
+        echo "  buffee.js version: $BUFFEE_VERSION"
+        echo "  Please bump @version in style.css"
+        exit 1
+    fi
+    STYLE_VERSION=$NEW_STYLE_VERSION
+fi
+
+# Determine the higher version for devlog check
+if [ "$(printf '%s\n' "$BUFFEE_VERSION" "$STYLE_VERSION" | sort -V | tail -1)" = "$BUFFEE_VERSION" ]; then
+    MAX_VERSION=$BUFFEE_VERSION
+else
+    MAX_VERSION=$STYLE_VERSION
+fi
+
+# Check that devlog documents the higher version
 DEVLOG_VERSION=$(grep '^\*\* ' dev/changelog.txt | head -1 | sed 's/^\*\* \([^ ]*\).*/\1/')
 
-if [ "$BUFFEE_VERSION" != "$DEVLOG_VERSION" ]; then
-    echo "✗ Error: Version mismatch between buffee.js and docs/devlog.txt"
+if [ "$MAX_VERSION" != "$DEVLOG_VERSION" ]; then
+    echo "✗ Error: changelog.txt version doesn't match the highest version"
     echo "  buffee.js:     $BUFFEE_VERSION"
-    echo "  changelog.txt:    $DEVLOG_VERSION"
-    echo "  Please add a new entry to dev/changelog.txt for version $BUFFEE_VERSION"
+    echo "  style.css:     $STYLE_VERSION"
+    echo "  changelog.txt: $DEVLOG_VERSION"
+    echo "  Please add a new entry to dev/changelog.txt for version $MAX_VERSION"
     exit 1
 fi
 

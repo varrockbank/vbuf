@@ -26,22 +26,14 @@ ln -s ../../hooks/pre-commit .git/hooks/pre-commit
 ## pre-commit checks
 Further, The precommit additionally checks
 
-1. buffee.js changed, then version should be updated
-2. buffee.js and style.js versions are the same 
-3. buffee.js and most recent version in devlog.txt is same.
+1. buffee.js changed, then version should be updated (past style.js)
+2. style.js changed, then version should be updated (past buffee.js)
+3. buffee.js or style.js updated then devlog.txt must grab largest
 
 ```
-✗ Error: Version mismatch between buffee.js and style.css
-    buffee.js: 7.2.0-alpha.1
-    style.css: 7.1.0
-    Please update @version in style.css to match buffee.js
+ Error: changelog.txt version doesn't match the highest version
+  buffee.js:     7.6.4-alpha.1
+  style.css:     7.6.0-alpha.1
+  changelog.txt: 7.6.5-alpha.1
+  Please add a new entry to dev/changelog.txt for version 7.6.4-alpha.1
 ```
-
-If devlog is out of sync:
-```
-  ✗ Error: Version mismatch between buffee.js and docs/devlog.txt
-    buffee.js:     7.2.0-alpha.1
-    devlog.txt:    7.1.0-alpha.1
-    Please add a new entry to docs/devlog.txt for version 7.2.0-alpha.1
-```
-
