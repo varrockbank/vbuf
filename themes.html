@@ -5,18 +5,23 @@
   <title>buffee - Themes</title>
   <link rel="stylesheet" href="reset.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="themes/buffee.css">
   <link rel="stylesheet" href="themes/drak.css">
   <link rel="stylesheet" href="themes/kai.css">
-  <link rel="stylesheet" href="themes/lit.css">
   <link rel="stylesheet" href="themes/nord.css">
   <link rel="stylesheet" href="themes/darkly.css">
   <link rel="stylesheet" href="themes/gruv.css">
+  <link rel="stylesheet" href="themes/hn.css">
+  <link rel="stylesheet" href="themes/neo.css">
+  <link rel="stylesheet" href="themes/star.css">
+  <link rel="stylesheet" href="themes/chelsey.css">
+  <link rel="stylesheet" href="themes/boring.css">
   <script src="buffee.js"></script>
   <style>
     .theme-section {
       margin-bottom: 40px;
     }
-    details {
+    .details-row {
       margin-top: 10px;
     }
     details summary {
@@ -40,6 +45,136 @@
   <h1>Theme Gallery</h1>
   <p>A collection of color themes for Buffee. Add the theme class to your editor element.</p>
 
+  <!-- Buffee -->
+  <section class="theme-section">
+    <h2>Eva</h2>
+    <blockquote class="wb no-select buffee-themepack1 buffee" tabindex="0" id="ed-buffee">
+      <textarea class="wb-clipboard-bridge"></textarea>
+      <div class="wb-content">
+        <div class="wb-gutter"></div>
+        <div class="wb-lines" style="flex: 1;"></div>
+      </div>
+      <div class="wb-status">
+        <div><span class="wb-linecount"></span></div>
+        <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
+      </div>
+    </blockquote>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-buffee"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-buffee"></pre>
+      </details>
+    </div>
+  </section>
+
+  <!-- HN -->
+  <section class="theme-section">
+    <h2>HN</h2>
+    <blockquote class="wb no-select buffee-themepack1 hn" tabindex="0" id="ed-hn">
+      <textarea class="wb-clipboard-bridge"></textarea>
+      <div class="wb-content">
+        <div class="wb-gutter"></div>
+        <div class="wb-lines" style="flex: 1;"></div>
+      </div>
+      <div class="wb-status">
+        <div><span class="wb-linecount"></span></div>
+        <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
+      </div>
+    </blockquote>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-hn"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-hn"></pre>
+      </details>
+    </div>
+  </section>
+
+  <!-- Neo -->
+  <section class="theme-section">
+    <h2>Neo</h2>
+    <blockquote class="wb no-select buffee-themepack1 neo" tabindex="0" id="ed-neo">
+      <textarea class="wb-clipboard-bridge"></textarea>
+      <div class="wb-content">
+        <div class="wb-gutter"></div>
+        <div class="wb-lines" style="flex: 1;"></div>
+      </div>
+      <div class="wb-status">
+        <div><span class="wb-linecount"></span></div>
+        <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
+      </div>
+    </blockquote>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-neo"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-neo"></pre>
+      </details>
+    </div>
+  </section>
+
+  <!-- Star -->
+  <section class="theme-section">
+    <h2>Star</h2>
+    <blockquote class="wb no-select buffee-themepack1 star" tabindex="0" id="ed-star">
+      <textarea class="wb-clipboard-bridge"></textarea>
+      <div class="wb-content">
+        <div class="wb-gutter"></div>
+        <div class="wb-lines" style="flex: 1;"></div>
+      </div>
+      <div class="wb-status">
+        <div><span class="wb-linecount"></span></div>
+        <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
+      </div>
+    </blockquote>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-star"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-star"></pre>
+      </details>
+    </div>
+  </section>
+
+  <!-- Chelsey -->
+  <section class="theme-section">
+    <h2>Chelsey</h2>
+    <blockquote class="wb no-select buffee-themepack1 chelsey" tabindex="0" id="ed-chelsey">
+      <textarea class="wb-clipboard-bridge"></textarea>
+      <div class="wb-content">
+        <div class="wb-gutter"></div>
+        <div class="wb-lines" style="flex: 1;"></div>
+      </div>
+      <div class="wb-status">
+        <div><span class="wb-linecount"></span></div>
+        <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
+      </div>
+    </blockquote>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-chelsey"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-chelsey"></pre>
+      </details>
+    </div>
+  </section>
+
   <!-- Drak -->
   <section class="theme-section">
     <h2>Drak</h2>
@@ -54,10 +189,16 @@
         <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
       </div>
     </blockquote>
-    <details>
-      <summary>View CSS</summary>
-      <pre id="css-drak"></pre>
-    </details>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-drak"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-drak"></pre>
+      </details>
+    </div>
   </section>
 
   <!-- Kai -->
@@ -74,30 +215,16 @@
         <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
       </div>
     </blockquote>
-    <details>
-      <summary>View CSS</summary>
-      <pre id="css-kai"></pre>
-    </details>
-  </section>
-
-  <!-- Lit -->
-  <section class="theme-section">
-    <h2>Lit</h2>
-    <blockquote class="wb no-select buffee-themepack1 lit" tabindex="0" id="ed-lit">
-      <textarea class="wb-clipboard-bridge"></textarea>
-      <div class="wb-content">
-        <div class="wb-gutter"></div>
-        <div class="wb-lines" style="flex: 1;"></div>
-      </div>
-      <div class="wb-status">
-        <div><span class="wb-linecount"></span></div>
-        <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
-      </div>
-    </blockquote>
-    <details>
-      <summary>View CSS</summary>
-      <pre id="css-lit"></pre>
-    </details>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-kai"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-kai"></pre>
+      </details>
+    </div>
   </section>
 
   <!-- Nord -->
@@ -114,10 +241,16 @@
         <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
       </div>
     </blockquote>
-    <details>
-      <summary>View CSS</summary>
-      <pre id="css-nord"></pre>
-    </details>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-nord"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-nord"></pre>
+      </details>
+    </div>
   </section>
 
   <!-- Darkly -->
@@ -134,10 +267,16 @@
         <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
       </div>
     </blockquote>
-    <details>
-      <summary>View CSS</summary>
-      <pre id="css-darkly"></pre>
-    </details>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-darkly"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-darkly"></pre>
+      </details>
+    </div>
   </section>
 
   <!-- Gruv -->
@@ -154,10 +293,42 @@
         <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
       </div>
     </blockquote>
-    <details>
-      <summary>View CSS</summary>
-      <pre id="css-gruv"></pre>
-    </details>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-gruv"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-gruv"></pre>
+      </details>
+    </div>
+  </section>
+
+  <!-- Boring -->
+  <section class="theme-section">
+    <h2>Boring</h2>
+    <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="ed-boring">
+      <textarea class="wb-clipboard-bridge"></textarea>
+      <div class="wb-content">
+        <div class="wb-gutter"></div>
+        <div class="wb-lines" style="flex: 1;"></div>
+      </div>
+      <div class="wb-status">
+        <div><span class="wb-linecount"></span></div>
+        <div><span class="wb-coordinate"></span><span class="wb-indentation"></span></div>
+      </div>
+    </blockquote>
+    <div class="details-row">
+      <details>
+        <summary>View CSS</summary>
+        <pre id="css-boring"></pre>
+      </details>
+      <details>
+        <summary>View JS</summary>
+        <pre id="js-boring"></pre>
+      </details>
+    </div>
   </section>
 
   <script>
@@ -171,22 +342,75 @@ for (let i = 0; i < 10; i++) {
   console.log(fibonacci(i));
 }`;
 
-    const themes = ['drak', 'kai', 'lit', 'nord', 'darkly', 'gruv'];
+    const themes = {
+      buffee: {
+        colorPrimary: '#87FF5F',
+        colorSecondary: '#38274D'
+      },
+      hn: {
+        colorPrimary: 'black',
+        colorSecondary: '#FF6602'
+      },
+      neo: {
+        colorPrimary: '#00ff41',
+        colorSecondary: '#0a2f0a'
+      },
+      star: {
+        colorPrimary: '#FFD700',
+        colorSecondary: '#000000'
+      },
+      chelsey: {
+        colorPrimary: '#000000',
+        colorSecondary: '#f0f0f0'
+      },
+      drak: {
+        colorPrimary: '#ff79c6',
+        colorSecondary: '#44475a'
+      },
+      kai: {
+        colorPrimary: '#a6e22e',
+        colorSecondary: '#3e3d32'
+      },
+      nord: {
+        colorPrimary: '#88c0d0',
+        colorSecondary: '#3b4252'
+      },
+      darkly: {
+        colorPrimary: '#cb4b16',
+        colorSecondary: '#073642'
+      },
+      gruv: {
+        colorPrimary: '#fe8019',
+        colorSecondary: '#3c3836'
+      },
+      boring: {
+        colorPrimary: '#B2B2B2',
+        colorSecondary: '#212026'
+      }
+    };
 
-    themes.forEach(theme => {
-      const el = document.getElementById('ed-' + theme);
+    Object.entries(themes).forEach(([name, jsOptions]) => {
+      const el = document.getElementById('ed-' + name);
       const editor = new Buffee(el, {
         viewportRows: 10,
-        viewportCols: 60
+        viewportCols: 60,
+        ...jsOptions
       });
       editor.Model.text = sampleCode;
 
       // Load CSS into accordion
-      fetch('themes/' + theme + '.css')
+      fetch('themes/' + name + '.css')
         .then(r => r.text())
         .then(css => {
-          document.getElementById('css-' + theme).textContent = css;
+          document.getElementById('css-' + name).textContent = css;
         });
+
+      // Show JS options
+      const jsCode = `new Buffee(element, {
+  colorPrimary: '${jsOptions.colorPrimary}',
+  colorSecondary: '${jsOptions.colorSecondary}'
+});`;
+      document.getElementById('js-' + name).textContent = jsCode;
     });
   </script>
 </body>

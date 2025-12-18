@@ -1,0 +1,12 @@
+/* Buffee Theme */
+.buffee-themepack1.buffee {
+  background-color: #201430;
+  color: #E1D6F8;
+}
+.buffee-themepack1.buffee .wb-selection {
+  background-color: #F9AD40;
+  mix-blend-mode: normal;
+}
+.buffee-themepack1.buffee .wb-cursor {
+  background-color: #FF6B6B;
+}

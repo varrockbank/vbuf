@@ -1,0 +1,12 @@
+/* Star Theme */
+.buffee-themepack1.star {
+  background-color: #000000;
+  color: #FFD700;
+}
+.buffee-themepack1.star .wb-selection {
+  background-color: #333333;
+  mix-blend-mode: normal;
+}
+.buffee-themepack1.star .wb-cursor {
+  background-color: #FFD700;
+}

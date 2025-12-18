@@ -37,15 +37,6 @@
       border-color: #EDAD10 !important;
     }
 
-    #output {
-      font-family: monospace;
-      color: #4ade80;
-      margin-top: 12px;
-      padding: 12px;
-      background: #0a0a0a;
-      border: 1px solid #444;
-      min-height: 24px;
-    }
   </style>
 </head>
 <body class="sample">
@@ -63,7 +54,7 @@
 
   <h2>Buttons</h2>
   <pre>BuffeeElementals(editor)
-Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
+editor.Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
   <blockquote class="wb no-select" tabindex="0" id="buttons-demo" style="border: 1px solid #444; width: 600px;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
@@ -116,10 +107,7 @@ Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
     </div>
   </blockquote>
 
-  <div id="output">Interact with the elements above</div>
-
   <script>
-    const output = document.getElementById('output');
 
     // Buttons demo
     const buttonsEl = document.getElementById('buttons-demo');
@@ -134,22 +122,22 @@ Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
     buttonsEditor.Elementals.addButton({
       row: 1, col: 2,
       label: 'Save',
-      onActivate: () => { output.textContent = 'Save clicked!'; }
+      onActivate: () => { alert('Save clicked!'); }
     });
     buttonsEditor.Elementals.addButton({
       row: 1, col: 12,
       label: 'Load',
-      onActivate: () => { output.textContent = 'Load clicked!'; }
+      onActivate: () => { alert('Load clicked!'); }
     });
     buttonsEditor.Elementals.addButton({
       row: 1, col: 22,
       label: 'Cancel',
-      onActivate: () => { output.textContent = 'Cancel clicked!'; }
+      onActivate: () => { alert('Cancel clicked!'); }
     });
     buttonsEditor.Elementals.addButton({
       row: 3, col: 2,
       label: 'Delete',
-      onActivate: () => { output.textContent = 'Delete clicked!'; }
+      onActivate: () => { alert('Delete clicked!'); }
     });
     buttonsEditor.Elementals.enabled = true;
     buttonsEl.addEventListener('keydown', (e) => {
@@ -177,14 +165,14 @@ Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
       row: 1, col: 9,
       width: 20,
       placeholder: 'Enter name',
-      onSubmit: (el) => { output.textContent = 'Name submitted: ' + el.value; }
+      onSubmit: (el) => { alert('Name submitted: ' + el.value); }
     });
     inputsEditor.Elementals.addLabel({ row: 3, col: 2, text: 'Email:' });
     inputsEditor.Elementals.addInput({
       row: 3, col: 9,
       width: 25,
       placeholder: 'Enter email',
-      onSubmit: (el) => { output.textContent = 'Email submitted: ' + el.value; }
+      onSubmit: (el) => { alert('Email submitted: ' + el.value); }
     });
     inputsEditor.Elementals.enabled = true;
     inputsEl.addEventListener('keydown', (e) => {
@@ -211,14 +199,14 @@ Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
       row: 1, col: 10,
       width: 30,
       placeholder: 'Enter search term',
-      onSubmit: (el) => { output.textContent = 'Searching for: ' + el.value; }
+      onSubmit: (el) => { alert('Searching for: ' + el.value); }
     });
     mixedEditor.Elementals.addButton({
       row: 1, col: 42,
       label: 'Go',
       onActivate: () => {
         const input = mixedEditor.Elementals.elements.find(e => e.type === 'input');
-        output.textContent = 'Searching for: ' + (input ? input.value : '');
+        alert('Searching for: ' + (input ? input.value : ''));
       }
     });
 
@@ -226,17 +214,17 @@ Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
     mixedEditor.Elementals.addButton({
       row: 4, col: 12,
       label: 'Settings',
-      onActivate: () => { output.textContent = 'Settings opened'; }
+      onActivate: () => { alert('Settings opened'); }
     });
     mixedEditor.Elementals.addButton({
       row: 4, col: 26,
       label: 'Help',
-      onActivate: () => { output.textContent = 'Help opened'; }
+      onActivate: () => { alert('Help opened'); }
     });
     mixedEditor.Elementals.addButton({
       row: 4, col: 36,
       label: 'About',
-      onActivate: () => { output.textContent = 'About dialog'; }
+      onActivate: () => { alert('About dialog'); }
     });
 
     mixedEditor.Elementals.addButton({
@@ -244,7 +232,7 @@ Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
       label: 'Submit Form',
       onActivate: () => {
         const input = mixedEditor.Elementals.elements.find(e => e.type === 'input');
-        output.textContent = 'Form submitted with: ' + (input ? input.value : '');
+        alert('Form submitted with: ' + (input ? input.value : ''));
       }
     });
     mixedEditor.Elementals.addButton({
@@ -253,7 +241,7 @@ Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
       onActivate: () => {
         const input = mixedEditor.Elementals.elements.find(e => e.type === 'input');
         if (input) input.value = '';
-        output.textContent = 'Form reset';
+        alert('Form reset');
       }
     });
 

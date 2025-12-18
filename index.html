@@ -4,23 +4,13 @@
 <meta charset="UTF-8">
 <link rel="stylesheet" href="reset.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes/buffee.css">
+<link rel="stylesheet" href="themes/hn.css">
+<link rel="stylesheet" href="themes/kai.css">
 <script src="buffee.js"></script>
 <script src="extensions/highlights.js"></script>
 <script src="extensions/tui-legacy.js"></script>
 <style>
-  /* Colors - define per instance */
-  .wb {
-    background-color: #282C34;
-    color: #B2B2B2;
-    border: 1px solid black;
-  }
-  .wb .wb-selection {
-    background-color: #EDAD10;
-  }
-  .wb .wb-cursor {
-    background-color: #FF6B6B;
-  }
-
   /* Syntax highlighting colors */
   .wb .wb-lines pre .highlight-function {
     color: orange;
@@ -32,32 +22,6 @@
     color: green;
   }
 
-  /* HackerNews instance colors */
-  #hackernews.wb {
-    background-color: #F6F6EF;
-    color: black;
-  }
-  #hackernews.wb .wb-selection {
-    background-color: #DCDCDA;
-  }
-
-  /* Playground instance colors */
-  #playground.wb {
-    background-color: #201430;
-    color: #E1D6F8;
-  }
-  #playground.wb .wb-selection {
-    background-color: #F9AD40;
-  }
-
-  /* TUI demo instance colors */
-  #tui-demo.wb {
-    background-color: #1a1a2e;
-    color: #eaeaea;
-  }
-  #tui-demo.wb .wb-selection {
-    background-color: #9d4edd;
-  }
 </style>
 </head>
 
@@ -102,7 +66,7 @@
 
     <!-- Main Playground -->
     <section>
-      <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select" tabindex="0" id="playground">
+      <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select buffee-themepack1 buffee" tabindex="0" id="playground">
         <!-- Hidden clipboard bridge lives inside the editor so copy bubbles through it -->
         <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
           <div class="💪 wb-content">
@@ -166,7 +130,7 @@
         <input type="text" id="tui-content" value="Foobar" style="width: 120px;">
         <button id="tui-add-btn">Add Element</button>
       </div>
-      <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select" tabindex="0" id="tui-demo">
+      <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select buffee-themepack1 kai" tabindex="0" id="tui-demo">
         <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
         <div class="💪 wb-content">
           <div class="wb-gutter"></div>
@@ -189,7 +153,7 @@
     <section>
       <h3>HackerNews Front Page</h3>
       <p>Example of loading data from APIs.</p>
-    <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select" tabindex="0" id="hackernews">
+    <blockquote cite="" class="💪 🍜 🥷 🌕 🪜 wb no-select buffee-themepack1 hn" tabindex="0" id="hackernews">
       <!-- Hidden clipboard bridge lives inside the editor so copy bubbles through it -->
       <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
       <div class="💪 wb-content">
@@ -292,8 +256,8 @@
     // TUI Mode Demo
     const tuiDemoElement = document.getElementById('tui-demo');
     const tuiDemo = new Buffee(tuiDemoElement, {
-      colorPrimary: "#eaeaea",
-      colorSecondary: "#16213e",
+      colorPrimary: '#a6e22e',
+      colorSecondary: '#3e3d32',
       viewportRows: 15,
     });
     BuffeeTUI(tuiDemo);  // Initialize TUI extension

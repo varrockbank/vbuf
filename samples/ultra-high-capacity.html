@@ -8,6 +8,7 @@
   <script src="../extensions/ultrahighcapacity.js"></script>
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../themes/buffee.css">
   <style>
     fieldset { margin: 16px 0; padding: 12px; }
     .hidden { display: none; }
@@ -30,13 +31,6 @@
       margin: 0 0 -1px 0;
       border: 1px solid #ff6b35;
     }
-    #editor.wb {
-      background-color: #201430;
-      color: #E1D6F8;
-    }
-    #editor.wb .wb-selection {
-      background-color: #F9AD40;
-    }
   </style>
 </head>
 <body class="sample">
@@ -54,7 +48,7 @@
   <div id="read-only-indicator" class="read-only-indicator hidden">
     Read-Only Mode (Chunked+Compressed) - Navigation only, editing disabled
   </div>
-  <blockquote class="wb no-select" tabindex="0" id="editor" style="border: 1px solid #444; width: 100%;">
+  <blockquote class="wb no-select buffee-themepack1 buffee" tabindex="0" id="editor" style="border: 1px solid #444; width: 100%;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
@@ -146,8 +140,8 @@
     }
 
     const editor = new Buffee(editorEl, {
-      colorPrimary: "#E1D6F8",
-      colorSecondary: "#38274D",
+      colorPrimary: '#87FF5F',
+      colorSecondary: '#38274D',
       viewportRows: 15,
       logger: log
     });

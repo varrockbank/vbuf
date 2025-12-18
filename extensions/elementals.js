@@ -17,6 +17,7 @@ function BuffeeElementals(vbuf) {
   const { Viewport, lineHeight } = vbuf;
 
   let enabled = false;
+  let clickable = false;
   let elementIdCounter = 0;
   const elements = [];
   let focusedIndex = -1;
@@ -97,6 +98,13 @@ function BuffeeElementals(vbuf) {
     },
 
     /**
+     * Whether elements respond to mouse clicks.
+     * Must be set before adding elements. Default: false
+     */
+    get clickable() { return clickable; },
+    set clickable(value) { clickable = !!value; },
+
+    /**
      * Adds a button element.
      * @param {Object} opts - Button options
      * @param {number} opts.row - Absolute row position
@@ -112,7 +120,7 @@ function BuffeeElementals(vbuf) {
       const $button = document.createElement("span");
       $button.className = "wb-elemental-button";
       $button.textContent = label;
-      $button.style.cursor = 'pointer';
+      if (clickable) $button.style.cursor = 'pointer';
 
       $container.appendChild($button);
       $elementLayer.appendChild($container);
@@ -128,10 +136,12 @@ function BuffeeElementals(vbuf) {
       };
       elements.push(element);
 
-      // Click handler
-      $button.addEventListener('click', () => {
-        if (element.onActivate) element.onActivate(element);
-      });
+      // Click handler (only when clickable is enabled)
+      if (clickable) {
+        $button.addEventListener('click', () => {
+          if (element.onActivate) element.onActivate(element);
+        });
+      }
 
       updatePositions();
       return id;
