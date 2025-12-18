@@ -1,6 +1,6 @@
 /**
  * Buffee Editor - Required Styles
- * @version 7.6.0-alpha.1
+ * @version 7.6.6-alpha.1
  *
  * This stylesheet contains the essential structural CSS for Buffee.
  * Colors are intentionally omitted - define them at point of usage.
@@ -51,6 +51,7 @@
 .wb .wb-lines {
   overflow-x: hidden;
   background-color: transparent;
+  position: relative;
 }
 
 /* Line elements */
@@ -75,6 +76,9 @@
 /* Cursor overlay */
 .wb .wb-cursor {
   mix-blend-mode: exclusion;
+  width: 1ch;
+  position: absolute;
+  visibility: hidden;
 }
 
 /* Status bar */
@@ -86,3 +90,24 @@
 .wb .wb-status span {
   padding-right: 4px;
 }
+
+.wb .wb-gutter {
+  text-align: right;
+}
+
+.wb .wb-layer-text {
+  position: relative;
+  display: inline-block;
+  min-width: 100%;
+  padding-right: 2ch; /** config: right scroll buffer */
+}
+
+.wb .wb-layer-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Allow clicks to pass through to elements below*/
+}
+

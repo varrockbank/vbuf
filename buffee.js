@@ -20,7 +20,6 @@
  * @property {number} [editorPaddingPX=4] - Padding around the editor in pixels
  * @property {number} [gutterPadding=1] - Padding for the gutter in characters
  * @property {function(string): void} [logger=console] - Logger with log and warning methods
- * @property {string} [rightScrollBuffer='2ch'] - Extra space after line end for horizontal scrolling
  */
 
 /**
@@ -50,7 +49,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.6.5-alpha.1";
+  this.version = "7.6.6-alpha.1";
 
   // Extract configuration with defaults
   // Auto-fit viewport by default unless viewportRows is explicitly specified
@@ -73,7 +72,6 @@ function Buffee(node, config = {}) {
     editorPaddingPX = 4,
     gutterPadding = 1,
     logger = console,
-    rightScrollBuffer = '2ch',  // Extra space after line end for horizontal scrolling
     zIndexText = 200,
     zIndexCursor = 300,
     zIndexElements = 400
@@ -90,7 +88,6 @@ function Buffee(node, config = {}) {
   Object.assign($e.style, {
     lineHeight: lineHeight+'px',
     fontSize: lineHeight+'px',
-    position: 'relative',
     margin: editorPaddingPX+'px',
     tabSize: expandtab || 4
   });
@@ -99,11 +96,7 @@ function Buffee(node, config = {}) {
   const $textLayer = document.createElement("div");
   $textLayer.className = "wb-layer-text";
   Object.assign($textLayer.style, {
-    position: 'relative',
     zIndex: zIndexText,
-    display: 'inline-block',  // Width based on content, not container
-    minWidth: '100%',         // At least fill container
-    paddingRight: rightScrollBuffer  // Extra space to allow scrolling past end of line
   });
   $e.appendChild($textLayer);
 
@@ -111,13 +104,7 @@ function Buffee(node, config = {}) {
   const $elementLayer = document.createElement("div");
   $elementLayer.className = "wb-layer-elements";
   Object.assign($elementLayer.style, {
-    position: 'absolute',
-    top: '0',
-    left: '0',
-    width: '100%',
-    height: '100%',
     zIndex: zIndexElements,
-    pointerEvents: 'none'  // Allow clicks to pass through to elements below
   });
   $e.appendChild($elementLayer);
 
@@ -125,9 +112,6 @@ function Buffee(node, config = {}) {
   const $cursor = document.createElement("div");
   $cursor.className = "wb-cursor";
   Object.assign($cursor.style, {
-    position: 'absolute',
-    visibility: 'hidden',
-    width: '1ch',
     height: lineHeight+'px',
     fontSize: lineHeight+'px',
     zIndex: zIndexCursor
@@ -149,7 +133,6 @@ function Buffee(node, config = {}) {
   Object.assign($gutter.style, {
     fontSize: lineHeight+'px',
     lineHeight: lineHeight+'px',
-    textAlign: 'right',
     paddingTop: editorPaddingPX+'px',
     paddingRight: editorPaddingPX*2+'px',
     width: gutterSize+gutterPadding+'ch',
