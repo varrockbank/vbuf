@@ -229,6 +229,21 @@ left 5 times with shift
 expect(fixture.wb.Selection.isForwardSelection).toBe(false);
 EXPECT selection at 0,6-0,11
 
+## should show head position in status line during selection
+### Regression: Status line shows active cursor (head), not anchor (tail)
+TYPE "Hello World"
+left with meta
+right 5 times with shift
+// Forward selection: tail at col 0, head at col 5
+EXPECT selection at 0,0-0,5
+const $coord = fixture.node.querySelector('.wb-coordinate');
+expect($coord.innerHTML).toBe("Ln 1, Col 6");
+// Backward selection: tail at col 11, head at col 6
+right with meta
+left 5 times with shift
+EXPECT selection at 0,6-0,11
+expect($coord.innerHTML).toBe("Ln 1, Col 7");
+
 
 # Cursor movement - varying line lengths
 

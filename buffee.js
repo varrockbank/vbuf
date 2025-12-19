@@ -47,7 +47,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.7.4-alpha.1";
+  this.version = "7.7.5-alpha.1";
 
   // Extract configuration with defaults
   // Auto-fit viewport by default unless viewportRows is explicitly specified
@@ -1062,7 +1062,7 @@ function Buffee(node, config = {}) {
       for (const hook of renderHooks.onRenderComplete) {
         hook($e, Viewport);
       }
-      $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${tail.col + 1}`;
+      if ($statusLineCoord) $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${head.col + 1}`;
       return this;
     }
 
@@ -1165,7 +1165,7 @@ function Buffee(node, config = {}) {
       hook($e, Viewport);
     }
 
-    $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${tail.col + 1}`;
+    if ($statusLineCoord) $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${head.col + 1}`;
   
     return this;
   }
