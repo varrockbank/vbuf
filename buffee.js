@@ -8,7 +8,6 @@
  * @property {number} [lineHeight=24] - Height of each line in pixels
  * @property {number} [indentation=4] - Number of spaces per indentation level
  * @property {boolean} [showGutter=true] - Whether to show line numbers
- * @property {boolean} [showStatusLine=true] - Whether to show the status line
  * @property {number} [viewportCols] - Fixed number of text columns (auto-calculates container width including gutter)
  * @property {function(string): void} [logger=console] - Logger with log and warning methods
  */
@@ -39,15 +38,15 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.8.1-alpha.1";
+  this.version = "8.0.0-alpha.1";
 
+  // TODO: make everything mutable, and observed.
   // Extract configuration with defaults
   const {
     viewportRows,
     indentation: initialIndentation = 4,
     expandtab: initialExpandtab = 4,
     showGutter = true,
-    showStatusLine = true,
     viewportCols,
     logger,
   } = config;
@@ -72,12 +71,10 @@ function Buffee(node, config = {}) {
   const $status = node.querySelector('.wb-status');
   const $statusLineCoord = node.querySelector('.wb-coordinate');
   const $lineCounter = node.querySelector('.wb-linecount');
-  const $indentation = node.querySelector('.wb-indentation');
   const $clipboardBridge = node.querySelector('.wb-clipboard-bridge');
   const $gutter = node.querySelector('.wb-gutter');
 
   $e.style.tabSize = expandtab || 4;                                                                                                                                                                           
-  $status.style.display = showStatusLine ? '' : 'none';                                                                                                                                                        
   $gutter.style.display = showGutter ? '' : 'none';                                                                                                                                                            
   // Set container width if viewportCols specified
   if (viewportCols) {
@@ -960,7 +957,7 @@ function Buffee(node, config = {}) {
    * @returns {Buffee} The Buffee instance for chaining
    */
   function render(renderLineContainers = false) {
-    if (lastRender.lineCount !== Model.lastIndex + 1 ) {
+    if ($lineCounter && lastRender.lineCount !== Model.lastIndex + 1 ) {
       const lineCount = lastRender.lineCount = Model.lastIndex + 1;
       $lineCounter.textContent = `${lineCount.toLocaleString()}L, originally: ${Model.originalLineCount}L ${Model.byteCount} bytes`;
     }
@@ -1196,7 +1193,8 @@ function Buffee(node, config = {}) {
     get: () => indentation,
     set: (value) => {
       indentation = value;
-      $indentation.innerHTML = `Spaces: ${indentation}`;
+      const e = node.querySelector('.wb-indentation');
+      if (e) e.innerHTML = `Spaces: ${indentation}`;
     },
     enumerable: true
   });
@@ -1239,7 +1237,7 @@ function Buffee(node, config = {}) {
   // Auto-fit viewport to container height
   if (autoFitViewport) {
     const fitViewport = () => {
-      const statusHeight = showStatusLine && $status ? $status.offsetHeight : 0;
+      const statusHeight = $status ? $status.offsetHeight : 0;
       const availableHeight = node.clientHeight - statusHeight - (editorPaddingPX * 2);
       const exactLines = availableHeight / lineHeight;
       const newSize = Math.floor(exactLines);
