@@ -28,11 +28,6 @@ th, td { border: 1px solid #ccc; padding: 6px 12px; text-align: left; }
 th { background: #f4f4f4; }
 
 /************* "Atomic CSS" classes for Boxes *************/
-.💪 { display: flex }                                 /* Flex like muscles.   */
-.🥷 { overflow: hidden }
-.🪜 { flex-flow: column }
-.🌳 { flex: 1 }                                       /* Grow like a tree.    */
-.🦠 { justify-content: space-between }                /* Stay spread apart.   */
 .hidden {
   display: none;
 }
