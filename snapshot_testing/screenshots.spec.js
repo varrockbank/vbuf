@@ -1,10 +1,5 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const fs = require('fs');
-const path = require('path');
-
-// Directory to always save actual screenshots for manual comparison
-const actualsDir = path.join(__dirname, 'actuals');
 
 const pages = [
   // Root pages
@@ -41,13 +36,6 @@ const dynamicSelectors = [
   '#hackernews .wb-lines',  // Live HN content on index.html
 ];
 
-// Ensure actuals directory exists
-test.beforeAll(async () => {
-  if (!fs.existsSync(actualsDir)) {
-    fs.mkdirSync(actualsDir, { recursive: true });
-  }
-});
-
 for (const page of pages) {
   test(`screenshot: ${page.name}`, async ({ page: browserPage }) => {
     await browserPage.goto(page.path);
@@ -61,13 +49,6 @@ for (const page of pages) {
       const elements = await browserPage.locator(selector).all();
       mask.push(...elements);
     }
-
-    // Always save actual screenshot for manual comparison
-    await browserPage.screenshot({
-      path: path.join(actualsDir, `${page.name}.png`),
-      fullPage: true,
-      mask,
-    });
 
     await expect(browserPage).toHaveScreenshot(`${page.name}.png`, {
       fullPage: true,

@@ -67,8 +67,6 @@ jobs:
           path: |
             snapshot_testing/playwright-report/
             snapshot_testing/test-results/
-            snapshot_testing/baselines/
-            snapshot_testing/actuals/
           retention-days: 2
 
       - name: Update baselines
