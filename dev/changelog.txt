@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 7.7.5-alpha.1
+*** fix 
+- during selection, status bar showed column of selction tail, not cursor (selection head)
+
 ** 7.7.4-alpha.1
 *** refactor superfluous variable
 
