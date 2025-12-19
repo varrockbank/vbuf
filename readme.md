@@ -81,8 +81,7 @@ Editor instances bind to DOM node with this structure:
       <span class="wb-linecount"></span>
     </div>
     <div class="wb-status-right">
-      <span class="wb-coordinate"></span>
-      <span>|</span>
+      Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|
       <span class="wb-indentation"></span>
     </div>
   </div>

@@ -21,7 +21,7 @@ Layout the HTML for the editor.
   <div class="wb-status" style="display: flex; justify-content: space-between;">
     <div class="wb-status-left"><span class="wb-linecount"></span></div>
     <div class="wb-status-right">
-      <span class="wb-coordinate"></span>
+      Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
       <span>|</span>
       <span class="wb-indentation"></span>
     </div>

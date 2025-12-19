@@ -269,7 +269,7 @@ class Walkthrough {
           <span class="wb-linecount"></span>
         </div>
         <div class="wb-status-right" style="display: flex;">
-          <span class="wb-coordinate"></span>|
+          Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|
           <span class="wb-indentation"></span>
         </div>
       </div>
@@ -466,7 +466,7 @@ class Walkthrough {
           <span class="wb-linecount"></span>
         </div>
         <div class="wb-status-right" style="display: flex;">
-          <span class="wb-coordinate"></span>|
+          Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|
           <span class="wb-indentation"></span>
         </div>
       </div>
@@ -531,7 +531,7 @@ class Walkthrough {
           <span class="wb-linecount"></span>
         </div>
         <div class="wb-status-right" style="display: flex;">
-          <span class="wb-coordinate"></span>|
+          Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|
           <span class="wb-indentation"></span>
         </div>
       </div>
