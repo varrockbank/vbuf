@@ -7,8 +7,6 @@ const pages = [
   { name: 'getting-started', path: '/getting-started.html' },
   { name: 'extensions', path: '/extensions.html' },
   { name: 'themes', path: '/themes.html' },
-  { name: 'comparison', path: '/comparison.html' },
-  { name: 'performance', path: '/performance.html' },
 
   // Samples
   { name: 'samples-index', path: '/samples/' },
