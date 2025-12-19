@@ -121,7 +121,6 @@ const editor = new Buffee(document.getElementById('editor'), {
   // viewportCols: 80,  // Omit to fill parent, or specify for fixed width
   indentation: 4,
   showGutter: true,
-  showStatusLine: true,
 });
 ```
 
@@ -134,7 +133,6 @@ const editor = new Buffee(document.getElementById('editor'), {
 | `indentation` | number | `4` | Spaces for indent/unindent |
 | `expandtab` | number | `4` | Tab width (0 = hard tabs) |
 | `showGutter` | boolean | `true` | Show line numbers |
-| `showStatusLine` | boolean | `true` | Show status bar |
 | `logger` | function | `console.log` | Custom logger |
 
 ---
