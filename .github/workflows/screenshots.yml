@@ -51,6 +51,7 @@ jobs:
 
       - name: Install Playwright deps (cached)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: ./snapshot_testing
         run: npx playwright install-deps chromium
 
       - name: Run screenshot tests (verify against baselines)
