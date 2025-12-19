@@ -24,7 +24,8 @@
  * @param {HTMLElement} node - Container element with required child elements:
  *   - .wb-lines: Container for text lines
  *   - .wb-status: Status bar container
- *   - .wb-coordinate: Cursor position display
+ *   - .wb-head-row: Cursor row display
+ *   - .wb-head-col: Cursor column display
  *   - .wb-linecount: Line count display
  *   - .wb-indentation: Indentation display
  *   - .wb-clipboard-bridge: Hidden textarea for clipboard operations
@@ -38,7 +39,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "8.0.0-alpha.1";
+  this.version = "8.0.1-alpha.1";
 
   // TODO: make everything mutable, and observed.
   // Extract configuration with defaults
@@ -69,7 +70,8 @@ function Buffee(node, config = {}) {
   const $cursor = node.querySelector(".wb-cursor");
   const $textLayer = node.querySelector(".wb-layer-text");
   const $status = node.querySelector('.wb-status');
-  const $statusLineCoord = node.querySelector('.wb-coordinate');
+  const $headRow = node.querySelector('.wb-head-row');
+  const $headCol = node.querySelector('.wb-head-col');
   const $lineCounter = node.querySelector('.wb-linecount');
   const $clipboardBridge = node.querySelector('.wb-clipboard-bridge');
   const $gutter = node.querySelector('.wb-gutter');
@@ -1034,7 +1036,9 @@ function Buffee(node, config = {}) {
       for (const hook of renderHooks.onRenderComplete) {
         hook($e, Viewport);
       }
-      if ($statusLineCoord) $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${head.col + 1}`;
+      if ($headRow) $headRow.innerHTML = head.row + 1;
+      if ($headCol) $headCol.innerHTML = head.col + 1;
+
       return this;
     }
 
@@ -1137,8 +1141,9 @@ function Buffee(node, config = {}) {
       hook($e, Viewport);
     }
 
-    if ($statusLineCoord) $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${head.col + 1}`;
-  
+    if ($headRow) $headRow.innerHTML = head.row + 1;
+    if ($headCol) $headCol.innerHTML = head.col + 1;
+
     return this;
   }
 

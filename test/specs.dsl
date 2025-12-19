@@ -236,13 +236,16 @@ left with meta
 right 5 times with shift
 // Forward selection: tail at col 0, head at col 5
 EXPECT selection at 0,0-0,5
-const $coord = fixture.node.querySelector('.wb-coordinate');
-expect($coord.innerHTML).toBe("Ln 1, Col 6");
+const $row = fixture.node.querySelector('.wb-head-row');
+const $col = fixture.node.querySelector('.wb-head-col');
+expect($row.innerHTML).toBe("1");
+expect($col.innerHTML).toBe("6");
 // Backward selection: tail at col 11, head at col 6
 right with meta
 left 5 times with shift
 EXPECT selection at 0,6-0,11
-expect($coord.innerHTML).toBe("Ln 1, Col 7");
+expect($row.innerHTML).toBe("1");
+expect($col.innerHTML).toBe("7");
 
 
 # Cursor movement - varying line lengths
