@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 8.0.6-alpha.1 [2025-12-19]  gz+min: 4.55 KB (+0.02), min: 13.42 KB (+0.03)
+*** status line 
+- make spacing off elements more consistent 
+
 ** 8.0.5-alpha.1 [2025-12-19]  gz+min: 4.56 KB (+0.02), min: 13.49 KB (+0.03)
 *** feature
 - client can customize status line's coordinate with custom HTML for row/col to be slotted
