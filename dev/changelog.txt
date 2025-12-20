@@ -1,5 +1,8 @@
 * Project Devlog
 
+** 8.7.8-alpha.1 [2025-12-20]  gz+min: 4.41 KB (-0.00), min: 13.13 KB (-0.02)
+*** golf 
+
 ** 8.7.7-alpha.1 [2025-12-20]  gz+min: 4.42 KB (+0.00), min: 13.15 KB (-0.01)
 *** golf 
 - combine handling " " and other key inserts into one branch

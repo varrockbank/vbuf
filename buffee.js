@@ -39,7 +39,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(parentNode, config = {}) {
-  this.version = "8.7.7-alpha.1";
+  this.version = "8.7.8-alpha.1";
 
   // TODO: make everything mutable, and observed.
   // Extract configuration with defaults
@@ -162,8 +162,7 @@ function Buffee(parentNode, config = {}) {
      */
     moveCol(value) {
       if (value === 1) {
-        const lineLen = Model.lines[head.row].length;
-        if (head.col < lineLen) {                             // Move right 1 character (including to newline position).
+        if (head.col < Model.lines[head.row].length) {                             // Move right 1 character (including to newline position).
           maxCol = ++head.col;
         } else {
           if (head.row < Model.lastIndex) {                   // Move to beginning of next line.
@@ -309,7 +308,7 @@ function Buffee(parentNode, config = {}) {
     insert(s, skipRender = false) {
       s = expandTabs(s);
       if (this.isSelection) {
-        const [first, _] = this.ordered;
+        const [first] = this.ordered;
 
         // Get selected text before deleting
         const selectedText = this.lines.join('\n');
@@ -413,8 +412,7 @@ function Buffee(parentNode, config = {}) {
         } else if (isWord(s[j])) { // Case 2: at word-chars → consume word run to 1 past the word
           while (j > 0 && isWord(s[j])) j--;
         } else { // Case 3: at punctuation/symbols
-          const c = s[j];
-          j--;
+          const c = s[j--];
           // Consuming continuous sequence of the same char
           while( j > 0 && s[j] === c) j--;
         }
@@ -452,8 +450,7 @@ function Buffee(parentNode, config = {}) {
         } else if (isWord(s[j])) { // Case 2: at word-chars → consume word run to 1 past the word
           while (j < n && isWord(s[j])) j++;
         } else { // Case 3: at punctuation/symbols
-          const c = s[j];
-          j++;
+          const c = s[j++];
           // Consuming continuous sequence of the same char
           while( j < n && s[j] === c) j++;
         }
