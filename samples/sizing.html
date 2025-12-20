@@ -28,7 +28,7 @@
   <p>Editor CSS: <code>.wb { width: 100%; height: 100%; }</code></p>
   <p><code>new Buffee(el, {})</code></p>
   <p>Default behavior: auto-fit rows and cols to parent container. Drag bottom-right to resize.</p>
-  <div style="width: 960px; height: 300px; padding: 20px; border: 2px dashed #666; resize: both; ">
+  <div style="width: 960px; height: 300px; padding: 20px; border: 2px dashed #666; resize: both; overflow: hidden;">
     <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-auto-both" style="width: 100%; height: 100%;">
       <textarea class="wb-clipboard-bridge"></textarea>
       <div class="wb-content">
@@ -96,7 +96,7 @@
   <p>Parent CSS: <code>div { height: 300px;  }</code></p>
   <p>Editor CSS: <code>.wb { height: 100%; }</code></p>
   <p><code>new Buffee(el, { viewportCols: 40 })</code></p>
-  <div style="height: 300px; border: 2px dashed #666; padding: 20px; resize: vertical; ">
+  <div style="height: 300px; border: 2px dashed #666; padding: 20px; resize: vertical; overflow: hidden;">
     <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-auto-rows-fixed-cols" style="height: 100%;">
       <textarea class="wb-clipboard-bridge"></textarea>
       <div class="wb-content">
@@ -118,7 +118,7 @@
   <p>Parent CSS: <code>div { width: 640px; padding: 20px;  }</code></p>
   <p>Editor CSS: <code>.wb { width: 100%; }</code></p>
   <p><code>new Buffee(el, { viewportRows: 8 })</code></p>
-  <div style="width: 640px; border: 2px dashed #666; padding: 20px; resize: horizontal; ">
+  <div style="width: 640px; border: 2px dashed #666; padding: 20px; resize: horizontal; overflow: hidden;">
     <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-fixed-rows-auto-cols" style="width: 100%;">
       <textarea class="wb-clipboard-bridge"></textarea>
       <div class="wb-content">
