@@ -8,11 +8,11 @@ function BuffeeStatusLine(node) {
   const $headCol = node.querySelector('.wb-head-col');
   const $lineCounter = node.querySelector('.wb-linecount');
 
-  return {
-    _headRow: $headRow ? (frame => $headRow.innerHTML = frame.row + 1) : null,
-    _headCol: $headCol ? (frame => $headCol.innerHTML = frame.col + 1) : null,
-    _lc: $lineCounter ? ((frame, buffee) => {
-      $lineCounter.textContent = `${frame.lineCount.toLocaleString()}L, originally: ${buffee.Model.originalLineCount}L ${buffee.Model.byteCount} bytes`;
-    }) : null
+  const callbacks = {};
+  if ($headRow) callbacks.row = frame => $headRow.innerHTML = frame.row + 1;
+  if ($headCol) callbacks.col = frame => $headCol.innerHTML = frame.col + 1;
+  if ($lineCounter) callbacks.lineCount = (frame, buffee) => {
+    $lineCounter.textContent = `${frame.lineCount.toLocaleString()}L, originally: ${buffee.Model.originalLineCount}L ${buffee.Model.byteCount} bytes`;
   };
+  return callbacks;
 }
