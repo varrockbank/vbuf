@@ -6,7 +6,7 @@
 
 ** 8.8.0-alpha.1 [2025-12-20]  gz+min: 4.37 KB (-0.04), min: 13.07 KB (-0.06)
 *** refactor
-- expose Mode object. Call indentation render callback.
+- expose Mode object
 
 ** 8.7.8-alpha.1 [2025-12-20]  gz+min: 4.41 KB (-0.00), min: 13.13 KB (-0.02)
 *** golf
