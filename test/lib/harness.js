@@ -56,7 +56,7 @@ function createEditorNode() {
       <div class="wb-status-left" style="display: flex;">
         <span class="wb-linecount"></span>
       </div>
-      <div class="wb-status-right" style="display: flex;">
+      <div class="wb-status-right">
         Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|
         <span class="wb-indentation"></span>
       </div>
@@ -77,7 +77,7 @@ function createEditorNode() {
 class EditorTestHarness {
   constructor(node, size = 10) {
     this.node = node;
-    this.wb = new Buffee(node, { viewportRows: size });
+    this.wb = new Buffee(node, { viewportRows: size, callbacks: BuffeeStatusLine(node) });
     this.walkthrough = new Walkthrough();
 
     // Store reference for test framework
