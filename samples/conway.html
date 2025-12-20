@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>buffee - Conway's Game of Life</title>
   <script src="../buffee.js"></script>
+  <script src="../extensions/callbacks.js"></script>
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../themes/chelsey.css">
@@ -36,10 +37,11 @@
       <div class="wb-gutter"></div>
       <div class="wb-lines"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; background: #f0f0f0;">
+    <div class="wb-status" style="display: none;">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
-        <span class="wb-coordinate"></span>|
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
         
         <span class="wb-indentation"></span>
       </div>
@@ -50,8 +52,8 @@
     const editorEl = document.getElementById('editor');
     const editor = new Buffee(editorEl, {
       viewportRows: 30,
-      showStatusLine: false,
-      showGutter: false
+      showGutter: false,
+      callbacks: BuffeeStatusLine(editorEl)
     });
 
     const CONWAY_COLS = 80;

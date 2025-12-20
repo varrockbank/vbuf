@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>buffee - Read-Only Mode</title>
   <script src="../buffee.js"></script>
+  <script src="../extensions/callbacks.js"></script>
   <script src="../extensions/highlights.js"></script>
   <script src="../extensions/tui-legacy.js"></script>
   <script src="../extensions/ultrahighcapacity.js"></script>
@@ -37,9 +38,9 @@ TUI.enabled = true</pre>
       </div>
       <div class="wb-status" style="display: flex; justify-content: space-between; ">
         <div><span class="wb-linecount"></span></div>
-        <div style="display: flex;">
-          <span class="wb-coordinate"></span>|
-          
+        <div class="wb-status-right">
+          Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
           <span class="wb-indentation"></span>
         </div>
       </div>
@@ -62,9 +63,9 @@ await editor.UltraHighCapacity.appendLines([...])</pre>
       </div>
       <div class="wb-status" style="display: flex; justify-content: space-between; ">
         <div><span class="wb-linecount"></span></div>
-        <div style="display: flex;">
-          <span class="wb-coordinate"></span>|
-          
+        <div class="wb-status-right">
+          Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
           <span class="wb-indentation"></span>
         </div>
       </div>
@@ -84,14 +85,18 @@ function example() {
 example();`;
 
     // Option 1: TUI mode
-    const edTui = new Buffee(document.getElementById('editor-tui'), {
+    const elTui = document.getElementById('editor-tui');
+    const edTui = new Buffee(elTui, {
+      callbacks: BuffeeStatusLine(elTui)
     });
     BuffeeTUI(edTui);
     edTui.Model.text = content;
     edTui.TUI.enabled = true;
 
     // Option 2: Ultra High Capacity mode (for large files)
-    const edChunked = new Buffee(document.getElementById('editor-chunked'), {
+    const elChunked = document.getElementById('editor-chunked');
+    const edChunked = new Buffee(elChunked, {
+      callbacks: BuffeeStatusLine(elChunked)
     });
     BuffeeUltraHighCapacity(edChunked);
     edChunked.UltraHighCapacity.activate();

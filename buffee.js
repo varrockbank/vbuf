@@ -8,7 +8,6 @@
  * @property {number} [lineHeight=24] - Height of each line in pixels
  * @property {number} [indentation=4] - Number of spaces per indentation level
  * @property {boolean} [showGutter=true] - Whether to show line numbers
- * @property {boolean} [showStatusLine=true] - Whether to show the status line
  * @property {number} [viewportCols] - Fixed number of text columns (auto-calculates container width including gutter)
  * @property {function(string): void} [logger=console] - Logger with log and warning methods
  */
@@ -25,7 +24,8 @@
  * @param {HTMLElement} node - Container element with required child elements:
  *   - .wb-lines: Container for text lines
  *   - .wb-status: Status bar container
- *   - .wb-coordinate: Cursor position display
+ *   - .wb-head-row: Cursor row display
+ *   - .wb-head-col: Cursor column display
  *   - .wb-linecount: Line count display
  *   - .wb-indentation: Indentation display
  *   - .wb-clipboard-bridge: Hidden textarea for clipboard operations
@@ -39,18 +39,22 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.8.1-alpha.1";
+  this.version = "8.0.5-alpha.1";
 
+  // TODO: make everything mutable, and observed.
   // Extract configuration with defaults
   const {
     viewportRows,
     indentation: initialIndentation = 4,
     expandtab: initialExpandtab = 4,
     showGutter = true,
-    showStatusLine = true,
     viewportCols,
     logger,
+    callbacks
   } = config;
+
+  const self = this;
+  const frameCallbacks = callbacks || {};
 
   const autoFitViewport = !viewportRows;
 
@@ -70,14 +74,10 @@ function Buffee(node, config = {}) {
   const $cursor = node.querySelector(".wb-cursor");
   const $textLayer = node.querySelector(".wb-layer-text");
   const $status = node.querySelector('.wb-status');
-  const $statusLineCoord = node.querySelector('.wb-coordinate');
-  const $lineCounter = node.querySelector('.wb-linecount');
-  const $indentation = node.querySelector('.wb-indentation');
   const $clipboardBridge = node.querySelector('.wb-clipboard-bridge');
   const $gutter = node.querySelector('.wb-gutter');
 
   $e.style.tabSize = expandtab || 4;                                                                                                                                                                           
-  $status.style.display = showStatusLine ? '' : 'none';                                                                                                                                                        
   $gutter.style.display = showGutter ? '' : 'none';                                                                                                                                                            
   // Set container width if viewportCols specified
   if (viewportCols) {
@@ -926,11 +926,10 @@ function Buffee(node, config = {}) {
       return Model.lines.slice(this.start, this.end + 1);
     },
   };
-
-  /** @private Tracks last render state for optimization */
-  const lastRender = {
-    lineCount: -1
-  };
+  
+  /** @private Double-buffer for render state diffing */
+  let frame = { lineCount: 0, row: 0, col: 0, frameCount: 0 };
+  let lastFrame = { lineCount: -1, row: -1, col: -1, frameCount: -1 };
 
   /**
    * Creates and appends selection overlay elements for viewport rows [fromIndex, toIndex).
@@ -960,10 +959,19 @@ function Buffee(node, config = {}) {
    * @returns {Buffee} The Buffee instance for chaining
    */
   function render(renderLineContainers = false) {
-    if (lastRender.lineCount !== Model.lastIndex + 1 ) {
-      const lineCount = lastRender.lineCount = Model.lastIndex + 1;
-      $lineCounter.textContent = `${lineCount.toLocaleString()}L, originally: ${Model.originalLineCount}L ${Model.byteCount} bytes`;
+    frame.lineCount = Model.lastIndex + 1;
+    frame.row = head.row;
+    frame.col = head.col;
+    frame.frameCount = lastFrame.frameCount + 1;
+    // TODO: consider caching Object.entries once.
+    for (const [key, callback] of Object.entries(frameCallbacks)) {
+      if (frame[key] !== lastFrame[key]) {
+        callback(frame, self);
+      }
     }
+    const temp = lastFrame;
+    lastFrame = frame;
+    frame = temp;
 
     // Use total line count so gutter doesn't resize while scrolling
     // Minimum of 2 digits to avoid resize jitter for small documents (1-99 lines)
@@ -1037,7 +1045,7 @@ function Buffee(node, config = {}) {
       for (const hook of renderHooks.onRenderComplete) {
         hook($e, Viewport);
       }
-      if ($statusLineCoord) $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${head.col + 1}`;
+
       return this;
     }
 
@@ -1140,8 +1148,6 @@ function Buffee(node, config = {}) {
       hook($e, Viewport);
     }
 
-    if ($statusLineCoord) $statusLineCoord.innerHTML = `Ln ${head.row + 1}, Col ${head.col + 1}`;
-  
     return this;
   }
 
@@ -1196,7 +1202,8 @@ function Buffee(node, config = {}) {
     get: () => indentation,
     set: (value) => {
       indentation = value;
-      $indentation.innerHTML = `Spaces: ${indentation}`;
+      const e = node.querySelector('.wb-indentation');
+      if (e) e.innerHTML = `Spaces: ${indentation}`;
     },
     enumerable: true
   });
@@ -1239,7 +1246,7 @@ function Buffee(node, config = {}) {
   // Auto-fit viewport to container height
   if (autoFitViewport) {
     const fitViewport = () => {
-      const statusHeight = showStatusLine && $status ? $status.offsetHeight : 0;
+      const statusHeight = $status ? $status.offsetHeight : 0;
       const availableHeight = node.clientHeight - statusHeight - (editorPaddingPX * 2);
       const exactLines = availableHeight / lineHeight;
       const newSize = Math.floor(exactLines);

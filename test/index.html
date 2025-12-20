@@ -255,7 +255,7 @@
                             <span class="wb-linecount"></span>
                         </div>
                         <div class="wb-status-right" style="display: flex;">
-                            <span class="wb-coordinate"></span>|
+                            Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|
                             
                             <span class="wb-indentation"></span>
                         </div>
@@ -303,7 +303,7 @@
                         </div>
                         <div class="wb-status" style="display: none;">
                             <div><span class="wb-linecount"></span></div>
-                            <div><span class="wb-coordinate"></span>|<span class="wb-indentation"></span></div>
+                            <div>Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|<span class="wb-indentation"></span></div>
                         </div>
                     </blockquote>
                 </div>
@@ -322,10 +322,6 @@
                         <div class="wb-content">
                             <div class="wb-gutter"></div>
                             <div class="wb-lines"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
-                        </div>
-                        <div class="wb-status" style="display: none;">
-                            <div><span class="wb-linecount"></span></div>
-                            <div><span class="wb-coordinate"></span>|<span class="wb-indentation"></span></div>
                         </div>
                     </blockquote>
                 </div>
@@ -415,7 +411,7 @@ expect(3+5).toBe(8);               <span class="g-arr">→</span>  expect(3+5).t
                         </div>
                         <div class="wb-status" style="display: none;">
                             <div><span class="wb-linecount"></span></div>
-                            <div><span class="wb-coordinate"></span>|<span class="wb-indentation"></span></div>
+                            <div>Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|<span class="wb-indentation"></span></div>
                         </div>
                     </blockquote>
                 </div>
@@ -433,6 +429,7 @@ expect(3+5).toBe(8);               <span class="g-arr">→</span>  expect(3+5).t
 
     <!-- Test dependencies -->
     <script src="../buffee.js"></script>
+    <script src="../extensions/callbacks.js"></script>
     <script src="../extensions/syntax.js"></script>
     <script src="../extensions/elementals.js"></script>
     <script src="../extensions/highlights.js"></script>
@@ -645,7 +642,6 @@ expect(3+5).toBe(8);               <span class="g-arr">→</span>  expect(3+5).t
             const dslEditorEl = document.getElementById('dsl-editor');
             dslEditor = new Buffee(dslEditorEl, {
                 showGutter: true,
-                showStatusLine: false,
                 viewportRows: 20
             });
 
@@ -653,7 +649,6 @@ expect(3+5).toBe(8);               <span class="g-arr">→</span>  expect(3+5).t
             const jsOutputEl = document.getElementById('js-output');
             jsOutputEditor = new Buffee(jsOutputEl, {
                 showGutter: true,
-                showStatusLine: false,
                 viewportRows: 20
             });
             jsOutputEditor.editMode = 'navigate';
@@ -1251,7 +1246,7 @@ expect(3+5).toBe(8);               <span class="g-arr">→</span>  expect(3+5).t
                     <div class="wb-status" style="display: flex; justify-content: space-between;">
                         <div class="wb-status-left"><span class="wb-linecount"></span></div>
                         <div class="wb-status-right">
-                            <span class="wb-coordinate"></span>|
+                            Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|
                             
                             <span class="wb-indentation"></span>
                         </div>

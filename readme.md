@@ -74,15 +74,18 @@ Editor instances bind to DOM node with this structure:
   <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
   <div class="wb-content">
     <div class="wb-gutter"></div>
-    <div class="wb-lines"></div>
+    <div class="wb-lines">
+      <div class="wb-layer-text"></div>
+      <div class="wb-layer-elements"></div>
+      <div class="wb-cursor"></div>
+    </div>
   </div>
   <div class="wb-status">
     <div class="wb-status-left">
       <span class="wb-linecount"></span>
     </div>
     <div class="wb-status-right">
-      <span class="wb-coordinate"></span>
-      <span>|</span>
+      Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>|
       <span class="wb-indentation"></span>
     </div>
   </div>

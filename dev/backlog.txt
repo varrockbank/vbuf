@@ -5,7 +5,6 @@ Website
 17. wrappers in React, etc.
 
 Refactor
-19. make buffee smart about status-line. if html present, render, no otherwise
 20. make buffee smart about gutter if html present, render, no otherwise
 
 Extensions 

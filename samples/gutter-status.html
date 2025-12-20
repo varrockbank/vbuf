@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>buffee - Gutter and Status Bar</title>
   <script src="../buffee.js"></script>
+  <script src="../extensions/callbacks.js"></script>
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../themes/boring.css">
@@ -18,10 +19,10 @@
   <p><a href="../index.html">home</a> / <a href="index.html">samples</a> / Gutter and Status Bar</p>
 
   <h1>Gutter and Status Bar</h1>
-  <p>Control visibility via constructor options: <code>showGutter</code> and <code>showStatusLine</code></p>
+  <p>Gutter visibility: <code>showGutter</code> option. Status bar visibility: omit element or use <code>display: none</code></p>
 
   <h2>Default (gutter + status bar)</h2>
-  <p><code>new Buffee(el, { showGutter: true, showStatusLine: true })</code></p>
+  <p><code>new Buffee(el, { showGutter: true })</code></p>
   <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-default" style="border: 1px solid #444; width: 500px;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
@@ -30,9 +31,9 @@
     </div>
     <div class="wb-status" style="display: flex; justify-content: space-between; ">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
-        <span class="wb-coordinate"></span>|
-        
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
@@ -48,45 +49,45 @@
     </div>
     <div class="wb-status" style="display: flex; justify-content: space-between; ">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
-        <span class="wb-coordinate"></span>|
-        
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
   </blockquote>
 
   <h2>No status bar</h2>
-  <p><code>new Buffee(el, { showStatusLine: false })</code></p>
+  <p>CSS: <code>.wb-status { display: none; }</code></p>
   <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-no-status" style="border: 1px solid #444; width: 500px;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
       <div class="wb-lines"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; ">
+    <div class="wb-status" style="display: none;">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
-        <span class="wb-coordinate"></span>|
-        
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
   </blockquote>
 
   <h2>Minimal (no gutter, no status bar)</h2>
-  <p><code>new Buffee(el, { showGutter: false, showStatusLine: false })</code></p>
+  <p><code>new Buffee(el, { showGutter: false })</code> + CSS: <code>.wb-status { display: none; }</code></p>
   <blockquote class="wb no-select buffee-themepack1 boring" tabindex="0" id="editor-minimal" style="border: 1px solid #444; width: 500px;">
     <textarea class="wb-clipboard-bridge"></textarea>
     <div class="wb-content">
       <div class="wb-gutter"></div>
       <div class="wb-lines"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
     </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between; ">
+    <div class="wb-status" style="display: none;">
       <div><span class="wb-linecount"></span></div>
-      <div style="display: flex;">
-        <span class="wb-coordinate"></span>|
-        
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
@@ -100,34 +101,38 @@
 hello();`;
 
     // Default
-    const edDefault = new Buffee(document.getElementById('editor-default'), {
+    const elDefault = document.getElementById('editor-default');
+    const edDefault = new Buffee(elDefault, {
       viewportRows: 6,
       showGutter: true,
-      showStatusLine: true,
+      callbacks: BuffeeStatusLine(elDefault)
     });
     edDefault.Model.text = content;
 
     // No gutter
-    const edNoGutter = new Buffee(document.getElementById('editor-no-gutter'), {
+    const elNoGutter = document.getElementById('editor-no-gutter');
+    const edNoGutter = new Buffee(elNoGutter, {
       viewportRows: 6,
       showGutter: false,
-      showStatusLine: true,
+      callbacks: BuffeeStatusLine(elNoGutter)
     });
     edNoGutter.Model.text = content;
 
     // No status bar
-    const edNoStatus = new Buffee(document.getElementById('editor-no-status'), {
+    const elNoStatus = document.getElementById('editor-no-status');
+    const edNoStatus = new Buffee(elNoStatus, {
       viewportRows: 6,
       showGutter: true,
-      showStatusLine: false,
+      callbacks: BuffeeStatusLine(elNoStatus)
     });
     edNoStatus.Model.text = content;
 
     // Minimal
-    const edMinimal = new Buffee(document.getElementById('editor-minimal'), {
+    const elMinimal = document.getElementById('editor-minimal');
+    const edMinimal = new Buffee(elMinimal, {
       viewportRows: 6,
       showGutter: false,
-      showStatusLine: false,
+      callbacks: BuffeeStatusLine(elMinimal)
     });
     edMinimal.Model.text = content;
   </script>

@@ -4,6 +4,12 @@
 
 See `template.html` for the required HTML structure. Missing any element will cause `Cannot set properties of null` errors.
 
+**When updating `template.html`, also update:**
+- `getting-started.html` (HTML-escaped version in `<pre>`)
+- `test/lib/harness.js` (createEditorNode function)
+- `index.html` (all editor instances)
+- `samples/*.html` (all sample files)
+
 ## Cursor Model (Vim-style)
 
 - **Cursor sits ON a character**, not between characters
