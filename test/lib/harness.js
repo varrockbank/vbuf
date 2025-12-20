@@ -45,20 +45,20 @@ const VALID_KEYS = new Set(Object.values(Key));
 function createEditorNode() {
   const container = document.querySelector('.editor-container');
   const node = document.createElement('div');
-  node.className = 'wb no-select';
+  node.className = 'wb';
   node.innerHTML = `
-    <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-    <div class="wb-content">
-      <div class="wb-gutter"></div>
-      <div class="wb-lines"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
-    </div>
-    <div class="wb-status" style="display: flex; justify-content: space-between;">
-      <div class="wb-status-left" style="display: flex;">
-        <span class="wb-linecount"></span>
+    <blockquote class="no-select" tabindex="0">
+      <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
+      <div class="wb-content">
+        <div class="wb-gutter"></div>
+        <div class="wb-lines"><div class="wb-layer-text"></div><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
       </div>
+    </blockquote>
+    <div class="wb-status">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
       <div class="wb-status-right">
         Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
-      <span class="wb-status-divider">|</span>
+        <span class="wb-status-divider">|</span>
         <span class="wb-indentation"></span>
       </div>
     </div>
@@ -78,6 +78,7 @@ function createEditorNode() {
 class EditorTestHarness {
   constructor(node, size = 10) {
     this.node = node;
+    this.blockquote = node.querySelector('blockquote') || node;  // Event target
     this.wb = new Buffee(node, { viewportRows: size, callbacks: BuffeeStatusLine(node) });
     this.walkthrough = new Walkthrough();
 
@@ -103,7 +104,7 @@ class EditorTestHarness {
       throw new Error(`Invalid key: '${key}'. Use type() for typing text or use a Key constant.`);
     }
 
-    const node = this.node;
+    const blockquote = this.blockquote;
     const fixture = this;
     const builder = {
       _key: key,
@@ -133,7 +134,7 @@ class EditorTestHarness {
           modifiers: { ...this._modifiers },
           count: 1
         });
-        dispatchKey(node, this._key, this._modifiers);
+        dispatchKey(blockquote, this._key, this._modifiers);
         return this;
       },
 
@@ -147,7 +148,7 @@ class EditorTestHarness {
           count: count
         });
         for (let i = 0; i < count; i++) {
-          dispatchKey(node, this._key, this._modifiers);
+          dispatchKey(blockquote, this._key, this._modifiers);
         }
         return this;
       }
@@ -170,7 +171,7 @@ class EditorTestHarness {
       text: text
     });
     for (const char of text) {
-      dispatchKey(this.node, char);
+      dispatchKey(this.blockquote, char);
     }
   }
 }
