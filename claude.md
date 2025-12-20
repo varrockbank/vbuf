@@ -2,7 +2,7 @@
 
 ## Required HTML Structure
 
-See `getting-started.html` for the required HTML structure. Missing any element will cause `Cannot set properties of null` errors.
+See `template.html` for the required HTML structure. Missing any element will cause `Cannot set properties of null` errors.
 
 ## Cursor Model (Vim-style)
 

@@ -10,53 +10,11 @@ Include the JavaScript function `Buffee`
 
 ## Required HTML Structure
 
-Layout the HTML for the editor. 
-```html
-<blockquote class="wb no-select" tabindex="0" id="editor">
-  <textarea class="wb-clipboard-bridge" aria-hidden="true"></textarea>
-  <div style="display: flex;">
-    <div class="wb-gutter"></div>
-    <div class="wb-lines"></div>
-  </div>
-  <div class="wb-status" style="display: flex; justify-content: space-between;">
-    <div class="wb-status-left"><span class="wb-linecount"></span></div>
-    <div class="wb-status-right">
-      <span class="wb-coordinate"></span>
-      <span>|</span>
-      <span class="wb-indentation"></span>
-    </div>
-  </div>
-</blockquote>
-```
+See `template.html`
 
 ## Include the referenced CSSS
 
-```css
-.wb {
-  background-color: #282C34;
-  color: #B2B2B2;
-  position: relative;
-  outline: none;
-  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-}
-.no-select { user-select: none; }
-.wb-clipboard-bridge {
-  position: fixed; left: 0; top: 1px;
-  width: 0; height: 1px; opacity: 0; pointer-events: none;
-}
-.wb .wb-lines pre::before { content: "\200B"; }
-.wb .wb-lines pre { margin: 0; overflow: hidden; }
-.wb .wb-selection {
-  background-color: #EDAD10;
-  position: absolute;
-  mix-blend-mode: difference;
-}
-.wb .wb-cursor {
-  background-color: #FF6B6B;
-  mix-blend-mode: difference;
-}
-.wb .wb-status span { padding-right: 4px; }
-```
+See `style.css`
 
 ## Sizing the Editor
 
