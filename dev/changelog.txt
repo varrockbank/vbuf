@@ -1,6 +1,24 @@
 * Project Devlog
 
-** 8.7.3-alpha.1 [2025-12-20] 
+** 8.7.8-alpha.1 [2025-12-20]  gz+min: 4.41 KB (-0.00), min: 13.13 KB (-0.02)
+*** golf 
+
+** 8.7.7-alpha.1 [2025-12-20]  gz+min: 4.42 KB (+0.00), min: 13.15 KB (-0.01)
+*** golf 
+- combine handling " " and other key inserts into one branch
+
+** 8.7.6-alpha.1 [2025-12-20]  gz+min: 4.44 KB (+0.03), min: 13.25 KB (+0.08)
+*** perf 
+- cache indentation string
+
+** 8.7.5-alpha.1 [2025-12-20]  gz+min: 4.41 KB (-0.00), min: 13.17 KB (-0.00)
+*** golf
+- #addSelections method
+
+** 8.7.4-alpha.1 [2025-12-20]  gz+min: 4.41 KB (-0.00), min: 13.17 KB (-0.01)
+*** golf 
+
+** 8.7.3-alpha.1 [2025-12-20]  gz+min: 4.42 KB (-0.00), min: 13.18 KB (-0.04)
 *** golf 
 
 ** 8.7.2-alpha.1 [2025-12-20]  gz+min: 4.44 KB (+0.00), min: 13.23 KB (-0.05)
