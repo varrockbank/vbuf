@@ -11,6 +11,18 @@
 <script src="extensions/callbacks.js"></script>
 <script src="extensions/highlights.js"></script>
 <script src="extensions/tui-legacy.js"></script>
+<style>
+  .point {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 32px;
+    padding: 12px 0;
+  }
+  .point > div > h3 {
+    font-size: 32px; margin: 0 0 8px 0; font-weight: 700;
+  }
+  .point > div > p {
+    margin: 0; font-size: 14px;
+  }
+</style>
 </head>
 
 <body>
@@ -22,33 +34,30 @@
   </script>
   <p><strong>Buffee, the text slayer</strong> <span id="vbuf-version"></span> — embeddable terminal-style text editor for netizens — compact, fast, unbounded</p>
 
-  <!-- Features Section -->
-  <div style="padding: 12px 0;">
-    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 32px;">
-      <div style="text-align: left;">
-        <h3 style="font-size: 32px; margin: 0 0 8px 0; font-weight: 700;">0.01MB</h3>
-        <p style="margin: 0; font-size: 14px;"><a href="dist/Buffee.min.js">distributable</a> (gz+min)</p>
-      </div>
-      <div style="text-align: left;">
-        <h3 style="font-size: 32px; margin: 0 0 8px 0; font-weight: 700;">0</h3>
-        <p style="margin: 0; font-size: 14px;">Dependencies</p>
-      </div>
-      <div style="text-align: left;">
-        <h3 style="font-size: 32px; margin: 0 0 8px 0; font-weight: 700;">0ms</h3>
-        <p style="margin: 0; font-size: 14px;">Build time</p>
-      </div>
-      <div style="text-align: left;">
-        <h3 style="font-size: 32px; margin: 0 0 8px 0; font-weight: 700;">0ms</h3>
-        <p style="margin: 0; font-size: 14px;">VDOM overhead</p>
-      </div>
-      <div style="text-align: left;">
-        <h3 style="font-size: 32px; margin: 0 0 8px 0; font-weight: 700;">~70m</h3>
-        <p style="margin: 0; font-size: 14px;">LOC capacity</p>
-      </div>
-      <div style="text-align: left;">
-        <h3 style="font-size: 32px; margin: 0 0 8px 0; font-weight: 700;">1B+</h3>
-        <p style="margin: 0; font-size: 14px;">in <a href="samples/ultra-high-capacity.html">pro max mode</a></p>
-      </div>
+  <div class="point">
+    <div>
+      <h3>0.01MB</h3>
+      <p><a href="dist/Buffee.min.js">distributable</a> (gz+min)</p>
+    </div>
+    <div>
+      <h3>0</h3>
+      <p>Dependencies</p>
+    </div>
+    <div>
+      <h3>0ms</h3>
+      <p>Build time</p>
+    </div>
+    <div>
+      <h3>0ms</h3>
+      <p>VDOM overhead</p>
+    </div>
+    <div>
+      <h3>~70m</h3>
+      <p>LOC capacity</p>
+    </div>
+    <div>
+      <h3>1B+</h3>
+      <p>in <a href="samples/ultra-high-capacity.html">pro max mode</a></p>
     </div>
   </div>
 
