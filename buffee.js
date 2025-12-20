@@ -39,7 +39,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(parentNode, config = {}) {
-  this.version = "8.7.1-alpha.1";
+  this.version = "8.7.2-alpha.1";
 
   // TODO: make everything mutable, and observed.
   // Extract configuration with defaults
@@ -294,15 +294,7 @@ function Buffee(parentNode, config = {}) {
      * If already at first non-space, moves to column 0.
      */
     moveCursorStartOfLine() {
-      let col = 0;
-      const line = Model.lines[head.row];
-      for(let i = 0; i < line.length; i++) {
-        if(line.charAt(i) !== ' ') {
-          col = i;
-          break;
-        }
-      }
-      maxCol = head.col = col < tail.col ? col : 0
+      maxCol = head.col = (c => c > 0 && c < tail.col ? c : 0)(Model.lines[head.row].search(/[^ ]/));
       render(true);
     },
 
