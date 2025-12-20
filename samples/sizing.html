@@ -124,6 +124,67 @@
     </div>
   </div>
 
+  <h2>6. Auto-rows, fixed-cols (editor doesn't span full width of container, status line does)</h2>
+  <p><code>.wb { height: 300px; padding: 20px; }</code></p>
+  <p><code>new Buffee(el, { viewportCols: 55 })</code></p>
+  <p>Fixed 40 columns, rows auto-calculated from height. Note: status bar stretches to container width while content is narrower.</p>
+  <div class="wb buffee-themepack1 boring" id="editor-auto-rows-fixed-cols" style="height: 300px; padding: 20px; border: 2px dashed #666;">
+    <textarea class="wb-clipboard-bridge"></textarea>
+    <div class="no-select wb-elements">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" tabindex="0"><blockquote class="wb-layer-text"></blockquote><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
+    </div>
+    <div class="wb-status">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
+        <span class="wb-indentation"></span>
+      </div>
+    </div>
+  </div>
+
+  <h2>7. Auto-rows, fixed-cols (get container to shrink status line)</h2>
+  <p><code>.wb { height: 300px; padding: 20px; width: fit-content; }</code></p>
+  <p><code>new Buffee(el, { viewportCols: 55 })</code></p>
+  <p>Same as example 6, but with <code>width: fit-content</code> so the container shrinks to match content width.</p>
+  <div class="wb buffee-themepack1 boring" id="editor-fit-content" style="height: 300px; padding: 20px; border: 2px dashed #666; width: fit-content;">
+    <textarea class="wb-clipboard-bridge"></textarea>
+    <div class="no-select wb-elements">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" tabindex="0"><blockquote class="wb-layer-text"></blockquote><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
+    </div>
+    <div class="wb-status">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
+        <span class="wb-indentation"></span>
+      </div>
+    </div>
+  </div>
+
+  <h2>8. Auto-rows, fixed-cols (status line clipped)</h2>
+  <p><code>.wb { height: 300px; padding: 20px; width: fit-content; }</code></p>
+  <p><code>.wb-status { contain: inline-size; }</code></p>
+  <p><code>new Buffee(el, { viewportCols: 20 })</code></p>
+  <p>When <code>viewportCols</code> is small, status line content may be wider than editor. Use <code>contain: inline-size</code> on status bar to prevent its content from affecting <code>fit-content</code> calculation.</p>
+  <div class="wb buffee-themepack1 boring" id="editor-example-8" style="height: 300px; padding: 20px; border: 2px dashed #666; width: fit-content;">
+    <textarea class="wb-clipboard-bridge"></textarea>
+    <div class="no-select wb-elements">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" tabindex="0"><blockquote class="wb-layer-text"></blockquote><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
+    </div>
+    <div class="wb-status" style="contain: inline-size;">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
+        <span class="wb-indentation"></span>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Generate a ruler string: 01234567890123456789...
     function ruler(n) {
@@ -175,6 +236,33 @@
     });
     edFixedRowsScroll.Model.text = ruler(80) + '\n// viewportRows: 20 exceeds container height\n// Scroll to see more\n' +
       Array.from({length: 25}, (_, i) => `Line ${i + 4}`).join('\n');
+
+    // 6. Auto-rows, fixed-cols
+    const elAutoRowsFixedCols = document.getElementById('editor-auto-rows-fixed-cols');
+    const edAutoRowsFixedCols = new Buffee(elAutoRowsFixedCols, {
+      viewportCols: 55,
+      callbacks: BuffeeStatusLine(elAutoRowsFixedCols)
+    });
+    edAutoRowsFixedCols.Model.text = ruler(40) + '\n// Auto-rows, fixed 40 cols\n// Status bar stretches to container\n' +
+      Array.from({length: 20}, (_, i) => `Line ${i + 4}`).join('\n');
+
+    // 7. Auto-rows, fixed-cols (fit-content)
+    const elFitContent = document.getElementById('editor-fit-content');
+    const edFitContent = new Buffee(elFitContent, {
+      viewportCols: 55,
+      callbacks: BuffeeStatusLine(elFitContent)
+    });
+    edFitContent.Model.text = ruler(40) + '\n// Auto-rows, fixed 40 cols\n// width: fit-content\n' +
+      Array.from({length: 20}, (_, i) => `Line ${i + 4}`).join('\n');
+
+    // 8. Auto-rows, fixed-cols (status line clipped)
+    const elExample8 = document.getElementById('editor-example-8');
+    const edExample8 = new Buffee(elExample8, {
+      viewportCols: 20,
+      callbacks: BuffeeStatusLine(elExample8)
+    });
+    edExample8.Model.text = ruler(20) + '\n// Small viewportCols\n// Status clipped\n' +
+      Array.from({length: 20}, (_, i) => `Line ${i + 4}`).join('\n');
 
   </script>
 </body>
