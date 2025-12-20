@@ -39,7 +39,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(node, config = {}) {
-  this.version = "7.8.4-alpha.1";
+  this.version = "7.8.5-alpha.1";
 
   // TODO: make everything mutable, and observed.
   // Extract configuration with defaults
@@ -54,12 +54,7 @@ function Buffee(node, config = {}) {
   } = config;
 
   const self = this;
-
-  const {
-    _headRow,
-    _headCol,
-    _lc,
-  } = callbacks || {};
+  const frameCallbacks = callbacks || {};
 
   const autoFitViewport = !viewportRows;
 
@@ -932,13 +927,9 @@ function Buffee(node, config = {}) {
     },
   };
   
-  /** @private Tracks last render state for optimization */
-  const lastFrame = {
-    frame: 0,
-    lineCount: 0,
-    row: 0,
-    col: 0
-  };
+  /** @private Double-buffer for render state diffing */
+  let frame = { lineCount: 0, row: 0, col: 0, frameCount: 0 };
+  let lastFrame = { lineCount: -1, row: -1, col: -1, frameCount: -1 };
 
   /**
    * Creates and appends selection overlay elements for viewport rows [fromIndex, toIndex).
@@ -968,20 +959,19 @@ function Buffee(node, config = {}) {
    * @returns {Buffee} The Buffee instance for chaining
    */
   function render(renderLineContainers = false) {
-    // TODO: perhaps track lineCount only if _lc defined.
-    if (lastFrame.lineCount !== Model.lastIndex + 1 ) {
-      lastFrame.lineCount = Model.lastIndex + 1;
-      _lc && _lc(lastFrame, self);
+    frame.lineCount = Model.lastIndex + 1;
+    frame.row = head.row;
+    frame.col = head.col;
+    frame.frameCount = lastFrame.frameCount + 1;
+    // TODO: consider caching Object.entries once.
+    for (const [key, callback] of Object.entries(frameCallbacks)) {
+      if (frame[key] !== lastFrame[key]) {
+        callback(frame, self);
+      }
     }
-    if (lastFrame.row !== head.row) {
-      lastFrame.row = head.row;
-      _headRow && _headRow(lastFrame);
-    } 
-    if (lastFrame.col !== head.col) {
-      lastFrame.col = head.col;
-      _headCol && _headCol(lastFrame);
-    }
-    lastFrame.frame++;
+    const temp = lastFrame;
+    lastFrame = frame;
+    frame = temp;
 
     // Use total line count so gutter doesn't resize while scrolling
     // Minimum of 2 digits to avoid resize jitter for small documents (1-99 lines)
