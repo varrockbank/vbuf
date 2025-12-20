@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 8.2.5-alpha.1 [2025-12-20]  gz+min: 4.59 KB (+0.01), min: 13.50 KB (-0.03)
+*** fix 
+- flatten html structure 
+
 ** 8.2.4-alpha.1 [2025-12-20]  gz+min: 4.60 KB (+0.01), min: 13.53 KB (0)
 *** fix 
 - suppress outline around editor focus 

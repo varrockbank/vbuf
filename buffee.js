@@ -39,7 +39,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee(parentNode, config = {}) {
-  this.version = "8.2.3-alpha.1";
+  this.version = "8.2.5-alpha.1";
 
   // TODO: make everything mutable, and observed.
   // Extract configuration with defaults
@@ -71,11 +71,11 @@ function Buffee(parentNode, config = {}) {
   const expandTabs = s => expandtab ? s.replace(/\t/g, ' '.repeat(expandtab)) : s;
 
   // Cursor layer - shows head position distinctly within a selection
-  const $content = node.querySelector('.wb-content');
+  const $content = node; // blockquote is the content container
   const $e = node.querySelector('.wb-lines');
   const $cursor = node.querySelector(".wb-cursor");
   const $textLayer = node.querySelector(".wb-layer-text");
-  const $clipboardBridge = node.querySelector('.wb-clipboard-bridge');
+  const $clipboardBridge = parentNode.querySelector('.wb-clipboard-bridge');
   const $gutter = node.querySelector('.wb-gutter');
 
   $e.style.tabSize = expandtab || 4;                                                                                                                                                                           
@@ -1273,7 +1273,7 @@ function Buffee(parentNode, config = {}) {
   }
 
   // Reading clipboard from the keydown listener involves a different security model.
-  node.addEventListener('paste', e => {
+  $e.addEventListener('paste', e => {
     e.preventDefault(); // stop browser from inserting raw clipboard text
     const text = e.clipboardData.getData("text/plain");
     if (text) {
@@ -1283,13 +1283,13 @@ function Buffee(parentNode, config = {}) {
 
   // Triggered by a keydown paste event. a copy event handler can read the clipboard
   // by the standard security model. Meanwhile, we don't have to make the editor "selectable".
-  node.addEventListener('copy', e => {
+  $e.addEventListener('copy', e => {
     e.preventDefault();                    // take over the clipboard contents
     e.clipboardData.setData('text/plain', Selection.lines.join("\n"));
   });
 
   // Bind keyboard control to move viewport
-  node.addEventListener('keydown', event => {
+  $e.addEventListener('keydown', event => {
     // Do nothing for Meta+V (on Mac) or Ctrl+V (on Windows/Linux) as to avoid conflict with the paste event.
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "v") {
       // just return, no preventDefault, no custom handling
