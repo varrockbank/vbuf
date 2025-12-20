@@ -30,7 +30,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, config = {}) {
-  this.version = "8.8.6-alpha.1";
+  this.version = "8.8.7-alpha.1";
   const self = this;
 
   // TODO: make everything mutable, and observed.
@@ -81,7 +81,6 @@ function Buffee($parent, config = {}) {
   }
 
   const $selections = [];   // We place an invisible selection on each viewport line. We only display the active selection.
-  let lastDisplayLines = 0; // Track display lines for delta-based updates
 
   const [fragmentLines, fragmentSelections, fragmentGutters] = [0,0,0]
     .map(() => document.createDocumentFragment());
@@ -136,7 +135,7 @@ function Buffee($parent, config = {}) {
         }
         // else: at first line of file, No-Op
       }
-      render(true);
+      render();
     },
 
     /**
@@ -212,7 +211,7 @@ function Buffee($parent, config = {}) {
         row: absRow,
         col: Math.min(col, positionOfLastChar)}
       );
-      render(true);
+      render();
     },
 
     /**
@@ -274,7 +273,7 @@ function Buffee($parent, config = {}) {
      */
     moveCursorStartOfLine() {
       maxCol = head.col = (c => c > 0 && c < tail.col ? c : 0)(Model.lines[head.row].search(/[^ ]/));
-      render(true);
+      render();
     },
 
     /**
@@ -282,7 +281,7 @@ function Buffee($parent, config = {}) {
      */
     moveCursorEndOfLine() {
       maxCol = head.col = Model.lines[head.row].length;
-      render(true);
+      render();
     },
 
     /**
@@ -326,7 +325,7 @@ function Buffee($parent, config = {}) {
           maxCol = head.col = insertedLines[insertedLines.length - 1].length;
         }
       }
-      if (!skipRender) render(true);
+      if (!skipRender) render();
     },
 
     /**
@@ -352,7 +351,7 @@ function Buffee($parent, config = {}) {
         }
       }
 
-      render(true);
+      render();
     },
 
     /**
@@ -367,7 +366,7 @@ function Buffee($parent, config = {}) {
       head.col = 0, head.row++;
       if (head.row > Viewport.end) Viewport.start = head.row - Viewport.size + 1;
 
-      render(true);
+      render();
     },
 
     /**
@@ -404,7 +403,7 @@ function Buffee($parent, config = {}) {
         head.col = j;
       }
 
-      render(true);
+      render();
     },
 
     /**
@@ -442,7 +441,7 @@ function Buffee($parent, config = {}) {
         head.col = j;
       }
 
-      render(true);
+      render();
     },
 
     /**
@@ -459,7 +458,7 @@ function Buffee($parent, config = {}) {
       first.col += Mode.spaces;
       second.col += Mode.spaces;
 
-      render(true);
+      render();
     },
 
     /**
@@ -506,7 +505,7 @@ function Buffee($parent, config = {}) {
         }
       }
 
-      render(true);
+      render();
     },
 
     /**
@@ -586,7 +585,7 @@ function Buffee($parent, config = {}) {
       this.lines = text.split("\n");
       this.byteCount = new TextEncoder().encode(text).length
       this.originalLineCount = this.lines.length;
-      render(true);
+      render();
     },
 
     /**
@@ -791,7 +790,7 @@ function Buffee($parent, config = {}) {
         this._restoreCursor(op.cursorBefore);
       }
 
-      render(true);
+      render();
       return true;
     },
 
@@ -834,7 +833,7 @@ function Buffee($parent, config = {}) {
         }
       }
 
-      render(true);
+      render();
       return true;
     },
 
@@ -857,6 +856,8 @@ function Buffee($parent, config = {}) {
     start: 0,
     /** @type {number} Number of visible lines */
     size: autoFitViewport ? 0 : viewportRows,
+    /** @type {number} Pending container delta (0 = up to date) */
+    delta: autoFitViewport ? 1 : viewportRows,
 
     /**
      * Index of the last visible line.
@@ -882,12 +883,9 @@ function Buffee($parent, config = {}) {
      */
     set(start, size) {
       this.start = $clamp(start-1, 0, Model.lastIndex);
-      if(this.size !== size) {
-        this.size = size;
-        render(true);
-      } else {
-        render();
-      }
+      this.delta += size - this.size;
+      this.size = size;
+      render();
     },
 
     /**
@@ -919,11 +917,9 @@ function Buffee($parent, config = {}) {
   /**
    * Renders the editor viewport, selection, and calls extension hooks.
    * @private
-   * @param {boolean} [renderLineContainers=false] - Whether to rebuild line containers
-   *   (needed when viewport size changes or on initial render)
    * @returns {Buffee} The Buffee instance for chaining
    */
-  function render(renderLineContainers = false) {
+  function render() {
     frame.lineCount = Model.lastIndex + 1;
     frame.row = head.row;
     frame.col = head.col;
@@ -953,25 +949,22 @@ function Buffee($parent, config = {}) {
 
     // Renders the containers for the viewport lines, as well as selections and highlights
     // Only adds/removes the delta of elements when viewport size changes
-    if(renderLineContainers) {
-      const delta = displayLines - lastDisplayLines;
-
-      if (delta > 0) {
+    if(Viewport.delta) {
+      if (Viewport.delta > 0) {
         // Add new line containers and selections
-        for (let i = 0; i < delta; i++) {
+        for (let i = 0; i < Viewport.delta; i++) {
           fragmentLines.appendChild(document.createElement("pre"));
         }
         $textLayer.appendChild(fragmentLines);
-        addSelections(lastDisplayLines, displayLines);
-      } else if (delta < 0) {
+        addSelections($selections.length, displayLines);
+      } else if (Viewport.delta < 0) {
         // Remove excess line containers and selections
-        for (let i = 0; i < -delta; i++) {
+        for (let i = 0; i < -Viewport.delta; i++) {
           $textLayer.lastChild?.remove();
           $selections.pop()?.remove();
         }
       }
-
-      lastDisplayLines = displayLines;
+      Viewport.delta = 0;
 
       // Call extension hooks for container rebuild
       for (const hook of renderHooks.onContainerRebuild) {
@@ -1119,7 +1112,7 @@ function Buffee($parent, config = {}) {
     get: () => interactive,
     set: (value) => {
       interactive = value;
-      render(true);
+      render();
     },
     enumerable: true
   });
@@ -1160,7 +1153,7 @@ function Buffee($parent, config = {}) {
     renderHooks,
     appendLines(newLines, skipRender = false) {
       Model.lines.push(...newLines.map(expandTabs));
-      if (!skipRender) render(true);
+      if (!skipRender) render();
     }
   };
 
@@ -1170,15 +1163,16 @@ function Buffee($parent, config = {}) {
       // .wb-elements is flex: 1, so it fills remaining space after status line
       const newSize = Math.floor($e.clientHeight / lineHeight);
       if (newSize > 0 && newSize !== Viewport.size) {
+        Viewport.delta += newSize - Viewport.size;
         Viewport.size = newSize;
-        render(true);
+        render();
       }
     };
     // Use requestAnimationFrame to ensure layout is complete before measuring
     requestAnimationFrame(fitViewport);
     new ResizeObserver(fitViewport).observe($e);
   } else {
-    render(true);
+    render();
   }
 
   // Reading clipboard from the keydown listener involves a different security model.
@@ -1259,10 +1253,10 @@ function Buffee($parent, config = {}) {
       } else if (!event.shiftKey && Selection.isSelection) { // no meta key, no shift key, selection.
         if(event.key === "ArrowLeft") {
           Selection.setCursor(Selection.ordered[0]); // Move cursor to the first edge
-          render(true);
+          render();
         } else if (event.key === "ArrowRight") {
           Selection.setCursor(Selection.ordered[1]); // Move cursor to the second edge
-          render(true);
+          render();
         } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
           const movingDown = event.key === "ArrowDown";
           const edge = Selection.ordered[movingDown ? 1 : 0];
@@ -1285,7 +1279,7 @@ function Buffee($parent, config = {}) {
             row: targetAbsRow,
             col: maxCol
           });
-          render(true);
+          render();
         }
       } else { // no meta key.
         if (event.shiftKey && !Selection.isSelection) Selection.makeSelection();
