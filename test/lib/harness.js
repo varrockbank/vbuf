@@ -76,7 +76,7 @@ function createEditorNode() {
 class EditorTestHarness {
   constructor(node, size = 10) {
     this.node = node;
-    this.blockquote = node.querySelector('.wb-elements') || node;  // Event target
+    this.blockquote = node.querySelector('.wb-lines') || node;  // Event target
     this.wb = new Buffee(node, { viewportRows: size, callbacks: BuffeeStatusLine(node) });
     this.walkthrough = new Walkthrough();
 
