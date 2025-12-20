@@ -1,6 +1,6 @@
 /**
  * Buffee Editor - Required Styles
- * @version 8.2.6-alpha.1
+ * @version 8.2.8-alpha.1
  *
  * This stylesheet contains the essential structural CSS for Buffee.
  * Colors are intentionally omitted - define them at point of usage.
@@ -30,7 +30,6 @@
   flex: 1;
   overflow: hidden;
   min-height: 0;
-  outline: none;
   margin: 0;
 }
 
@@ -60,6 +59,7 @@
   background-color: transparent;
   position: relative;
   margin: var(--wb-padding);
+  outline: none;
 }
 
 /* Line elements */
@@ -101,8 +101,8 @@
 }
 
 .wb .wb-gutter {
-  text-align: right;
-  padding-top: var(--wb-padding);
+  text-align: right; /* config */
+  padding-top: var(--wb-padding); 
   padding-right: calc(var(--wb-padding) * 2);
 }
 
