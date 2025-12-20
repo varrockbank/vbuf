@@ -38,44 +38,33 @@
 &lt;/style&gt;</pre>
 
   <h2>2. Required HTML Structure</h2>
-  <p><strong>All elements required.</strong> Missing any causes errors.</p>
+  <p>Add HTML outlined in <a href="template.html">template.html</a>.</p>
   <pre>&lt;blockquote class="wb no-select" tabindex="0" id="editor"&gt;
   &lt;textarea class="wb-clipboard-bridge" aria-hidden="true"&gt;&lt;/textarea&gt;
   &lt;div class="wb-content"&gt;
     &lt;div class="wb-gutter"&gt;&lt;/div&gt;
-    &lt;div class="wb-lines"&gt;&lt;/div&gt;
+    &lt;div class="wb-lines"&gt;
+        &lt;div class="wb-layer-text"&gt;&lt;/div&gt;
+        &lt;div class="wb-layer-elements"&gt;&lt;/div&gt;
+        &lt;div class="wb-cursor"&gt;&lt;/div&gt;
+    &lt;/div&gt;
   &lt;/div&gt;
-  &lt;div class="wb-status" style="display: flex; justify-content: space-between;"&gt;
+  &lt;div class="wb-status"&gt;
     &lt;div class="wb-status-left"&gt;&lt;span class="wb-linecount"&gt;&lt;/span&gt;&lt;/div&gt;
     &lt;div class="wb-status-right"&gt;
-      &lt;span class="wb-coordinate"&gt;&lt;/span&gt;
+      &lt;span class="wb-coordinate"&gt;&lt;/span&gt;|
       &lt;span class="wb-indentation"&gt;&lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/blockquote&gt;</pre>
 
-  <p>Checklist:</p>
-  <ul>
-    <li><label><input type="checkbox"> <code>.wb</code> - container</label></li>
-    <li><label><input type="checkbox"> <code>.wb-clipboard-bridge</code> - textarea</label></li>
-    <li><label><input type="checkbox"> <code>.wb-content</code> - content area (gutter + lines)</label></li>
-    <li><label><input type="checkbox"> <code>.wb-gutter</code> - line numbers</label></li>
-    <li><label><input type="checkbox"> <code>.wb-lines</code> - text content</label></li>
-    <li><label><input type="checkbox"> <code>.wb-status</code> - status bar</label></li>
-    <li><label><input type="checkbox"> <code>.wb-status-left</code> - left section</label></li>
-    <li><label><input type="checkbox"> <code>.wb-status-right</code> - right section</label></li>
-    <li><label><input type="checkbox"> <code>.wb-linecount</code></label></li>
-    <li><label><input type="checkbox"> <code>.wb-coordinate</code></label></li>
-    <li><label><input type="checkbox"> <code>.wb-indentation</code></label></li>
-  </ul>
 
-  <h2>3. Include the Script</h2>
-  <p>Include the function <code>Buffee</code> found in <a href="buffee.js">Buffee.js</a></p>
-  <pre>&lt;script src="buffee.js"&gt;&lt;/script&gt;</pre>
-  <p>Or minified:</p>
-  <pre>&lt;script src="dist.buffee.min.js"&gt;&lt;/script&gt;</pre>
+  <h2>3. Include the Buffee</h2>
+  <p>Buffee is just a JavaScript function made globally available when you include <a href="dist/buffee.min.js">dist/buffee.min.js</a></p>
+  <pre>&lt;script src="dist/buffee.min.js"&gt;&lt;/script&gt;</pre>
 
   <h2>4. Initialize</h2>
+  Instantiate Buffee which binds to the HTML element.
   <pre>const editor = new Buffee(document.getElementById('editor'))
 editor.Model.lines = ["Hello, World!"]
 editor._internals.render(true);
