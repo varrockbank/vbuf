@@ -30,7 +30,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, config = {}) {
-  this.version = "8.8.10-alpha.1";
+  this.version = "8.8.11-alpha.1";
   const self = this;
 
   // TODO: make everything mutable, and observed.
@@ -901,11 +901,11 @@ function Buffee($parent, config = {}) {
   let frame = { lineCount: 0, row: 0, col: 0, frameCount: 0 };
   let lastFrame = { lineCount: -1, row: -1, col: -1, frameCount: -1 };
 
-  function sizeSelection(i, left, width, visibility) {
+  function sizeSelection(i, left, width) {
     const style = $selections[i].style;
-    left != null && (style.left = left);
-    width != null && (style.width = width);
-    visibility && (style.visibility = visibility);
+    left != null && (style.left = left + 'ch');
+    width != null && (style.width = width + 'ch');
+    style.visibility = 'visible';
   }
 
   /**
@@ -1005,7 +1005,7 @@ function Buffee($parent, config = {}) {
       const viewportRow = absRow - Viewport.start;
       if (viewportRow >= 0 && viewportRow < Viewport.size) {
         // +1 for phantom newline character (shows newline is part of selection)
-        sizeSelection(viewportRow, 0, (Model.lines[absRow].length + 1) + 'ch', 'visible');
+        sizeSelection(viewportRow, 0, Model.lines[absRow].length + 1);
       }
     }
 
@@ -1016,7 +1016,7 @@ function Buffee($parent, config = {}) {
       const width = secondEdge.row === firstEdge.row
         ? secondEdge.col - firstEdge.col
         : Model.lines[firstEdge.row].length - firstEdge.col + 1;
-      sizeSelection(firstViewportRow, firstEdge.col + 'ch', width + 'ch', 'visible');
+      sizeSelection(firstViewportRow, firstEdge.col, width);
     }
 
     // Render the second edge line (if within viewport and multi-line selection)
@@ -1024,7 +1024,7 @@ function Buffee($parent, config = {}) {
     if (secondEdge.row !== firstEdge.row && secondViewportRow >= 0 && secondViewportRow < Viewport.size) {
       // Last line of selection starts from column 0
       const width = Math.min(secondEdge.col, Model.lines[secondEdge.row].length);
-      sizeSelection(secondViewportRow, '0', width + 'ch', 'visible');
+      sizeSelection(secondViewportRow, 0, width);
     }
     // * END render selection
 
