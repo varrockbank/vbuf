@@ -30,7 +30,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, config = {}) {
-  this.version = "8.8.9-alpha.1";
+  this.version = "8.8.10-alpha.1";
   const self = this;
 
   // TODO: make everything mutable, and observed.
@@ -901,6 +901,13 @@ function Buffee($parent, config = {}) {
   let frame = { lineCount: 0, row: 0, col: 0, frameCount: 0 };
   let lastFrame = { lineCount: -1, row: -1, col: -1, frameCount: -1 };
 
+  function sizeSelection(i, left, width, visibility) {
+    const style = $selections[i].style;
+    left != null && (style.left = left);
+    width != null && (style.width = width);
+    visibility && (style.visibility = visibility);
+  }
+
   /**
    * Renders the editor viewport, selection, and calls extension hooks.
    * @private
@@ -997,39 +1004,27 @@ function Buffee($parent, config = {}) {
     for (let absRow = firstEdge.row + 1; absRow <= secondEdge.row - 1; absRow++) {
       const viewportRow = absRow - Viewport.start;
       if (viewportRow >= 0 && viewportRow < Viewport.size) {
-        $selections[viewportRow].style.left = 0;
-        $selections[viewportRow].style.visibility = 'visible';
-        const content = Model.lines[absRow];
         // +1 for phantom newline character (shows newline is part of selection)
-        $selections[viewportRow].style.width = (content.length + 1) + 'ch';
+        sizeSelection(viewportRow, 0, (Model.lines[absRow].length + 1) + 'ch', 'visible');
       }
     }
 
     // Render the first edge line (if within viewport)
     if (firstViewportRow >= 0 && firstViewportRow < Viewport.size) {
-      $selections[firstViewportRow].style.left = firstEdge.col + 'ch';
-      if (secondEdge.row === firstEdge.row) {
-        // Single-line selection (excludes cursor head position)
-        const width = secondEdge.col - firstEdge.col;
-        $selections[firstViewportRow].style.width = width + 'ch';
-        $selections[firstViewportRow].style.visibility = 'visible';
-      } else {
-        // Multi-line selection - first line
-        const text = Model.lines[firstEdge.row];
-        // +1 for phantom newline character
-        $selections[firstViewportRow].style.width = (text.length - firstEdge.col + 1) + 'ch';
-        $selections[firstViewportRow].style.visibility = 'visible';
-      }
+      // Single-line: width = secondEdge.col - firstEdge.col
+      // Multi-line: width = text.length - firstEdge.col + 1 (includes phantom newline)
+      const width = secondEdge.row === firstEdge.row
+        ? secondEdge.col - firstEdge.col
+        : Model.lines[firstEdge.row].length - firstEdge.col + 1;
+      sizeSelection(firstViewportRow, firstEdge.col + 'ch', width + 'ch', 'visible');
     }
 
     // Render the second edge line (if within viewport and multi-line selection)
     // Excludes cursor head position
     if (secondEdge.row !== firstEdge.row && secondViewportRow >= 0 && secondViewportRow < Viewport.size) {
-      const text = Model.lines[secondEdge.row];
-
-      $selections[secondViewportRow].style.left = '0';  // Last line of selection starts from column 0
-      $selections[secondViewportRow].style.width = Math.min(secondEdge.col, text.length) + 'ch';
-      $selections[secondViewportRow].style.visibility = 'visible';
+      // Last line of selection starts from column 0
+      const width = Math.min(secondEdge.col, Model.lines[secondEdge.row].length);
+      sizeSelection(secondViewportRow, '0', width + 'ch', 'visible');
     }
     // * END render selection
 

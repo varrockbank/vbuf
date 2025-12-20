@@ -1,11 +1,15 @@
 * Project Devlog
 
-** 8.8.9-alpha.1 [2025-12-20]  gz+min: 4.27 KB (-0.00), min: 12.62 KB (-0.03)
-*** perf
+** 8.8.10-alpha.1 [2025-12-20]  gz+min: 4.26 KB (-0.01), min: 12.48 KB (-0.14)
+*** refactor
+- add sizeSelection helper for selection styling
+
+** 8.8.9-alpha.1 [2025-12-20]  gz+min: 4.25 KB (-0.02), min: 12.47 KB (-0.18)
+*** perf 
 - hide selections and update line contents in single pass
 
 ** 8.8.8-alpha.1 [2025-12-20]  gz+min: 4.26 KB (-0.02), min: 12.64 KB (-0.05)
-*** refactor 
+*** perf 
 - render selections and line containers in single pass
 
 ** 8.8.7-alpha.1 [2025-12-20]  gz+min: 4.29 KB (+0.01), min: 12.72 KB (+0.04)
