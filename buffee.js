@@ -5,10 +5,9 @@
 /**
  * @typedef {Object} BuffeeConfig
  * @property {number} [viewportRows] - Fixed number of visible lines (if omitted, auto-fits to container height)
- * @property {number} [lineHeight=24] - Height of each line in pixels
+ * @property {number} [viewportCols] - Fixed number of text columns (auto-calculates container width including gutter)
  * @property {number} [spaces=4] - Number of spaces per tab/indentation level
  * @property {boolean} [showGutter=true] - Whether to show line numbers
- * @property {number} [viewportCols] - Fixed number of text columns (auto-calculates container width including gutter)
  * @property {function(string): void} [logger=console] - Logger with log and warning methods
  */
 
@@ -21,15 +20,7 @@
 /**
  * Creates a new Buffee virtual buffer editor instance.
  * @constructor
- * @param {HTMLElement} node - Container element with required child elements:
- *   - .wb-lines: Container for text lines
- *   - .wb-status: Status bar container
- *   - .wb-head-row: Cursor row display
- *   - .wb-head-col: Cursor column display
- *   - .wb-linecount: Line count display
- *   - .buffee-spaces: Spaces/tab width display
- *   - .wb-clipboard-bridge: Hidden textarea for clipboard operations
- *   - .wb-gutter: Line number gutter
+ * @param {HTMLElement} node - Container element
  * @param {BuffeeConfig} [config={}] - Configuration options
  * @example
  * const editor = new Buffee(document.getElementById('editor'), {
@@ -45,9 +36,9 @@ function Buffee(parentNode, config = {}) {
   // Extract configuration with defaults
   const {
     viewportRows,
+    viewportCols,
     spaces = 4,
     showGutter = true,
-    viewportCols,
     logger,
     callbacks
   } = config;
