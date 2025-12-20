@@ -49,7 +49,7 @@
   <!-- Eva -->
   <section class="theme-section">
     <h2>Eva</h2>
-    <div class="wb buffee-themepack1 eva" id="ed-eva">
+    <div class="wb buffee-themepack1 eva" id="ed-eva" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -81,7 +81,7 @@
   <!-- HN -->
   <section class="theme-section">
     <h2>HN</h2>
-    <div class="wb buffee-themepack1 hn" id="ed-hn">
+    <div class="wb buffee-themepack1 hn" id="ed-hn" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -113,7 +113,7 @@
   <!-- Neo -->
   <section class="theme-section">
     <h2>Neo</h2>
-    <div class="wb buffee-themepack1 neo" id="ed-neo">
+    <div class="wb buffee-themepack1 neo" id="ed-neo" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -145,7 +145,7 @@
   <!-- Star -->
   <section class="theme-section">
     <h2>Star</h2>
-    <div class="wb buffee-themepack1 star" id="ed-star">
+    <div class="wb buffee-themepack1 star" id="ed-star" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -177,7 +177,7 @@
   <!-- Chelsey -->
   <section class="theme-section">
     <h2>Chelsey</h2>
-    <div class="wb buffee-themepack1 chelsey" id="ed-chelsey">
+    <div class="wb buffee-themepack1 chelsey" id="ed-chelsey" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -209,7 +209,7 @@
   <!-- Drak -->
   <section class="theme-section">
     <h2>Drak</h2>
-    <div class="wb buffee-themepack1 drak" id="ed-drak">
+    <div class="wb buffee-themepack1 drak" id="ed-drak" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -241,7 +241,7 @@
   <!-- Kai -->
   <section class="theme-section">
     <h2>Kai</h2>
-    <div class="wb buffee-themepack1 kai" id="ed-kai">
+    <div class="wb buffee-themepack1 kai" id="ed-kai" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -273,7 +273,7 @@
   <!-- Nord -->
   <section class="theme-section">
     <h2>Nord</h2>
-    <div class="wb buffee-themepack1 nord" id="ed-nord">
+    <div class="wb buffee-themepack1 nord" id="ed-nord" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -305,7 +305,7 @@
   <!-- Darkly -->
   <section class="theme-section">
     <h2>Darkly</h2>
-    <div class="wb buffee-themepack1 darkly" id="ed-darkly">
+    <div class="wb buffee-themepack1 darkly" id="ed-darkly" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -337,7 +337,7 @@
   <!-- Gruv -->
   <section class="theme-section">
     <h2>Gruv</h2>
-    <div class="wb buffee-themepack1 gruv" id="ed-gruv">
+    <div class="wb buffee-themepack1 gruv" id="ed-gruv" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -369,7 +369,7 @@
   <!-- Boring -->
   <section class="theme-section">
     <h2>Boring</h2>
-    <div class="wb buffee-themepack1 boring" id="ed-boring">
+    <div class="wb buffee-themepack1 boring" id="ed-boring" style="height: 300px;">
       <blockquote class="no-select" tabindex="0">
         <textarea class="wb-clipboard-bridge"></textarea>
         <div class="wb-content">
@@ -414,8 +414,6 @@ for (let i = 0; i < 10; i++) {
     themeNames.forEach(name => {
       const el = document.getElementById('ed-' + name);
       const editor = new Buffee(el, {
-        viewportRows: 10,
-        viewportCols: 60,
         callbacks: BuffeeStatusLine(el)
       });
       editor.Model.text = sampleCode;
@@ -428,7 +426,7 @@ for (let i = 0; i < 10; i++) {
         });
 
       // Show JS options
-      const jsCode = `new Buffee(element, { viewportRows: 10 });`;
+      const jsCode = `new Buffee(element, {});`;
       document.getElementById('js-' + name).textContent = jsCode;
     });
   </script>
