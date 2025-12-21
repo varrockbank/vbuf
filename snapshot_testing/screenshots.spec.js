@@ -13,6 +13,7 @@ const pages = [
   { name: 'samples-index', path: '/samples/' },
   { name: 'samples-basic', path: '/samples/sample-basic.html' },
   { name: 'samples-history', path: '/samples/sample-history.html' },
+  { name: 'samples-undotree', path: '/samples/sample-undotree.html' },
   { name: 'samples-gutter-status', path: '/samples/sample-gutter-status.html' },
   { name: 'samples-readonly', path: '/samples/sample-readonly.html' },
   { name: 'samples-sizing', path: '/samples/sample-sizing.html' },
