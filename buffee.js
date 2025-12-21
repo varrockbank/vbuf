@@ -26,7 +26,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
-  this.version = "11.1.5-alpha.1";
+  this.version = "11.1.6-alpha.1";
   const self = this;
   /** Replaces tabs with spaces (spaces = number of spaces, 0 = keep tabs) */
   const expandTabs = s => Mode.spaces ? s.replace(/\t/g, ' '.repeat(Mode.spaces)) : s;
@@ -45,7 +45,8 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
      */
     interactive: 1
   };
-  const frameCallbacks = callbacks || {};
+  const frameCallbacks = Object.entries(callbacks || {});
+  
   const prop = p => parseFloat(getComputedStyle($parent).getPropertyValue(p));
   const lineHeight = prop("--buffee-cell");
   const editorPaddingPX = prop("--buffee-padding");
@@ -693,7 +694,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
     frame.spaces = Mode.spaces;
     frame.frameCount = lastFrame.frameCount + 1;
     // TODO: consider caching Object.entries once.
-    for (const [key, callback] of Object.entries(frameCallbacks)) {
+    for (const [key, callback] of frameCallbacks) {
       if (frame[key] !== lastFrame[key]) {
         callback(frame, self);
       }
@@ -919,18 +920,16 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       Selection.insert(text);
     }
   });
-
+  const copy = e => {
+    e.preventDefault(); // take over the clipboard contents                   
+    e.clipboardData.setData('text/plain', Selection.lines.join("\n"));
+  }
   // Triggered by a keydown paste event. a copy event handler can read the clipboard
   // by the standard security model. Meanwhile, we don't have to make the editor "selectable".
   // Listen on $clipboardBridge since that's where focus moves on Ctrl+C/X.
-  $clipboardBridge.addEventListener('copy', e => {
-    e.preventDefault();                    // take over the clipboard contents
-    e.clipboardData.setData('text/plain', Selection.lines.join("\n"));
-  });
-
+  $clipboardBridge.addEventListener('copy', copy);
   $clipboardBridge.addEventListener('cut', e => {
-    e.preventDefault();
-    e.clipboardData.setData('text/plain', Selection.lines.join("\n"));
+    copy(e);
     Selection.delete();
     $l.focus({ preventScroll: true });     // Return focus to editor
   });
