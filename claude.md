@@ -84,6 +84,24 @@ Located in `extensions/`, tested in "Extensions" tab of `test/index.html`.
 | `ultrahighcapacity.js` | `BuffeeUltraHighCapacity(vbuf)` | 1B+ line support |
 | `treesitter.js` | `BuffeeTreeSitter(vbuf, opts)` | Tree-sitter integration |
 
+## Themes
+
+Located in `themes/`. Apply with class `buffee-themepack1 {name}` on `.wb` element.
+
+| File | Background | Text | Style |
+|------|------------|------|-------|
+| `boring.css` | #282c34 | #B2B2B2 | Dark gray |
+| `chelsey.css` | #ffffff | #000000 | Light |
+| `darkly.css` | #002b36 | #839496 | Solarized dark |
+| `drak.css` | #282a36 | #f8f8f2 | Dracula |
+| `eva.css` | #1e1e28 | #d4d4d4 | Evangelion purple |
+| `gruv.css` | #282828 | #ebdbb2 | Gruvbox |
+| `hn.css` | #F6F6EF | black | Hacker News |
+| `kai.css` | #272822 | #f8f8f2 | Monokai |
+| `neo.css` | #0d0d0d | #00ff41 | Matrix green |
+| `nord.css` | #2e3440 | #d8dee9 | Nord |
+| `star.css` | #000000 | #FFD700 | Star Wars gold |
+
 ## Generating Sample Pages
 
 Reference existing samples in `samples/`. Show actual JS values in code hints, not generic parameter names.
