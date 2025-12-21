@@ -34,7 +34,7 @@
     <input type="range" id="frame-slider" min="0" max="0" value="0" style="flex: 1;">
   </div>
 
-  <div class="buffee buffee-themepack1-star" id="editor" style="border: 1px solid #444; width: 100%;">
+  <div class="buffee buffee-themepack1-star" id="editor">
     <textarea class="buffee-clipboard-bridge"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
@@ -53,8 +53,7 @@
   <script>
     const editorEl = document.getElementById('editor');
     const editor = new Buffee(editorEl, {
-      rows: 13,
-                   
+      rows: 10,
       callbacks: BuffeeStatusLine(editorEl)
     });
 

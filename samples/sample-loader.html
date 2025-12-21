@@ -50,7 +50,7 @@
   <div id="read-only-indicator" class="read-only-indicator hidden">
     Read-Only Mode (Chunked+Compressed) - Navigation only, editing disabled
   </div>
-  <div class="buffee buffee-themepack1-eva" id="editor" style="border: 1px solid #444; width: 100%;">
+  <div class="buffee buffee-themepack1-eva" id="editor">
     <textarea class="buffee-clipboard-bridge" aria-hidden="true"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
@@ -149,7 +149,7 @@
     }
 
     const editor = new Buffee(editorEl, {
-      rows: 15,
+      rows: 10,
       logger: log,
       callbacks: BuffeeStatusLine(editorEl)
     });
