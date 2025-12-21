@@ -26,7 +26,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
-  this.version = "11.1.3-alpha.1";
+  this.version = "11.1.5-alpha.1";
   const self = this;
   /** Replaces tabs with spaces (spaces = number of spaces, 0 = keep tabs) */
   const expandTabs = s => Mode.spaces ? s.replace(/\t/g, ' '.repeat(Mode.spaces)) : s;
@@ -50,7 +50,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
   const lineHeight = prop("--buffee-cell");
   const editorPaddingPX = prop("--buffee-padding");
   const gutterDigitsMinimum = prop("--buffee-gutter-digits-initial");
-  let gutterDigits = gutterDigitsMinimum;
+  let gutterDigits = -1; // as long as different from guggers digit minimum, we trigger setting gutter on first render
   const gutterCols = () => gutterDigits + prop("--buffee-gutter-digits-padding");
   const $ = (n, q) => n.querySelector(q); 
   const $e = $($parent, '.buffee-elements');
@@ -62,13 +62,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
 
   // Set container width if cols specified
   // Width = gutter(ch) + lines(ch) + margins(px): gutter has margin*2, lines has margin*2
-  if (cols) {
-    if ($gutter) {
-      $e.style.width = `calc(${gutterCols() + cols}ch + ${editorPaddingPX * 4}px)`;
-    } else {
-      $e.style.width = `calc(${cols}ch + ${editorPaddingPX * 2}px)`;
-    }
-  }
+  cols && !$gutter && ($e.style.width = `calc(${cols}ch + ${editorPaddingPX * 2}px)`);
 
   // Set container height if rows specified (don't use flex: 1)
   if (rows) {
@@ -484,27 +478,6 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
 
       render();
     },
-
-    /**
-     * Partitions a line into left and right segments at the given position.
-     * @param {Position} position - Position to partition at (absolute row)
-     * @returns {{index: number, left: string, right: string, rightExclusive: string}}
-     *   - index: Absolute line index in Model.lines
-     *   - left: Text before the column
-     *   - right: Text from the column onwards
-     *   - rightExclusive: Text after the column (excludes character at column)
-     */
-    partitionLine({ row, col }) {
-      const line = Model.lines[row];
-      return {
-        index: row,
-        left: line.slice(0, col),
-        right: line.slice(col),
-        // In the case where the partitioning point is a selection, we exclude the character
-        // at th cursor
-        rightExclusive: line.slice(col+1)
-      }
-    }
   };
 
   // ============================================================================
