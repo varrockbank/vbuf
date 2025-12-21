@@ -296,16 +296,16 @@
     });
 
     // Update tree on any edit
-    const originalInsert = editor._internals._insert;
-    const originalDelete = editor._internals._delete;
+    const originalInsert = editor._insert;
+    const originalDelete = editor._delete;
 
-    editor._internals._insert = function(...args) {
+    editor._insert = function(...args) {
       const result = originalInsert.apply(this, args);
       setTimeout(updateTree, 0);
       return result;
     };
 
-    editor._internals._delete = function(...args) {
+    editor._delete = function(...args) {
       const result = originalDelete.apply(this, args);
       setTimeout(updateTree, 0);
       return result;
