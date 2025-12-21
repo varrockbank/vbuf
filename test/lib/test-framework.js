@@ -14,13 +14,15 @@ class TestRunner {
     this.currentSuite = null;
   }
 
-  it(name, fn, description = '') {
+  it(name, fn, opts = {}) {
     if (!this.currentSuite) throw new Error('it() must be called inside describe()');
     this.currentSuite.tests.push({
       name,
       fn,
       fnSource: fn.toString(), // Save source code for walkthrough
-      description,
+      description: opts.desc || '',
+      file: opts.file || null,
+      line: opts.line || null,
       status: 'pending'
     });
   }

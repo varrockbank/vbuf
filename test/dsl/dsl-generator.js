@@ -59,22 +59,33 @@ class SpecGenerator {
     let currentTestJsLineCount = 0;
     let dslToJsLineMap = []; // Maps DSL line index to JS line index
     let currentTestStartLine = 0; // Track where current test starts
+    let currentTestFile = null; // File where current test started
+    let currentFile = null; // Current file name from //@ file: directive
+    let fileStartLine = 0; // Line offset for current file
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const trimmed = line.trim();
 
+      // File directive: //@ file:filename.dsl
+      if (trimmed.startsWith('//@ file:')) {
+        currentFile = trimmed.substring(9).trim();
+        fileStartLine = i + 1; // Next line is line 1 of this file
+        continue;
+      }
+
       // Suite header: # Suite Name
       if (trimmed.startsWith('# ') && !trimmed.startsWith('## ')) {
         // Close previous test
         if (currentTest !== null) {
-          const descParam = currentTestDescription ? `, "${this.escapeString(currentTestDescription)}"` : '';
-          output.push(`  }${descParam});`);
+          const desc = currentTestDescription ? `"${this.escapeString(currentTestDescription)}"` : 'null';
+          const file = currentTestFile ? `"${currentTestFile}"` : 'null';
+          output.push(`  }, { desc: ${desc}, file: ${file}, line: ${currentTestStartLine} });`);
 
-          // Store DSL source and mapping in map
+          // Store DSL source for walkthrough
           const dslSource = currentTestDslLines.join('\\n');
           const lineMap = JSON.stringify(dslToJsLineMap);
-          output.push(`  window.dslSourceMap['${this.escapeString(currentSuite)}:${this.escapeString(currentTest)}'] = { source: \`${dslSource}\`, lineMap: ${lineMap}, startLine: ${currentTestStartLine} };`);
+          output.push(`  window.dslSourceMap['${this.escapeString(currentSuite)}:${this.escapeString(currentTest)}'] = { source: \`${dslSource}\`, lineMap: ${lineMap} };`);
           output.push('');
           currentTest = null;
           currentTestDescription = null;
@@ -100,18 +111,20 @@ class SpecGenerator {
       } else if (trimmed.startsWith('## ') && !trimmed.startsWith('### ')) {
         // Close previous test
         if (currentTest !== null) {
-          const descParam = currentTestDescription ? `, "${this.escapeString(currentTestDescription)}"` : '';
-          output.push(`  }${descParam});`);
+          const desc = currentTestDescription ? `"${this.escapeString(currentTestDescription)}"` : 'null';
+          const file = currentTestFile ? `"${currentTestFile}"` : 'null';
+          output.push(`  }, { desc: ${desc}, file: ${file}, line: ${currentTestStartLine} });`);
 
-          // Store DSL source and mapping in map
+          // Store DSL source for walkthrough
           const dslSource = currentTestDslLines.join('\\n');
           const lineMap = JSON.stringify(dslToJsLineMap);
-          output.push(`  window.dslSourceMap['${this.escapeString(currentSuite)}:${this.escapeString(currentTest)}'] = { source: \`${dslSource}\`, lineMap: ${lineMap}, startLine: ${currentTestStartLine} };`);
+          output.push(`  window.dslSourceMap['${this.escapeString(currentSuite)}:${this.escapeString(currentTest)}'] = { source: \`${dslSource}\`, lineMap: ${lineMap} };`);
           output.push('');
         }
 
         currentTest = trimmed.substring(3).trim();
-        currentTestStartLine = i + 1; // 1-indexed line number
+        currentTestStartLine = i - fileStartLine + 1; // File-local 1-indexed line number
+        currentTestFile = currentFile; // Capture file at test start
 
         // Check for duplicate test name
         const testKey = `${currentSuite}:${currentTest}`;
@@ -188,10 +201,11 @@ class SpecGenerator {
 
     // Close last test
     if (currentTest !== null) {
-      const descParam = currentTestDescription ? `, "${this.escapeString(currentTestDescription)}"` : '';
-      output.push(`  }${descParam});`);
+      const desc = currentTestDescription ? `"${this.escapeString(currentTestDescription)}"` : 'null';
+      const file = currentTestFile ? `"${currentTestFile}"` : 'null';
+      output.push(`  }, { desc: ${desc}, file: ${file}, line: ${currentTestStartLine} });`);
 
-      // Store DSL source and mapping in map
+      // Store DSL source for walkthrough
       const dslSource = currentTestDslLines.join('\\n');
       const lineMap = JSON.stringify(dslToJsLineMap);
       output.push(`  window.dslSourceMap['${this.escapeString(currentSuite)}:${this.escapeString(currentTest)}'] = { source: \`${dslSource}\`, lineMap: ${lineMap} };`);
