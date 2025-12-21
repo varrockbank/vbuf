@@ -104,7 +104,7 @@ Located in `themes/`. Apply with class `buffee-themepack1 {name}` on `.wb` eleme
 
 ## Web Directory
 
-Documentation pages and shared assets in `web/`:
+Documentation pages and shared assets in `web/`. CI screenshot tests run against these pages (see `snapshot_testing/screenshots.spec.js`).
 
 | File | Purpose |
 |------|---------|
