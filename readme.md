@@ -25,7 +25,7 @@ microlibrary and efficient plaintext rendering engine for the web. Fixed-width t
 
 This trifecta uniquely positions buffee as a building block for rich editing experience, IDEs and apps. In fact, this guides what features to scope and omit.
 
-See [comparison](https://varrockbank.github.io/buffee/comparison.html) and [performance](https://varrockbank.github.io/buffee/performance.html) for more on Buffee's niche.
+See [comparison](https://varrockbank.github.io/buffee/comparison.html) and [performance](https://varrockbank.github.io/buffee/web/performance.html) for more on Buffee's niche.
 
 ## The Magic Trick
 
@@ -63,7 +63,7 @@ To test: type "A" 100+ times and move cursor to end. If misaligned, try a differ
 .wb .wb-gutter, .wb .wb-status { background-color: #21252B; color: #636D83 }
 ```
 
-see [themes](https://varrockbank.github.io/buffee/themes.html) for inspiration.
+see [themes](https://varrockbank.github.io/buffee/web/themes.html) for inspiration.
 
 ### HTML
 
@@ -129,7 +129,7 @@ Historically, extensibility was only via the MVC APIs. However, extensions can a
 
 iOS support is currently provided as an extension which maps iOS events to keyboard events. see: index.html for example.
 
-See: [Extensions](https://varrockbank.github.io/buffee/extensions.html)
+See: [Extensions](https://varrockbank.github.io/buffee/web/extensions.html)
 
 ## Versioning 
 
