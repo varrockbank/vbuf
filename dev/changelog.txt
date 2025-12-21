@@ -25,6 +25,10 @@
 - return split array from _insert for caller reuse
 - single keystrokes now do 0 splits instead of 2
 
+** 10.0.4-alpha.1 [2025-12-21]  gz+min: 4.27 KB (0), min: 12.58 KB (0)
+*** refactor
+- use CSS variable for status bar padding
+
 ** 10.0.3-alpha.1 [2025-12-21]  gz+min: 4.27 KB (0), min: 12.58 KB (0)
 *** fix
 - add font-size to status bar for consistent sizing
