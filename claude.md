@@ -1,5 +1,19 @@
 # Claude Instructions for buffee
 
+**Full API reference: `API.md`** — contains complete docs for Model, Selection, Viewport, TUI, TreeSitter, UltraHighCapacity, and extension API.
+
+## Quick Reference
+
+```javascript
+new Buffee(el, { rows: 20, cols: 80, spaces: 4, callbacks: BuffeeStatusLine(el) });
+
+editor.Model.text = "content";     // Set content
+editor.Model.lines;                // ["line1", "line2"]
+editor.Viewport.scroll(5);         // Scroll down 5 lines
+editor.Selection.insert("text");   // Insert at cursor
+editor.editMode = 'navigate';      // 'write' | 'navigate' | 'read'
+```
+
 ## Required HTML Structure
 
 See `web/template.html` for the required HTML structure. Missing any element will cause `Cannot set properties of null` errors.
@@ -124,7 +138,38 @@ GitHub Pages serves from root. CI screenshot tests run against these (see `snaps
 | `style.css` | Main stylesheet |
 | `reset.css` | CSS reset |
 
-Templates: `extensions/_template.js`, `samples/_template.html`
+Templates: `extensions/_template.js`, `samples/_template.html`, `themes/_template.css`
+
+## DOM Classes Reference
+
+| Class | Element | Purpose |
+|-------|---------|---------|
+| `.wb` | Container | Root editor element, add theme class here |
+| `.wb-elements` | Inner wrapper | Contains gutter + lines |
+| `.wb-gutter` | Gutter | Line numbers |
+| `.wb-lines` | Text area | Focus target (tabindex=0) |
+| `.wb-layer-text` | `<blockquote>` | Text content layer |
+| `.wb-layer-elements` | Overlay | TUI/Elementals overlay |
+| `.wb-cursor` | Cursor | Blinking cursor |
+| `.wb-selection` | Selection spans | Highlighted selection |
+| `.wb-status` | Status bar | Bottom bar container |
+| `.wb-clipboard-bridge` | `<textarea>` | Hidden, for clipboard |
+
+## Keybindings Reference
+
+| Key | Action | With Shift |
+|-----|--------|------------|
+| Arrow keys | Move cursor | Extend selection |
+| Meta+Left/Right | Word jump | Select word |
+| Meta+Up/Down | Start/End of doc | Select to start/end |
+| Home/End | Start/End of line | Select to start/end |
+| Backspace | Delete char left | Delete selection |
+| Delete | Delete char right | Delete selection |
+| Tab | Insert spaces | Unindent |
+| Enter | New line | - |
+| Meta+Z | Undo | Redo |
+| Meta+A | Select all | - |
+| Meta+C/X/V | Copy/Cut/Paste | - |
 
 ## Generating Sample Pages
 
