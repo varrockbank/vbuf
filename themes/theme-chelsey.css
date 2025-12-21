@@ -1,0 +1,17 @@
+/* Chelsey Theme */
+.buffee-themepack1-chelsey > .wb-elements {
+  background-color: #ffffff;
+  color: #000000;
+}
+.buffee-themepack1-chelsey .wb-selection {
+  background-color: #cccccc;
+  mix-blend-mode: normal;
+}
+.buffee-themepack1-chelsey .wb-cursor {
+  background-color: #000000;
+}
+.buffee-themepack1-chelsey .wb-gutter,
+.buffee-themepack1-chelsey .wb-status {
+  background-color: #f0f0f0;
+  color: #000000;
+}

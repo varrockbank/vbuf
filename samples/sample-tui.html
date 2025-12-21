@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>buffee - TUI Elements</title>
+  <script src="../buffee.js"></script>
+  <script src="../extensions/statusline.js"></script>
+  <script src="../extensions/highlights.js"></script>
+  <script src="../extensions/tui.js"></script>
+  <link rel="stylesheet" href="../assets/reset.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../themes/theme-chelsey.css">
+  <style>
+    .wb {
+      width: 100ch;
+    }
+  </style>
+</head>
+<body class="sample">
+  <nav id="nav"></nav>
+  <script>
+    fetch('../web/navigation.html')
+      .then(r => r.text())
+      .then(html => document.getElementById('nav').innerHTML = html);
+  </script>
+  <p><a href="../index.html">home</a> / <a href="index.html">samples</a> / TUI Elements</p>
+
+  <h1>TUI Elements</h1>
+  <p>Press <kbd>Tab</kbd> to navigate, <kbd>Enter</kbd> to activate</p>
+
+  <h2>Buttons (no border)</h2>
+  <pre>new Buffee(el, { rows: 3 })
+TUI.addButton({ row: 1, col: 20, label: '[Save]' })</pre>
+  <div class="wb buffee-themepack1-chelsey" id="buttons-plain">
+    <textarea class="wb-clipboard-bridge"></textarea>
+    <div class="no-select wb-elements">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" tabindex="0"><blockquote class="wb-layer-text"></blockquote><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
+    </div>
+    <div class="wb-status">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
+        <span class="buffee-spaces"></span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Buttons (with border)</h2>
+  <pre>new Buffee(el, { rows: 5 })
+TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true })</pre>
+  <div class="wb buffee-themepack1-chelsey" id="buttons-border">
+    <textarea class="wb-clipboard-bridge"></textarea>
+    <div class="no-select wb-elements">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" tabindex="0"><blockquote class="wb-layer-text"></blockquote><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
+    </div>
+    <div class="wb-status">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
+        <span class="buffee-spaces"></span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Prompt (type to input, Enter to submit)</h2>
+  <pre>new Buffee(el, { rows: 8 })
+TUI.addPrompt({ row: 1, col: 2, width: 30, title: 'Search' })
+TUI.handleKeyDown(e.key)</pre>
+  <div class="wb buffee-themepack1-chelsey" id="prompt-demo">
+    <textarea class="wb-clipboard-bridge"></textarea>
+    <div class="no-select wb-elements">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" tabindex="0"><blockquote class="wb-layer-text"></blockquote><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
+    </div>
+    <div class="wb-status">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
+        <span class="buffee-spaces"></span>
+      </div>
+    </div>
+  </div>
+
+  <h2>ScrollBox (Arrow keys to scroll)</h2>
+  <pre>new Buffee(el, { rows: 10 })
+TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [...] })</pre>
+  <div class="wb buffee-themepack1-chelsey" id="scrollbox-demo">
+    <textarea class="wb-clipboard-bridge"></textarea>
+    <div class="no-select wb-elements">
+      <div class="wb-gutter"></div>
+      <div class="wb-lines" tabindex="0"><blockquote class="wb-layer-text"></blockquote><div class="wb-layer-elements"></div><div class="wb-cursor"></div></div>
+    </div>
+    <div class="wb-status">
+      <div class="wb-status-left"><span class="wb-linecount"></span></div>
+      <div class="wb-status-right">
+        Ln <span class="wb-head-row"></span>, Col <span class="wb-head-col"></span>
+        <span class="wb-status-divider">|</span>
+        <span class="buffee-spaces"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // Buttons (no border)
+    const plainEl = document.getElementById('buttons-plain');
+    const plainEditor = new Buffee(plainEl, {
+      rows: 3,
+                
+      callbacks: BuffeeStatusLine(plainEl)
+    });
+    BuffeeTUI(plainEditor);
+    plainEditor.Model.text = '\n  Select action:';
+    plainEditor.TUI.addButton({ row: 1, col: 20, label: '[Save]', onActivate: () => { alert('Save clicked'); } });
+    plainEditor.TUI.addButton({ row: 1, col: 28, label: '[Load]', onActivate: () => { alert('Load clicked'); } });
+    plainEditor.TUI.addButton({ row: 1, col: 36, label: '[Exit]', onActivate: () => { alert('Exit clicked'); } });
+    plainEditor.TUI.enabled = true;
+    plainEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') { e.preventDefault(); plainEditor.TUI.nextElement(); }
+      if (e.key === 'Enter') { e.preventDefault(); plainEditor.TUI.activateElement(); }
+    });
+
+    // Buttons (with border)
+    const borderEl = document.getElementById('buttons-border');
+    const borderEditor = new Buffee(borderEl, {
+      rows: 5,
+                
+      callbacks: BuffeeStatusLine(borderEl)
+    });
+    BuffeeTUI(borderEditor);
+    borderEditor.Model.text = '\n\n\n\n';
+    borderEditor.TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true, onActivate: () => { alert('OK clicked'); } });
+    borderEditor.TUI.addButton({ row: 1, col: 12, label: ' Cancel ', border: true, onActivate: () => { alert('Cancel clicked'); } });
+    borderEditor.TUI.addButton({ row: 1, col: 26, label: ' Apply ', border: true, onActivate: () => { alert('Apply clicked'); } });
+    borderEditor.TUI.enabled = true;
+    borderEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') { e.preventDefault(); borderEditor.TUI.nextElement(); }
+      if (e.key === 'Enter') { e.preventDefault(); borderEditor.TUI.activateElement(); }
+    });
+
+    // Prompt
+    const promptEl = document.getElementById('prompt-demo');
+    const promptEditor = new Buffee(promptEl, {
+      rows: 8,
+                
+      callbacks: BuffeeStatusLine(promptEl)
+    });
+    BuffeeTUI(promptEditor);
+    promptEditor.Model.text = '\n\n\n\n\n\n\n';
+    promptEditor.TUI.addPrompt({ row: 1, col: 2, width: 30, title: 'Search', onActivate: (el) => { alert('Search: ' + el.input); } });
+    promptEditor.TUI.addPrompt({ row: 5, col: 2, width: 40, title: 'Command', onActivate: (el) => { alert('Command: ' + el.input); } });
+    promptEditor.TUI.enabled = true;
+    promptEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') { e.preventDefault(); promptEditor.TUI.nextElement(); }
+      else { e.preventDefault(); promptEditor.TUI.handleKeyDown(e.key); }
+    });
+
+    // ScrollBox
+    const scrollEl = document.getElementById('scrollbox-demo');
+    const scrollEditor = new Buffee(scrollEl, {
+      rows: 10,
+                
+      callbacks: BuffeeStatusLine(scrollEl)
+    });
+    BuffeeTUI(scrollEditor);
+    scrollEditor.Model.text = '\n\n\n\n\n\n\n\n\n';
+    const logLines = [
+      '[INFO] Server started on port 3000',
+      '[INFO] Database connected',
+      '[DEBUG] Loading configuration...',
+      '[INFO] Config loaded: production',
+      '[WARN] Cache miss for key: user_123',
+      '[INFO] Request: GET /api/users',
+      '[DEBUG] Query executed in 45ms',
+      '[INFO] Response: 200 OK',
+      '[ERROR] Connection timeout',
+      '[INFO] Retrying connection...',
+      '[INFO] Connection restored',
+      '[DEBUG] Heartbeat sent',
+      '[INFO] Request: POST /api/login',
+      '[INFO] User authenticated: admin',
+      '[INFO] Session created'
+    ];
+    scrollEditor.TUI.addScrollBox({
+      row: 1, col: 2, width: 40, height: 8,
+      title: 'Logs',
+      lines: logLines,
+      onActivate: (el) => { alert('Selected log at offset: ' + el.scrollOffset); }
+    });
+    scrollEditor.TUI.enabled = true;
+    scrollEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') { e.preventDefault(); scrollEditor.TUI.nextElement(); }
+      else { e.preventDefault(); scrollEditor.TUI.handleKeyDown(e.key); }
+    });
+
+    // Focus first editor
+    plainEl.focus();
+  </script>
+</body>
+</html>

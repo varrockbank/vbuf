@@ -4,22 +4,23 @@ const { test, expect } = require('@playwright/test');
 const pages = [
   // Root pages
   { name: 'index', path: '/' },
-  { name: 'getting-started', path: '/getting-started.html' },
-  { name: 'extensions', path: '/extensions.html' },
-  { name: 'themes', path: '/themes.html' },
+  { name: 'getting-started', path: '/web/getting-started.html' },
+  { name: 'extensions', path: '/web/extensions.html' },
+  { name: 'themes', path: '/web/themes.html' },
+  { name: 'comparison', path: '/web/comparison.html' },
 
   // Samples
   { name: 'samples-index', path: '/samples/' },
-  { name: 'samples-basic', path: '/samples/basic.html' },
-  { name: 'samples-gutter-status', path: '/samples/gutter-status.html' },
-  { name: 'samples-readonly', path: '/samples/readonly.html' },
-  { name: 'samples-sizing', path: '/samples/sizing.html' },
-  { name: 'samples-tui', path: '/samples/tui.html' },
-  { name: 'samples-elementals', path: '/samples/elementals.html' },
-  { name: 'samples-syntax', path: '/samples/syntax.html' },
-  { name: 'samples-ios', path: '/samples/ios.html' },
-  { name: 'samples-loader', path: '/samples/loader.html' },
-  { name: 'samples-movie', path: '/samples/movie.html' },
+  { name: 'samples-basic', path: '/samples/sample-basic.html' },
+  { name: 'samples-gutter-status', path: '/samples/sample-gutter-status.html' },
+  { name: 'samples-readonly', path: '/samples/sample-readonly.html' },
+  { name: 'samples-sizing', path: '/samples/sample-sizing.html' },
+  { name: 'samples-tui', path: '/samples/sample-tui.html' },
+  { name: 'samples-elementals', path: '/samples/sample-elementals.html' },
+  { name: 'samples-syntax', path: '/samples/sample-syntax.html' },
+  { name: 'samples-ios', path: '/samples/sample-ios.html' },
+  { name: 'samples-loader', path: '/samples/sample-loader.html' },
+  { name: 'samples-movie', path: '/samples/sample-movie.html' },
 
   // Test pages
   { name: 'test-index', path: '/test/' },

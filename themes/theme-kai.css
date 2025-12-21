@@ -1,0 +1,17 @@
+/* Kai Theme */
+.buffee-themepack1-kai > .wb-elements {
+  background-color: #272822;
+  color: #f8f8f2;
+}
+.buffee-themepack1-kai .wb-selection {
+  background-color: #75715e;
+  mix-blend-mode: normal;
+}
+.buffee-themepack1-kai .wb-cursor {
+  background-color: #f92672;
+}
+.buffee-themepack1-kai .wb-gutter,
+.buffee-themepack1-kai .wb-status {
+  background-color: #3e3d32;
+  color: #a6e22e;
+}
