@@ -122,10 +122,11 @@ GitHub Pages serves from root. CI screenshot tests run against these (see `snaps
 
 **Root level** (also tested by CI):
 - `index.html` - homepage
+- `style.css` - main stylesheet (user-facing)
 - `samples/` - interactive demos
 - `test/` - test runner
 
-**web/** (documentation and assets):
+**web/** (documentation):
 | File | Purpose |
 |------|---------|
 | `template.html` | Required HTML structure |
@@ -135,8 +136,9 @@ GitHub Pages serves from root. CI screenshot tests run against these (see `snaps
 | `comparison.html` | Editor comparison |
 | `performance.html` | Performance research |
 | `navigation.html` | Shared nav bar |
-| `style.css` | Main stylesheet |
-| `reset.css` | CSS reset |
+
+**assets/** (internal):
+- `reset.css` - CSS reset (web-specific)
 
 Templates: `extensions/_template.js`, `samples/_template.html`, `themes/_template.css`
 
