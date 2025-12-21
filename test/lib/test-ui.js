@@ -1246,7 +1246,17 @@
                 runner.suites.forEach(suite => {
                     suite.results.forEach(test => {
                         if (test.status === 'fail' && test.error && !knownFailures.has(test.name)) {
-                            failures.push(`${test.name}\n${test.description || ''}\n${test.error.message}`);
+                            // Get DSL source from source map
+                            const key = `${suite.name}:${test.name}`;
+                            const sourceData = window.dslSourceMap?.[key];
+                            const source = sourceData?.source?.replace(/\\n/g, '\n') || '';
+
+                            failures.push(
+                                `## ${test.name}\n` +
+                                `Suite: ${suite.name}\n` +
+                                `Error: ${test.error.message}\n` +
+                                (source ? `\nDSL Source:\n${source}` : '')
+                            );
                         }
                     });
                 });
