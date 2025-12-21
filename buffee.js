@@ -26,7 +26,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, config = {}) {
-  this.version = "11.0.7-alpha.1";
+  this.version = "11.0.8-alpha.1";
   const self = this;
 
   // TODO: make everything mutable, and observed.
@@ -309,11 +309,12 @@ function Buffee($parent, config = {}) {
           : null;
 
         // Update cursor to end of inserted text
-        if (!insertedLines) {
-          // Single char or empty - no newlines
+        if (!insertedLines || insertedLines.length === 1) {
+          // Single-line insert (single char, multi-char, or empty)
           head.row = first.row;
           head.col = first.col + s.length;
         } else {
+          // Multi-line insert
           head.row = first.row + insertedLines.length - 1;
           head.col = insertedLines[insertedLines.length - 1].length;
         }

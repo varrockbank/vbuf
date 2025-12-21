@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 11.0.8-alpha.1 [2025-12-21]  gz+min: 3.75 KB (+0.01), min: 10.76 KB (+0.01)
+*** fix
+- cursor position after multi-char selection replacement
+
 ** 11.0.7-alpha.1 [2025-12-21]  gz+min: 3.75 KB (-0.03), min: 10.75 KB (-0.05)
 *** breaking
 - move `interactive` property to `Mode.interactive`
