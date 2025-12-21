@@ -86,7 +86,7 @@ Located in `extensions/`, tested in "Extensions" tab of `test/index.html`.
 
 ## Themes
 
-Located in `themes/`. Apply with class `buffee-themepack1 {name}` on `.wb` element.
+Located in `themes/`. Apply with class `buffee-themepack1-{name}` on `.wb` element.
 
 | File | Background | Text | Style |
 |------|------------|------|-------|
