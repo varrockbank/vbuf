@@ -6,7 +6,7 @@ See `template.html` for the required HTML structure. Missing any element will ca
 
 **When updating `template.html`, also update:**
 - `getting-started.html` (HTML-escaped version in `<pre>`)
-- `test/lib/harness.js` (createEditorNode function)
+- `test/lib/test-runner.js` (createEditorNode function)
 - `index.html` (all editor instances)
 - `samples/*.html` (all sample files)
 - `themes.html`
@@ -72,13 +72,17 @@ EXPECT cursor at 0,5
 
 Located in `extensions/`, tested in "Extensions" tab of `test/index.html`.
 
-| Extension | File | Description |
-|-----------|------|-------------|
-| Syntax | `syntax.js` | Regex-based syntax highlighting |
-| Elementals | `elementals.js` | DOM-based UI elements in overlay layer |
-| TUI Legacy | `tui.js` | Text-based UI via text manipulation |
-| FileLoader | `fileloader.js` | Multiple file loading strategies for different sizes |
-| UltraHighCapacity | `ultrahighcapacity.js` | Ultra-high-capacity mode for 1B+ lines |
+| File | Function | Description |
+|------|----------|-------------|
+| `statusline.js` | `BuffeeStatusLine(node)` | Status bar callbacks |
+| `syntax.js` | `BuffeeSyntax(vbuf)` | Regex-based syntax highlighting |
+| `elementals.js` | `BuffeeElementals(vbuf)` | DOM-based UI elements in overlay |
+| `highlights.js` | `BuffeeHighlights(vbuf)` | Line/range highlighting |
+| `tui.js` | `BuffeeTUI(vbuf)` | Text-based UI via text manipulation |
+| `ios.js` | `BuffeeIOS(vbuf)` | iOS touch/keyboard support |
+| `fileloader.js` | `BuffeeFileLoader(vbuf)` | File loading strategies |
+| `ultrahighcapacity.js` | `BuffeeUltraHighCapacity(vbuf)` | 1B+ line support |
+| `treesitter.js` | `BuffeeTreeSitter(vbuf, opts)` | Tree-sitter integration |
 
 ## Generating Sample Pages
 
