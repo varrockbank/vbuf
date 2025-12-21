@@ -30,8 +30,8 @@ Spec files (in `test/specs/`):
 | `spec-regression.dsl` | Walkthrough, DSL Regression | Edge cases, bug fixes |
 
 Test infrastructure:
+- `test/lib/test-runner.js` - TestRunner + EditorTestHarness + Key constants
 - `test/lib/test-expect.js` - Assertions (`toBe`, `toEqual`, `toBeCloseTo`)
-- `test/lib/test-harness.js` - Test fixture and key simulation
 - `test/lib/test-ui.js` - Test runner UI (SPEC_FILES array defines load order)
 
 **AI Diagnostics tab**: Copy all test failures at once for pasting to Claude.
