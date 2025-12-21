@@ -16,12 +16,54 @@
  */
 function BuffeeFileLoader(editor) {
   const { Model } = editor;
+  const $parent = editor._$e.parentElement;
+
+  // Create progress bar element
+  const $progress = document.createElement('div');
+  const $bar = document.createElement('div');
+  Object.assign($progress.style, {
+    display: 'none',
+    height: '15px',
+    background: 'rgba(255,255,255,0.1)',
+    position: 'relative'
+  });
+  Object.assign($bar.style, {
+    height: '100%',
+    width: '0%',
+    background: 'linear-gradient(90deg, #4ade80, #a855f7)',
+    transition: 'width 0.1s ease-out'
+  });
+  $progress.appendChild($bar);
+  $parent.insertBefore($progress, $parent.firstChild);
 
   /**
    * FileLoader API.
    * @namespace FileLoader
    */
   const FileLoader = {
+    /**
+     * Show the progress bar and reset to 0%.
+     */
+    showProgress() {
+      $bar.style.width = '0%';
+      $progress.style.display = 'block';
+    },
+
+    /**
+     * Set progress bar percentage.
+     * @param {number} percent - Progress from 0 to 1
+     */
+    setProgress(percent) {
+      $bar.style.width = (percent * 100) + '%';
+    },
+
+    /**
+     * Hide the progress bar.
+     */
+    hideProgress() {
+      $progress.style.display = 'none';
+    },
+
     /**
      * Naive loader - reads entire file into memory at once.
      * Best for small files (<10MB).
@@ -45,10 +87,12 @@ function BuffeeFileLoader(editor) {
      * @param {File} file - The file to load
      * @param {Object} [options]
      * @param {number} [options.chunkSize=1048576] - Chunk size in bytes (default 1MB)
+     * @param {Function} [options.onProgress] - Progress callback (0-1)
      * @returns {Promise<{lines: number, timeMs: number}>}
      */
     async chunkedBlobLoad(file, options = {}) {
       const chunkSize = options.chunkSize || 1 * 1024 * 1024;
+      const onProgress = options.onProgress;
       const t0 = performance.now();
 
       Model.lines = [];
@@ -72,6 +116,7 @@ function BuffeeFileLoader(editor) {
           remainder = fullText;
         }
         offset += chunkSize;
+        if (onProgress) onProgress(Math.min(offset / file.size, 1));
       }
 
       if (remainder.length > 0) {
@@ -92,10 +137,12 @@ function BuffeeFileLoader(editor) {
      * @param {File} file - The file to load
      * @param {Object} [options]
      * @param {number} [options.chunkSize=1048576] - Chunk size in bytes (default 1MB)
+     * @param {Function} [options.onProgress] - Progress callback (0-1)
      * @returns {Promise<{lines: number, timeMs: number}>}
      */
     async chunkedFileReaderLoad(file, options = {}) {
       const chunkSize = options.chunkSize || 1 * 1024 * 1024;
+      const onProgress = options.onProgress;
       const t0 = performance.now();
 
       Model.lines = [];
@@ -128,6 +175,7 @@ function BuffeeFileLoader(editor) {
           remainder = fullText;
         }
         offset += chunkSize;
+        if (onProgress) onProgress(Math.min(offset / file.size, 1));
       }
 
       if (remainder.length > 0) {
@@ -148,15 +196,18 @@ function BuffeeFileLoader(editor) {
      * @param {File} file - The file to load
      * @param {Object} [options]
      * @param {number} [options.yieldEvery=10] - Yield to browser every N chunks
+     * @param {Function} [options.onProgress] - Progress callback (0-1)
      * @returns {Promise<{lines: number, timeMs: number}>}
      */
     async streamLoad(file, options = {}) {
       const yieldEvery = options.yieldEvery || 10;
+      const onProgress = options.onProgress;
       const t0 = performance.now();
 
       Model.lines = [];
       let remainder = '';
       let totalLines = 0;
+      let bytesRead = 0;
       const decoder = new TextDecoder('utf-8');
       const reader = file.stream().getReader();
       let chunkCount = 0;
@@ -166,6 +217,7 @@ function BuffeeFileLoader(editor) {
           const { done, value } = await reader.read();
           if (done) break;
 
+          bytesRead += value.length;
           const text = decoder.decode(value, { stream: true });
           const fullText = remainder + text;
           const lastNewlineIndex = fullText.lastIndexOf('\n');
@@ -182,6 +234,7 @@ function BuffeeFileLoader(editor) {
 
           chunkCount++;
           if (chunkCount % yieldEvery === 0) {
+            if (onProgress) onProgress(bytesRead / file.size);
             await new Promise(resolve => setTimeout(resolve, 0));
           }
         }
@@ -208,16 +261,19 @@ function BuffeeFileLoader(editor) {
      * @param {File} file - The file to load
      * @param {Object} [options]
      * @param {number} [options.yieldEvery=10] - Yield to browser every N chunks
+     * @param {Function} [options.onProgress] - Progress callback (0-1)
      * @returns {Promise<{lines: number, timeMs: number}>}
      */
     async streamMaterializedLoad(file, options = {}) {
       const yieldEvery = options.yieldEvery || 10;
+      const onProgress = options.onProgress;
       const t0 = performance.now();
 
       Model.lines = [];
       const decoder = new TextDecoder('utf-8');
       const reader = file.stream().getReader();
       let chunkCount = 0;
+      let bytesRead = 0;
       let remainder = '';
 
       try {
@@ -225,6 +281,7 @@ function BuffeeFileLoader(editor) {
           const { done, value } = await reader.read();
           if (done) break;
 
+          bytesRead += value.length;
           const text = decoder.decode(value, { stream: true });
           const lastNewlineIndex = text.lastIndexOf('\n');
 
@@ -243,6 +300,7 @@ function BuffeeFileLoader(editor) {
 
           chunkCount++;
           if (chunkCount % yieldEvery === 0) {
+            if (onProgress) onProgress(bytesRead / file.size);
             editor._appendLines([], false);
             await new Promise(resolve => setTimeout(resolve, 0));
           }
@@ -268,17 +326,20 @@ function BuffeeFileLoader(editor) {
      * @param {Object} [options]
      * @param {number} [options.yieldEvery=10] - Yield to browser every N chunks
      * @param {number} [options.renderEvery=5] - Render every N chunks (within yieldEvery cycle)
+     * @param {Function} [options.onProgress] - Progress callback (0-1)
      * @returns {Promise<{lines: number, timeMs: number}>}
      */
     async streamGcHintsLoad(file, options = {}) {
       const yieldEvery = options.yieldEvery || 10;
       const renderEvery = options.renderEvery || 5;
+      const onProgress = options.onProgress;
       const t0 = performance.now();
 
       Model.lines = [];
       const decoder = new TextDecoder('utf-8');
       const reader = file.stream().getReader();
       let chunkCount = 0;
+      let bytesRead = 0;
       let remainder = '';
 
       try {
@@ -286,6 +347,7 @@ function BuffeeFileLoader(editor) {
           const { done, value } = await reader.read();
           if (done) break;
 
+          bytesRead += value.length;
           const text = decoder.decode(value, { stream: true });
           const lastNewlineIndex = text.lastIndexOf('\n');
 
@@ -305,6 +367,7 @@ function BuffeeFileLoader(editor) {
 
           chunkCount++;
           if (chunkCount % yieldEvery === 0) {
+            if (onProgress) onProgress(bytesRead / file.size);
             // Create temporary memory pressure to hint GC
             const _ = new Array(100000);
             await new Promise(resolve => setTimeout(resolve, 0));
