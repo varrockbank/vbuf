@@ -32,7 +32,7 @@
       .then(r => r.text())
       .then(html => document.getElementById('nav').innerHTML = html);
   </script>
-  <p><strong>Buffee, the text slayer</strong> <span id="vbuf-version"></span> — embeddable terminal-style text editor for netizens — compact, fast, unbounded</p>
+  <p><strong>Buffee, the text slayer</strong> <span id="buffee-version"></span> — embeddable terminal-style text editor for netizens — compact, fast, unbounded</p>
 
   <div class="point">
     <div>
@@ -200,8 +200,8 @@
     mainElement.focus();
     window.primary = primary;
 
-    // Set version from vbuf instance
-    document.getElementById('vbuf-version').textContent = '( v' + primary.version + ' )';
+    // Set version from Buffee instance
+    document.getElementById('buffee-version').textContent = '( v' + primary.version + ' )';
 
     const hackerNewsElement = document.getElementById('hackernews');
     const hackernews = new Buffee(hackerNewsElement, {

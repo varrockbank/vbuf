@@ -9,12 +9,12 @@
  * Initializes Elementals extension for a Buffee instance.
  * Creates UI elements (buttons, labels, inputs) as DOM nodes in the element layer.
  *
- * @param {Buffee} vbuf - The Buffee instance to extend
+ * @param {Buffee} editor - The Buffee instance to extend
  * @returns {Object} The Elementals API object
  */
-function BuffeeElementals(vbuf) {
-  const { $e, renderHooks } = vbuf._internals;
-  const { Viewport, lineHeight } = vbuf;
+function BuffeeElementals(editor) {
+  const { $e, renderHooks } = editor._internals;
+  const { Viewport, lineHeight } = editor;
   const $elementLayer = $e.querySelector('.wb-layer-elements');
 
   let enabled = false;
@@ -94,7 +94,7 @@ function BuffeeElementals(vbuf) {
         updateFocus();
       }
       // Set read-only mode to hide cursor/selection when elementals is enabled
-      vbuf.interactive = enabled ? -1 : 1;
+      editor.interactive = enabled ? -1 : 1;
       updatePositions();
     },
 
@@ -235,7 +235,7 @@ function BuffeeElementals(vbuf) {
           e.preventDefault();
           element.onSubmit(element);
         }
-        // Stop propagation so vbuf doesn't handle these keys
+        // Stop propagation so editor doesn't handle these keys
         e.stopPropagation();
       });
 
@@ -363,8 +363,8 @@ function BuffeeElementals(vbuf) {
     elements
   };
 
-  // Attach to vbuf instance
-  vbuf.Elementals = Elementals;
+  // Attach to editor instance
+  editor.Elementals = Elementals;
 
   return Elementals;
 }

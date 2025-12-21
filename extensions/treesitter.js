@@ -8,7 +8,7 @@
  * Initializes Tree-sitter syntax highlighting for a Buffee instance.
  * Renders at 60fps using a dirty flag pattern.
  *
- * @param {Buffee} vbuf - The Buffee instance to extend
+ * @param {Buffee} editor - The Buffee instance to extend
  * @param {Object} options - Tree-sitter configuration
  * @param {Object} options.parser - Tree-sitter parser instance
  * @param {Object} options.query - Tree-sitter query for capturing syntax nodes
@@ -18,9 +18,9 @@
  * const TreeSitter = BuffeeTreeSitter(editor, { parser: jsParser, query: jsQuery });
  * TreeSitter.enabled = true;
  */
-function BuffeeTreeSitter(vbuf, { parser, query }) {
-  const { $e, render, renderHooks } = vbuf._internals;
-  const { Viewport, Model } = vbuf;
+function BuffeeTreeSitter(editor, { parser, query }) {
+  const { $e, render, renderHooks } = editor._internals;
+  const { Viewport, Model } = editor;
 
   /** @type {boolean} */
   let enabled = false;
@@ -163,8 +163,8 @@ function BuffeeTreeSitter(vbuf, { parser, query }) {
     }
   };
 
-  // Attach to vbuf instance
-  vbuf.TreeSitter = TreeSitter;
+  // Attach to editor instance
+  editor.TreeSitter = TreeSitter;
 
   return TreeSitter;
 }

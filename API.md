@@ -470,18 +470,18 @@ renderHooks.onRenderComplete.push(($container, viewport) => {
 ### Example: Custom Extension
 
 ```javascript
-function MyExtension(vbuf) {
-  const { renderHooks, render } = vbuf._internals;
+function MyExtension(editor) {
+  const { renderHooks, render } = editor._internals;
 
   // Register render hook
   renderHooks.onRenderComplete.push(($e, viewport) => {
     // Custom rendering logic
   });
 
-  // Expose API on vbuf instance
-  vbuf.MyExtension = {
-    enable() { vbuf.editMode = 'navigate'; render(true); },
-    disable() { vbuf.editMode = 'write'; render(true); }
+  // Expose API on editor instance
+  editor.MyExtension = {
+    enable() { editor.editMode = 'navigate'; render(true); },
+    disable() { editor.editMode = 'write'; render(true); }
   };
 }
 

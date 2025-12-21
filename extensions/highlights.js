@@ -6,12 +6,12 @@
 
 /**
  * Initializes highlight support for a Buffee instance.
- * @param {Buffee} vbuf - The Buffee instance to extend
+ * @param {Buffee} editor - The Buffee instance to extend
  * @returns {Object} The Highlights API object
  */
-function BuffeeHighlights(vbuf) {
-  const { $e, contentOffset } = vbuf._internals;
-  const { lineHeight } = vbuf;
+function BuffeeHighlights(editor) {
+  const { $e, contentOffset } = editor._internals;
+  const { lineHeight } = editor;
 
   // Create fixed layer for highlights (doesn't scroll with content)
   const $layer = document.createElement('div');
@@ -90,6 +90,6 @@ function BuffeeHighlights(vbuf) {
     }
   };
 
-  vbuf.Highlights = Highlights;
+  editor.Highlights = Highlights;
   return Highlights;
 }

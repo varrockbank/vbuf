@@ -7,15 +7,15 @@
 /**
  * Initializes file loading capabilities for a Buffee instance.
  *
- * @param {Buffee} vbuf - The Buffee instance to extend
+ * @param {Buffee} editor - The Buffee instance to extend
  * @returns {Object} The FileLoader API object
  * @example
  * const editor = new Buffee(document.getElementById('editor'));
  * BuffeeFileLoader(editor);
  * await editor.FileLoader.streamMaterializedLoad(file);
  */
-function BuffeeFileLoader(vbuf) {
-  const { Model, _internals } = vbuf;
+function BuffeeFileLoader(editor) {
+  const { Model, _internals } = editor;
 
   /**
    * FileLoader API.
@@ -324,8 +324,8 @@ function BuffeeFileLoader(vbuf) {
     }
   };
 
-  // Attach to vbuf instance
-  vbuf.FileLoader = FileLoader;
+  // Attach to editor instance
+  editor.FileLoader = FileLoader;
 
   return FileLoader;
 }

@@ -75,14 +75,14 @@ Located in `extensions/`, tested in "Extensions" tab of `test/index.html`.
 | File | Function | Description |
 |------|----------|-------------|
 | `statusline.js` | `BuffeeStatusLine(node)` | Status bar callbacks |
-| `syntax.js` | `BuffeeSyntax(vbuf)` | Regex-based syntax highlighting |
-| `elementals.js` | `BuffeeElementals(vbuf)` | DOM-based UI elements in overlay |
-| `highlights.js` | `BuffeeHighlights(vbuf)` | Line/range highlighting |
-| `tui.js` | `BuffeeTUI(vbuf)` | Text-based UI via text manipulation |
-| `ios.js` | `BuffeeIOS(vbuf)` | iOS touch/keyboard support |
-| `fileloader.js` | `BuffeeFileLoader(vbuf)` | File loading strategies |
-| `ultrahighcapacity.js` | `BuffeeUltraHighCapacity(vbuf)` | 1B+ line support |
-| `treesitter.js` | `BuffeeTreeSitter(vbuf, opts)` | Tree-sitter integration |
+| `syntax.js` | `BuffeeSyntax(editor)` | Regex-based syntax highlighting |
+| `elementals.js` | `BuffeeElementals(editor)` | DOM-based UI elements in overlay |
+| `highlights.js` | `BuffeeHighlights(editor)` | Line/range highlighting |
+| `tui.js` | `BuffeeTUI(editor)` | Text-based UI via text manipulation |
+| `ios.js` | `BuffeeIOS(editor)` | iOS touch/keyboard support |
+| `fileloader.js` | `BuffeeFileLoader(editor)` | File loading strategies |
+| `ultrahighcapacity.js` | `BuffeeUltraHighCapacity(editor)` | 1B+ line support |
+| `treesitter.js` | `BuffeeTreeSitter(editor, opts)` | Tree-sitter integration |
 
 ## Themes
 

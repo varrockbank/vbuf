@@ -30,7 +30,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, config = {}) {
-  this.version = "9.0.1-alpha.1";
+  this.version = "9.0.2-alpha.1";
   const self = this;
 
   // TODO: make everything mutable, and observed.
@@ -529,7 +529,7 @@ function Buffee($parent, config = {}) {
   };
 
   // ============================================================================
-  // Extension hooks - allows extensions to hook into vbuf without vbuf knowing about them
+  // Extension hooks - allows extensions to hook into editor without Buffee knowing about them
   // ============================================================================
 
   /**
