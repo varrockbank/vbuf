@@ -90,17 +90,17 @@ Located in `themes/`. Apply with class `buffee-themepack1 {name}` on `.wb` eleme
 
 | File | Background | Text | Style |
 |------|------------|------|-------|
-| `boring.css` | #282c34 | #B2B2B2 | Dark gray |
-| `chelsey.css` | #ffffff | #000000 | Light |
-| `darkly.css` | #002b36 | #839496 | Solarized dark |
-| `drak.css` | #282a36 | #f8f8f2 | Dracula |
-| `eva.css` | #1e1e28 | #d4d4d4 | Evangelion purple |
-| `gruv.css` | #282828 | #ebdbb2 | Gruvbox |
-| `hn.css` | #F6F6EF | black | Hacker News |
-| `kai.css` | #272822 | #f8f8f2 | Monokai |
-| `neo.css` | #0d0d0d | #00ff41 | Matrix green |
-| `nord.css` | #2e3440 | #d8dee9 | Nord |
-| `star.css` | #000000 | #FFD700 | Star Wars gold |
+| `theme-boring.css` | #282c34 | #B2B2B2 | Dark gray |
+| `theme-chelsey.css` | #ffffff | #000000 | Light |
+| `theme-darkly.css` | #002b36 | #839496 | Solarized dark |
+| `theme-drak.css` | #282a36 | #f8f8f2 | Dracula |
+| `theme-eva.css` | #1e1e28 | #d4d4d4 | Evangelion purple |
+| `theme-gruv.css` | #282828 | #ebdbb2 | Gruvbox |
+| `theme-hn.css` | #F6F6EF | black | Hacker News |
+| `theme-kai.css` | #272822 | #f8f8f2 | Monokai |
+| `theme-neo.css` | #0d0d0d | #00ff41 | Matrix green |
+| `theme-nord.css` | #2e3440 | #d8dee9 | Nord |
+| `theme-star.css` | #000000 | #FFD700 | Star Wars gold |
 
 ## Website Structure
 
