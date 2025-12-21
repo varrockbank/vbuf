@@ -50,7 +50,7 @@
   <div id="read-only-indicator" class="read-only-indicator hidden">
     Read-Only Mode (Chunked+Compressed) - Navigation only, editing disabled
   </div>
-  <div class="buffee buffee-themepack1-eva" id="editor" style="border: 1px solid #444; width: 100%;">
+  <div class="buffee buffee-themepack1-eva" id="editor">
     <textarea class="buffee-clipboard-bridge" aria-hidden="true"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
@@ -105,6 +105,12 @@
     </div>
   </fieldset>
 
+  <fieldset>
+    <legend>Progress Bar Demo:</legend>
+    <p>The progress bar API is decoupled from file loading - useful for server-driven progress.</p>
+    <button id="demo-progress">Simulate Server Load (3s)</button>
+  </fieldset>
+
   <h3>Logs:</h3>
   <div class="buffee buffee-themepack1-boring" id="logs-editor">
     <textarea class="buffee-clipboard-bridge" aria-hidden="true"></textarea>
@@ -149,7 +155,7 @@
     }
 
     const editor = new Buffee(editorEl, {
-      rows: 15,
+      rows: 10,
       logger: log,
       callbacks: BuffeeStatusLine(editorEl)
     });
@@ -179,12 +185,17 @@
       document.getElementById("file-loader-buttons").classList.remove('hidden');
     }, false);
 
+    // Progress callback for all loaders
+    const onProgress = (p) => editor.FileLoader.setProgress(p);
+
     // Standard Loader
     document.getElementById('load-file-naive').addEventListener('click', async () => {
       const f = document.getElementById("file-input").files[0];
       if (!f) { alert("No file selected"); return; }
 
+      editor.FileLoader.showProgress();
       const result = await editor.FileLoader.naiveLoad(f);
+      editor.FileLoader.hideProgress();
       const fileSizeMiB = (f.size / (1024 * 1024)).toFixed(3);
       log(`[Naive] Loaded ${result.lines.toLocaleString()} lines in ${result.timeMs.toFixed(2)}ms // ${fileSizeMiB} MiB`);
     });
@@ -194,7 +205,9 @@
       const f = document.getElementById("file-input").files[0];
       if (!f) { alert("No file selected"); return; }
 
-      const result = await editor.FileLoader.chunkedBlobLoad(f);
+      editor.FileLoader.showProgress();
+      const result = await editor.FileLoader.chunkedBlobLoad(f, { onProgress });
+      editor.FileLoader.hideProgress();
       const fileSizeMiB = (f.size / (1024 * 1024)).toFixed(3);
       log(`[Chunked] Loaded ${result.lines.toLocaleString()} lines in ${result.timeMs.toFixed(2)}ms // ${fileSizeMiB} MiB`);
     });
@@ -204,7 +217,9 @@
       const f = document.getElementById("file-input").files[0];
       if (!f) { alert("No file selected"); return; }
 
-      const result = await editor.FileLoader.chunkedFileReaderLoad(f);
+      editor.FileLoader.showProgress();
+      const result = await editor.FileLoader.chunkedFileReaderLoad(f, { onProgress });
+      editor.FileLoader.hideProgress();
       const fileSizeMiB = (f.size / (1024 * 1024)).toFixed(3);
       log(`[FileReader] Loaded ${result.lines.toLocaleString()} lines in ${result.timeMs.toFixed(2)}ms // ${fileSizeMiB} MiB`);
     });
@@ -214,7 +229,9 @@
       const f = document.getElementById("file-input").files[0];
       if (!f) { alert("No file selected"); return; }
 
-      const result = await editor.FileLoader.streamLoad(f);
+      editor.FileLoader.showProgress();
+      const result = await editor.FileLoader.streamLoad(f, { onProgress });
+      editor.FileLoader.hideProgress();
       const fileSizeMiB = (f.size / (1024 * 1024)).toFixed(3);
       log(`[Stream] Loaded ${result.lines.toLocaleString()} lines in ${result.timeMs.toFixed(2)}ms // ${fileSizeMiB} MiB`);
     });
@@ -224,7 +241,9 @@
       const f = document.getElementById("file-input").files[0];
       if (!f) { alert("No file selected"); return; }
 
-      const result = await editor.FileLoader.streamMaterializedLoad(f);
+      editor.FileLoader.showProgress();
+      const result = await editor.FileLoader.streamMaterializedLoad(f, { onProgress });
+      editor.FileLoader.hideProgress();
       const fileSizeMiB = (f.size / (1024 * 1024)).toFixed(3);
       log(`[Stream+Mat] Loaded ${result.lines.toLocaleString()} lines in ${result.timeMs.toFixed(2)}ms // ${fileSizeMiB} MiB`);
     });
@@ -234,7 +253,9 @@
       const f = document.getElementById("file-input").files[0];
       if (!f) { alert("No file selected"); return; }
 
-      const result = await editor.FileLoader.streamGcHintsLoad(f);
+      editor.FileLoader.showProgress();
+      const result = await editor.FileLoader.streamGcHintsLoad(f, { onProgress });
+      editor.FileLoader.hideProgress();
       const fileSizeMiB = (f.size / (1024 * 1024)).toFixed(3);
       log(`[Stream+GC] Loaded ${result.lines.toLocaleString()} lines in ${result.timeMs.toFixed(2)}ms // ${fileSizeMiB} MiB`);
     });
@@ -244,6 +265,7 @@
       const f = document.getElementById("file-input").files[0];
       if (!f) { alert("No file selected"); return; }
 
+      editor.FileLoader.showProgress();
       const reader = f.stream().getReader();
       try {
         editor.UltraHighCapacity.activate();
@@ -251,6 +273,7 @@
 
         const decoder = new TextDecoder('utf-8');
         let chunkCount = 0;
+        let bytesRead = 0;
         const t0 = performance.now();
         let remainder = '';
         let originalSize = 0;
@@ -259,6 +282,7 @@
           const { done, value } = await reader.read();
           if (done) break;
 
+          bytesRead += value.length;
           const text = decoder.decode(value, { stream: true });
           const lastNewlineIndex = text.lastIndexOf('\n');
 
@@ -277,6 +301,7 @@
 
           chunkCount++;
           if (chunkCount % 10 === 0) {
+            editor.FileLoader.setProgress(bytesRead / f.size);
             await editor._appendLines([], false);
             await new Promise(resolve => setTimeout(resolve, 0));
           }
@@ -286,6 +311,7 @@
           await editor._appendLines([remainder], false);
         }
 
+        editor.FileLoader.hideProgress();
         const compressedSize = editor.UltraHighCapacity.compressedSize;
         const t1 = performance.now();
         const fileSizeMiB = (f.size / (1024 * 1024)).toFixed(3);
@@ -300,6 +326,20 @@
       } finally {
         reader.releaseLock();
       }
+    });
+
+    // Progress bar demo (simulates server-driven progress)
+    document.getElementById('demo-progress').addEventListener('click', async () => {
+      editor.FileLoader.showProgress();
+      log('[Progress Demo] Starting simulated server load...');
+
+      for (let i = 0; i <= 100; i += 5) {
+        editor.FileLoader.setProgress(i / 100);
+        await new Promise(r => setTimeout(r, 150));
+      }
+
+      editor.FileLoader.hideProgress();
+      log('[Progress Demo] Complete');
     });
   </script>
 </body>

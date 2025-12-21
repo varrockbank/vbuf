@@ -29,20 +29,18 @@
   
   <pre>new Buffee(el, {})
 TUI.enabled = true</pre>
-  <div style="width: 600px; height: 300px; border: 1px solid #444;">
-    <div class="buffee buffee-themepack1-boring" id="editor-tui" style="width: 100%; height: 100%;">
-      <textarea class="buffee-clipboard-bridge"></textarea>
-      <div class="no-select buffee-elements">
-        <div class="buffee-gutter"></div>
-        <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
-      </div>
-      <div class="buffee-status">
-        <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
-        <div class="buffee-status-right">
-          Ln <span class="buffee-head-row"></span>, Col <span class="buffee-head-col"></span>
-          <span class="buffee-status-divider">|</span>
-          <span class="buffee-spaces"></span>
-        </div>
+  <div class="buffee buffee-themepack1-boring" id="editor-tui">
+    <textarea class="buffee-clipboard-bridge"></textarea>
+    <div class="no-select buffee-elements">
+      <div class="buffee-gutter"></div>
+      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+    </div>
+    <div class="buffee-status">
+      <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
+      <div class="buffee-status-right">
+        Ln <span class="buffee-head-row"></span>, Col <span class="buffee-head-col"></span>
+        <span class="buffee-status-divider">|</span>
+        <span class="buffee-spaces"></span>
       </div>
     </div>
   </div>
@@ -54,20 +52,18 @@ TUI.enabled = true</pre>
   <pre>BuffeeUltraHighCapacity(editor)
 editor.UltraHighCapacity.activate()
 await editor.UltraHighCapacity.appendLines([...])</pre>
-  <div style="width: 600px; height: 300px; border: 1px solid #444;">
-    <div class="buffee buffee-themepack1-boring" id="editor-chunked" style="width: 100%; height: 100%;">
-      <textarea class="buffee-clipboard-bridge"></textarea>
-      <div class="no-select buffee-elements">
-        <div class="buffee-gutter"></div>
-        <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
-      </div>
-      <div class="buffee-status">
-        <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
-        <div class="buffee-status-right">
-          Ln <span class="buffee-head-row"></span>, Col <span class="buffee-head-col"></span>
-          <span class="buffee-status-divider">|</span>
-          <span class="buffee-spaces"></span>
-        </div>
+  <div class="buffee buffee-themepack1-boring" id="editor-chunked">
+    <textarea class="buffee-clipboard-bridge"></textarea>
+    <div class="no-select buffee-elements">
+      <div class="buffee-gutter"></div>
+      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+    </div>
+    <div class="buffee-status">
+      <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
+      <div class="buffee-status-right">
+        Ln <span class="buffee-head-row"></span>, Col <span class="buffee-head-col"></span>
+        <span class="buffee-status-divider">|</span>
+        <span class="buffee-spaces"></span>
       </div>
     </div>
   </div>
@@ -87,6 +83,7 @@ example();`;
     // Option 1: TUI mode
     const elTui = document.getElementById('editor-tui');
     const edTui = new Buffee(elTui, {
+      rows: 10,
       callbacks: BuffeeStatusLine(elTui)
     });
     BuffeeTUI(edTui);
@@ -96,6 +93,7 @@ example();`;
     // Option 2: Ultra High Capacity mode (for large files)
     const elChunked = document.getElementById('editor-chunked');
     const edChunked = new Buffee(elChunked, {
+      rows: 10,
       callbacks: BuffeeStatusLine(elChunked)
     });
     BuffeeUltraHighCapacity(edChunked);

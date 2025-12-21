@@ -60,8 +60,7 @@
   <pre>BuffeeSyntax(editor)
 editor.Syntax.setLanguage('javascript')
 editor.Syntax.enabled = true</pre>
-  <div style="border: 1px solid #444;">
-    <div class="buffee buffee-themepack1-eva" id="editor" style="width: 100%; height: 100%;">
+  <div class="buffee buffee-themepack1-eva" id="editor">
       <textarea class="buffee-clipboard-bridge"></textarea>
       <div class="no-select buffee-elements">
         <div class="buffee-gutter"></div>
@@ -80,7 +79,6 @@ editor.Syntax.enabled = true</pre>
         </div>
       </div>
     </div>
-  </div>
 
   <h2>State Cache Visualization</h2>
   <p>Shows the tokenizer state at the start of each visible line (0 = normal, 1+ = special states like multiline comment/string)</p>
@@ -92,7 +90,7 @@ editor.Syntax.enabled = true</pre>
     const stateDisplay = document.getElementById('state-display');
 
     const editor = new Buffee(editorEl, {
-      rows: 20,
+      rows: 10,
       callbacks: BuffeeStatusLine(editorEl)
     });
 

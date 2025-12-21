@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>buffee - Wrappers</title>
+  <link rel="stylesheet" href="../assets/reset.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+  <script>
+    fetch('navigation.html')
+      .then(r => r.text())
+      .then(html => document.getElementById('nav').innerHTML = html);
+  </script>
+
+  <h1>Wrappers</h1>
+  <p>Framework wrappers for Buffee. Use these to integrate Buffee into your preferred framework.</p>
+
+  <h2>React</h2>
+  <p><a href="https://github.com/varrockbank/buffee/blob/main/wrappers/react.jsx"><code>wrappers/react.jsx</code></a></p>
+  <pre>import { BuffeeEditor } from './react.jsx';
+
+function App() {
+  const editorRef = useRef(null);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.Model.text = 'Hello, World!';
+    }
+  }, []);
+
+  return &lt;BuffeeEditor ref={editorRef} rows={10} theme="eva" /&gt;;
+}</pre>
+
+  <h2>Svelte</h2>
+  <p><a href="https://github.com/varrockbank/buffee/blob/main/wrappers/svelte.svelte"><code>wrappers/svelte.svelte</code></a></p>
+  <pre>&lt;script&gt;
+  import BuffeeEditor from './svelte.svelte';
+  let editor;
+
+  function handleReady(e) {
+    editor = e.detail;
+    editor.Model.text = 'Hello, World!';
+  }
+&lt;/script&gt;
+
+&lt;BuffeeEditor rows={10} theme="eva" on:ready={handleReady} /&gt;</pre>
+
+  <h2>Vue</h2>
+  <p><a href="https://github.com/varrockbank/buffee/blob/main/wrappers/vue.js"><code>wrappers/vue.js</code></a></p>
+  <pre>&lt;script setup&gt;
+import BuffeeEditor from './vue.js';
+
+function handleReady(editor) {
+  editor.Model.text = 'Hello, World!';
+}
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;BuffeeEditor :rows="10" theme="eva" @ready="handleReady" /&gt;
+&lt;/template&gt;</pre>
+
+  <hr>
+
+  <h2>Props</h2>
+  <p>All wrappers support these props:</p>
+  <pre>rows         Number   Fixed number of visible lines
+cols         Number   Fixed number of text columns
+spaces       Number   Spaces per tab (default: 4)
+theme        String   Theme name (e.g., 'eva', 'nord', 'gruv')
+showGutter   Boolean  Show line numbers (default: true)
+gutterRight  Boolean  Position gutter on right side (default: false)
+showStatus   Boolean  Show status bar (default: true)
+statusTop    Boolean  Position status bar at top (default: false)
+initialText  String   Initial editor content</pre>
+
+</body>
+</html>
