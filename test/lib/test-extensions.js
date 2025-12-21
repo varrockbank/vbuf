@@ -502,9 +502,9 @@ function defineExtensionTests() {
             try {
                 BuffeeHistory(editor);
                 editor.Selection.insert('Hello');
-                assertEqual(editor.Cursor.col, 5, 'Cursor should be at col 5');
+                assertEqual(editor._internals.head.col, 5, 'Cursor should be at col 5');
                 editor.History.undo();
-                assertEqual(editor.Cursor.col, 0, 'Cursor should be at col 0 after undo');
+                assertEqual(editor._internals.head.col, 0, 'Cursor should be at col 0 after undo');
             } finally {
                 cleanup();
             }
@@ -516,9 +516,9 @@ function defineExtensionTests() {
                 BuffeeHistory(editor);
                 editor.Selection.insert('AB');
                 editor.History.undo();
-                assertEqual(editor.Cursor.col, 0, 'Cursor should be at col 0 after undo');
+                assertEqual(editor._internals.head.col, 0, 'Cursor should be at col 0 after undo');
                 editor.History.redo();
-                assertEqual(editor.Cursor.col, 2, 'Cursor should be at col 2 after redo');
+                assertEqual(editor._internals.head.col, 2, 'Cursor should be at col 2 after redo');
             } finally {
                 cleanup();
             }

@@ -17,8 +17,8 @@
  */
 
 function BuffeeUndoTree(editor) {
-  const { _insert, _delete } = editor._internals;
-  const { Cursor, Selection, Model } = editor;
+  const { _insert, _delete, head, tail } = editor._internals;
+  const { Selection, Model } = editor;
 
   // Node ID counter
   let nextId = 1;
@@ -30,7 +30,7 @@ function BuffeeUndoTree(editor) {
     children: [],
     operation: null,
     cursorBefore: null,
-    cursorAfter: { row: 0, col: 0 },
+    cursorAfter: { headRow: 0, headCol: 0, tailRow: 0, tailCol: 0 },
     timestamp: Date.now(),
     activeChild: null  // Index of most recently visited child
   };
@@ -41,15 +41,19 @@ function BuffeeUndoTree(editor) {
 
   // Capture cursor position
   function captureCursor() {
-    return { row: Cursor.row, col: Cursor.col };
+    return {
+      headRow: head.row, headCol: head.col,
+      tailRow: tail.row, tailCol: tail.col
+    };
   }
 
   // Restore cursor position
   function restoreCursor(pos) {
     if (pos) {
-      Cursor.row = pos.row;
-      Cursor.col = pos.col;
-      Selection.clear();
+      head.row = pos.headRow;
+      head.col = pos.headCol;
+      tail.row = pos.tailRow;
+      tail.col = pos.tailCol;
     }
   }
 
