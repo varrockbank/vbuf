@@ -17,6 +17,15 @@
   <h1>Extensions</h1>
   <p>Optional modules for buffee. Load independently.</p>
 
+  <h2>History</h2>
+  <p><code>history.js</code></p>
+  <p>Undo/redo support with operation coalescing. Without this extension, editors have no history.</p>
+  <pre>BuffeeHistory(editor)
+editor.History.undo()
+editor.History.redo()
+editor.History.clear()</pre>
+  <p><a href="../samples/sample-history.html">Demo →</a></p>
+
   <h2>Syntax</h2>
   <p><code>syntax.js</code></p>
   <p>Regex-based syntax highlighting with incremental state caching. Ships with JavaScript, HTML, CSS, JSON, and Python.</p>
