@@ -4,10 +4,9 @@
 
 /**
  * @typedef {Object} BuffeeConfig
- * @property {number} [viewportRows] - Fixed number of visible lines (if omitted, auto-fits to container height)
- * @property {number} [viewportCols] - Fixed number of text columns (auto-calculates container width including gutter)
+ * @property {number} [rows] - Fixed number of visible lines (if omitted, auto-fits to container height)
+ * @property {number} [cols] - Fixed number of text columns (auto-calculates container width including gutter)
  * @property {number} [spaces=4] - Number of spaces per tab/indentation level
- * @property {boolean} [showGutter=true] - Whether to show line numbers
  * @property {function(string): void} [logger=console] - Logger with log and warning methods
  */
 
@@ -23,21 +22,18 @@
  * @param {HTMLElement} $parent - Container element
  * @param {BuffeeConfig} [config={}] - Configuration options
  * @example
- * const editor = new Buffee(document.getElementById('editor'), {
- *   viewportRows: 25,
- *   showGutter: true,
- * });
+ * const editor = new Buffee(document.getElementById('editor'), { rows: 25 });
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, config = {}) {
-  this.version = "9.0.2-alpha.1";
+  this.version = "9.0.3-alpha.1";
   const self = this;
 
   // TODO: make everything mutable, and observed.
   // Extract configuration with defaults
   const {
-    viewportRows,
-    viewportCols,
+    rows,
+    cols,
     spaces = 4,
     logger,
     callbacks
@@ -63,19 +59,19 @@ function Buffee($parent, config = {}) {
   const $clipboardBridge = $($parent, '.wb-clipboard-bridge');
   const $gutter = $($e, '.wb-gutter');
 
-  // Set container width if viewportCols specified
+  // Set container width if cols specified
   // Width = gutter(ch) + lines(ch) + margins(px): gutter has margin*2, lines has margin*2
-  if (viewportCols) {
+  if (cols) {
     if ($gutter) {
-      $e.style.width = `calc(${gutterCols() + viewportCols}ch + ${editorPaddingPX * 4}px)`;
+      $e.style.width = `calc(${gutterCols() + cols}ch + ${editorPaddingPX * 4}px)`;
     } else {
-      $e.style.width = `calc(${viewportCols}ch + ${editorPaddingPX * 2}px)`;
+      $e.style.width = `calc(${cols}ch + ${editorPaddingPX * 2}px)`;
     }
   }
 
-  // Set container height if viewportRows specified (don't use flex: 1)
-  if (viewportRows) {
-    const linesHeight = viewportRows * lineHeight + 'px';
+  // Set container height if rows specified (don't use flex: 1)
+  if (rows) {
+    const linesHeight = rows * lineHeight + 'px';
     $textLayer.style.height = linesHeight;
     $gutter && ($gutter.style.height = linesHeight);
   }
@@ -853,11 +849,11 @@ function Buffee($parent, config = {}) {
     /** @type {number} Index of the first visible line (0-indexed) */
     start: 0,
     /** @type {0|1} Whether viewport auto-fits to container height */
-    autoFit: viewportRows ? 0 : 1,
+    autoFit: rows ? 0 : 1,
     /** @type {number} Number of visible lines */
-    size: viewportRows ? viewportRows : 0,
+    size: rows ? rows : 0,
     /** @type {number} Pending container delta (0 = up to date) */
-    delta: viewportRows ? viewportRows : 1,
+    delta: rows ? rows : 1,
     /** @type {number} Number of DOM line containers */
     get displayLines() { return this.size + this.autoFit; },
 
@@ -939,7 +935,7 @@ function Buffee($parent, config = {}) {
         gutterDigits = digits;
         $gutter.style.width = gutterCols() + 'ch';
         // TODO: refactor into function
-        if (viewportCols) $e.style.width = `calc(${gutterCols() + viewportCols}ch + ${editorPaddingPX * 4}px)`;
+        if (cols) $e.style.width = `calc(${gutterCols() + cols}ch + ${editorPaddingPX * 4}px)`;
       }
     }
 

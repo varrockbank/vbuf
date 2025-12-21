@@ -18,21 +18,21 @@ See `style.css`
 
 ## Sizing the Editor
 
-By default, the editor auto-fits to its container (both rows and columns). Use `viewportRows` and `viewportCols` to fix dimensions.
+By default, the editor auto-fits to its container (both rows and columns). Use `rows` and `cols` to fix dimensions.
 
 | Dimension | Default | Fixed |
 |-----------|---------|-------|
-| Height | Auto-fits to container | `viewportRows: N` |
-| Width | Fills parent (100%) | `viewportCols: N` |
+| Height | Auto-fits to container | `rows: N` |
+| Width | Fills parent (100%) | `cols: N` |
 
 ### Fixed Dimensions
 
 ```javascript
 // Fixed 80 columns × 25 rows
-new Buffee(el, { viewportRows: 25, viewportCols: 80 });
+new Buffee(el, { rows: 25, cols: 80 });
 ```
 
-The `viewportCols` option auto-calculates container width to fit exactly N text columns plus gutter.
+The `cols` option auto-calculates container width to fit exactly N text columns plus gutter.
 
 ### Auto-fit (Default)
 
@@ -48,8 +48,8 @@ Requires the container to have defined dimensions:
 
 ### Dimensions
 
-- Height = `viewportRows` × `lineHeight` pixels (or auto-calculated from container)
-- Width = `viewportCols` + gutterCols in `ch` units (or 100% of parent)
+- Height = `rows` × `lineHeight` pixels (or auto-calculated from container)
+- Width = `cols` + gutterCols in `ch` units (or 100% of parent)
 
 ### Auto-fit Details
 
@@ -69,14 +69,14 @@ Auto-fit is enabled by default. The editor will:
 </div>
 ```
 
-To disable auto-fit, specify `viewportRows`.
+To disable auto-fit, specify `rows`.
 
 ## Initialize
 
 ```javascript
 const editor = new Buffee(document.getElementById('editor'), {
-  // viewportRows: 20,  // Omit to auto-fit, or specify for fixed height
-  // viewportCols: 80,  // Omit to fill parent, or specify for fixed width
+  // rows: 20,  // Omit to auto-fit, or specify for fixed height
+  // cols: 80,  // Omit to fill parent, or specify for fixed width
   spaces: 4
 });
 ```
@@ -85,8 +85,8 @@ const editor = new Buffee(document.getElementById('editor'), {
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `viewportRows` | number | (auto) | Fixed visible lines (omit to auto-fit) |
-| `viewportCols` | number | (auto) | Fixed text columns (omit to fill parent) |
+| `rows` | number | (auto) | Fixed visible lines (omit to auto-fit) |
+| `cols` | number | (auto) | Fixed text columns (omit to fill parent) |
 | `spaces` | number | `4` | Tab width and indentation (0 = hard tabs) |
 | `logger` | function | `console.log` | Custom logger |
 

@@ -114,8 +114,8 @@ editor.Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
     // Buttons demo
     const buttonsEl = document.getElementById('buttons-demo');
     const buttonsEditor = new Buffee(buttonsEl, {
-      viewportRows: 5,
-      showGutter: false,
+      rows: 5,
+                   
       callbacks: BuffeeStatusLine(buttonsEl)
     });
     BuffeeElementals(buttonsEditor);
@@ -154,8 +154,8 @@ editor.Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
     // Inputs demo
     const inputsEl = document.getElementById('inputs-demo');
     const inputsEditor = new Buffee(inputsEl, {
-      viewportRows: 5,
-      showGutter: false,
+      rows: 5,
+                   
       callbacks: BuffeeStatusLine(inputsEl)
     });
     BuffeeElementals(inputsEditor);
@@ -185,8 +185,8 @@ editor.Elementals.addButton({ row: 1, col: 5, label: 'Click Me' })</pre>
     // Mixed demo
     const mixedEl = document.getElementById('mixed-demo');
     const mixedEditor = new Buffee(mixedEl, {
-      viewportRows: 8,
-      showGutter: false,
+      rows: 8,
+                   
       callbacks: BuffeeStatusLine(mixedEl)
     });
     BuffeeElementals(mixedEditor);

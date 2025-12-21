@@ -194,7 +194,7 @@
   window.addEventListener("DOMContentLoaded", () => {
     const mainElement = document.getElementById("playground");
     const primary = new Buffee(mainElement, {
-      viewportRows: 20,
+      rows: 20,
       callbacks: BuffeeStatusLine(mainElement)
     });
     mainElement.focus();
@@ -205,7 +205,7 @@
 
     const hackerNewsElement = document.getElementById('hackernews');
     const hackernews = new Buffee(hackerNewsElement, {
-      viewportRows: 20,
+      rows: 20,
       callbacks: BuffeeStatusLine(hackerNewsElement)
     });
 
@@ -248,7 +248,7 @@
     // TUI Mode Demo
     const tuiDemoElement = document.getElementById('tui-demo');
     const tuiDemo = new Buffee(tuiDemoElement, {
-      viewportRows: 15,
+      rows: 15,
       callbacks: BuffeeStatusLine(tuiDemoElement)
     });
     BuffeeTUI(tuiDemo);  // Initialize TUI extension

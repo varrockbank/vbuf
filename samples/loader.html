@@ -131,8 +131,8 @@
     const logsEl = document.getElementById('logs-editor');
 
     const logs = new Buffee(logsEl, {
-      viewportRows: 8,
-      showGutter: false,
+      rows: 8,
+                   
       callbacks: BuffeeStatusLine(logsEl)
     });
 
@@ -149,7 +149,7 @@
     }
 
     const editor = new Buffee(editorEl, {
-      viewportRows: 15,
+      rows: 15,
       logger: log,
       callbacks: BuffeeStatusLine(editorEl)
     });
