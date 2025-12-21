@@ -743,7 +743,7 @@
             // Collect DSL test failures
             if (typeof runner !== 'undefined' && runner.suites) {
                 runner.suites.forEach(suite => {
-                    suite.results.forEach(test => {
+                    (suite.results || []).forEach(test => {
                         if (test.status === 'fail' && test.error && !knownFailures.has(test.name)) {
                             // Get DSL source from source map
                             const key = `${suite.name}:${test.name}`;
@@ -767,7 +767,7 @@
             // Collect extension test failures
             if (typeof extRunner !== 'undefined' && extRunner.suites) {
                 extRunner.suites.forEach(suite => {
-                    suite.results.forEach(test => {
+                    (suite.results || []).forEach(test => {
                         if (test.status === 'fail' && test.error) {
                             failures.push(`[Extension] ${suite.name}: ${test.name}\n${test.error.message}`);
                         }
