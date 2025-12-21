@@ -20,11 +20,11 @@ See `template.html` for the required HTML structure. Missing any element will ca
 ## Test Directory Structure
 
 Spec files (in `test/specs/`):
-- `core.dsl` - Basic typing, backspace, enter, complex sequences
-- `navigation.dsl` - Cursor movement, meta+arrow, word movement
-- `selection.dsl` - Selection, multi-line, deleting/replacing selections
-- `features.dsl` - Gutter, indentation, undo/redo, unindent
-- `regression.dsl` - Walkthrough feature, DSL regression tests
+- `spec-core.dsl` - Basic typing, backspace, enter, complex sequences
+- `spec-navigation.dsl` - Cursor movement, meta+arrow, word movement
+- `spec-selection.dsl` - Selection, multi-line, deleting/replacing selections
+- `spec-features.dsl` - Gutter, indentation, undo/redo, unindent
+- `spec-regression.dsl` - Walkthrough feature, DSL regression tests
 
 Test infrastructure:
 - `test/lib/test-expect.js` - Assertions (`toBe`, `toEqual`, `toBeCloseTo`)
@@ -32,6 +32,22 @@ Test infrastructure:
 - `test/lib/test-ui.js` - Test runner UI (SPEC_FILES array defines load order)
 
 **AI Diagnostics tab**: Copy all test failures at once for pasting to Claude.
+
+## Example Prompts for Testing
+
+```
+# Run tests and fix failures
+Open test/index.html in browser, go to AI Diagnostics tab, copy failures and paste here.
+
+# Add a new test
+Add a test for [feature] in spec-[category].dsl
+
+# Debug a specific test
+The test "[test name]" is failing with: [error]. Fix it.
+
+# Refactor tests
+Move all selection-related tests from spec-core.dsl to spec-selection.dsl
+```
 
 ## Writing Tests (specs/*.dsl)
 

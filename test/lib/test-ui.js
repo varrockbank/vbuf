@@ -381,11 +381,11 @@
 
         // Spec files to load (in order)
         const SPEC_FILES = [
-            './specs/core.dsl',
-            './specs/navigation.dsl',
-            './specs/selection.dsl',
-            './specs/features.dsl',
-            './specs/regression.dsl'
+            './specs/spec-core.dsl',
+            './specs/spec-navigation.dsl',
+            './specs/spec-selection.dsl',
+            './specs/spec-features.dsl',
+            './specs/spec-regression.dsl'
         ];
 
         async function loadDSL() {
