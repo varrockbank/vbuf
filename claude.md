@@ -27,8 +27,8 @@ Spec files (in `test/specs/`):
 - `regression.dsl` - Walkthrough feature, DSL regression tests
 
 Test infrastructure:
-- `test/lib/expect.js` - Assertions (`toBe`, `toEqual`, `toBeCloseTo`)
-- `test/lib/harness.js` - Test fixture and key simulation
+- `test/lib/test-expect.js` - Assertions (`toBe`, `toEqual`, `toBeCloseTo`)
+- `test/lib/test-harness.js` - Test fixture and key simulation
 - `test/lib/test-ui.js` - Test runner UI (SPEC_FILES array defines load order)
 
 **AI Diagnostics tab**: Copy all test failures at once for pasting to Claude.
