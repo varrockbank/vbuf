@@ -26,7 +26,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
-  this.version = "11.1.0-alpha.1";
+  this.version = "11.1.1-alpha.1";
   const self = this;
   /** Replaces tabs with spaces (spaces = number of spaces, 0 = keep tabs) */
   const expandTabs = s => Mode.spaces ? s.replace(/\t/g, ' '.repeat(Mode.spaces)) : s;
@@ -1095,18 +1095,12 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       // Users needing keyboard navigation can use browser shortcuts or focus the editor container.
       event.preventDefault();
 
-      if(Selection.isSelection) {
-        if(event.shiftKey) {
-          Selection.unindent();
-        } else {
-          Selection.indent();
-        }
+      if(event.shiftKey) {
+        Selection.unindent();
+      } else if(Selection.isSelection) {
+        Selection.indent();
       } else {
-        if(event.shiftKey) {
-          Selection.unindent();
-        } else {
-          Selection.insert(" ".repeat(Mode.spaces));
-        }
+        Selection.insert(" ".repeat(Mode.spaces));
       }
     } else if (event.key.length > 1) {
       logger.warn('Ignoring unknown key: ', event.code, event.key);
