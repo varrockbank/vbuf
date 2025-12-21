@@ -102,6 +102,24 @@ Located in `themes/`. Apply with class `buffee-themepack1 {name}` on `.wb` eleme
 | `nord.css` | #2e3440 | #d8dee9 | Nord |
 | `star.css` | #000000 | #FFD700 | Star Wars gold |
 
+## Web Directory
+
+Documentation pages and shared assets in `web/`:
+
+| File | Purpose |
+|------|---------|
+| `template.html` | Required HTML structure |
+| `getting-started.html` | Setup guide |
+| `extensions.html` | Extension documentation |
+| `themes.html` | Theme showcase |
+| `comparison.html` | Editor comparison |
+| `performance.html` | Performance research |
+| `navigation.html` | Shared nav bar |
+| `style.css` | Main stylesheet |
+| `reset.css` | CSS reset |
+
+Templates: `extensions/_template.js`, `samples/_template.html`
+
 ## Generating Sample Pages
 
 Reference existing samples in `samples/`. Show actual JS values in code hints, not generic parameter names.
