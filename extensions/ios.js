@@ -7,13 +7,13 @@
 /**
  * Initializes iOS support extension for a Buffee instance.
  *
- * @param {Buffee} vbuf - The Buffee instance to extend
+ * @param {Buffee} editor - The Buffee instance to extend
  * @returns {Object} The iOS API object
  */
-function BuffeeIOS(vbuf) {
-  const { $e } = vbuf._internals;
-  const lineHeight = vbuf.lineHeight;
-  const { Selection } = vbuf;
+function BuffeeIOS(editor) {
+  const { $e } = editor._internals;
+  const lineHeight = editor.lineHeight;
+  const { Selection } = editor;
 
   const editingArea = $e.querySelector('.wb-lines');
   const editorElement = $e;
@@ -158,8 +158,8 @@ function BuffeeIOS(vbuf) {
     }
   };
 
-  // Attach to vbuf instance
-  vbuf.iOS = iOS;
+  // Attach to editor instance
+  editor.iOS = iOS;
 
   return iOS;
 }

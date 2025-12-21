@@ -8,18 +8,18 @@
 /**
  * Initializes TUI mode for a Buffee instance.
  * Requires BuffeeHighlights to be initialized first.
- * @param {Buffee} vbuf - The Buffee instance to extend
+ * @param {Buffee} editor - The Buffee instance to extend
  * @returns {Object} The TUI API object
  */
-function BuffeeTUI(vbuf) {
+function BuffeeTUI(editor) {
   // Initialize highlights extension if not already done
-  if (!vbuf.Highlights) {
-    BuffeeHighlights(vbuf);
+  if (!editor.Highlights) {
+    BuffeeHighlights(editor);
   }
-  const Highlights = vbuf.Highlights;
+  const Highlights = editor.Highlights;
 
-  const { $textLayer, render, renderHooks } = vbuf._internals;
-  const { Viewport, Model } = vbuf;
+  const { $textLayer, render, renderHooks } = editor._internals;
+  const { Viewport, Model } = editor;
 
   let enabled = false;
   let currentIndex = 0;
@@ -104,7 +104,7 @@ function BuffeeTUI(vbuf) {
     set enabled(v) {
       const wasEnabled = enabled;
       enabled = !!v;
-      vbuf.interactive = enabled ? -1 : 1;  // -1 = read-only (no cursor/selection)
+      editor.interactive = enabled ? -1 : 1;  // -1 = read-only (no cursor/selection)
       // Only reset currentIndex when transitioning from disabled to enabled
       if (enabled && !wasEnabled && elements.length > 0) {
         currentIndex = 0;
@@ -327,6 +327,6 @@ function BuffeeTUI(vbuf) {
     }
   });
 
-  vbuf.TUI = TUI;
+  editor.TUI = TUI;
   return TUI;
 }

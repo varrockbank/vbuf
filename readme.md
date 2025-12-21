@@ -101,9 +101,9 @@ const editor = new Buffee(document.getElementById("editor"), {});
 Editor auto-fits to its container size. For fixed dimensions:
 
 ```javascript
-new Buffee(el, { viewportRows: 20 });      // Fixed row count
-new Buffee(el, { viewportCols: 80 });      // Fixed column width
-new Buffee(el, { viewportRows: 20, viewportCols: 80 }); // Both fixed
+new Buffee(el, { rows: 20 });      // Fixed row count
+new Buffee(el, { cols: 80 });      // Fixed column width
+new Buffee(el, { rows: 20, cols: 80 }); // Both fixed
 ```
 
 Container should have explicit height inherit some percentage from parent. 

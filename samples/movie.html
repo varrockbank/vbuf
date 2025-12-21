@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>buffee - ASCII Movie</title>
   <script src="../buffee.js"></script>
-  <script src="../extensions/callbacks.js"></script>
+  <script src="../extensions/statusline.js"></script>
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../themes/star.css">
@@ -53,8 +53,8 @@
   <script>
     const editorEl = document.getElementById('editor');
     const editor = new Buffee(editorEl, {
-      viewportRows: 13,
-      showGutter: false,
+      rows: 13,
+                   
       callbacks: BuffeeStatusLine(editorEl)
     });
 

@@ -7,12 +7,12 @@
 /**
  * Initializes syntax highlighting extension for a Buffee instance.
  *
- * @param {Buffee} vbuf - The Buffee instance to extend
+ * @param {Buffee} editor - The Buffee instance to extend
  * @returns {Object} The Syntax API object
  */
-function BuffeeSyntax(vbuf) {
-  const { $e, $textLayer, renderHooks } = vbuf._internals;
-  const { Viewport, Model, History } = vbuf;
+function BuffeeSyntax(editor) {
+  const { $e, $textLayer, renderHooks } = editor._internals;
+  const { Viewport, Model, History } = editor;
 
   // State cache: stateCache[lineIndex] = startState for that line
   // State 0 = NORMAL, other states defined by language
@@ -696,8 +696,8 @@ function BuffeeSyntax(vbuf) {
     }
   };
 
-  // Attach to vbuf instance
-  vbuf.Syntax = Syntax;
+  // Attach to editor instance
+  editor.Syntax = Syntax;
 
   return Syntax;
 }

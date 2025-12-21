@@ -9,7 +9,7 @@
  * When activated, the editor enters navigate mode (can scroll, no editing) and handles large files efficiently
  * by compressing lines into chunks and decompressing on-demand.
  *
- * @param {Buffee} vbuf - The Buffee instance to extend
+ * @param {Buffee} editor - The Buffee instance to extend
  * @returns {Object} The UltraHighCapacity API object
  * @example
  * const editor = new Buffee(document.getElementById('editor'));
@@ -17,9 +17,9 @@
  * editor.UltraHighCapacity.activate();
  * await editor.UltraHighCapacity.appendLines(largeArrayOfLines);
  */
-function BuffeeUltraHighCapacity(vbuf) {
-  const { $e, render, renderHooks, appendLines } = vbuf._internals;
-  const { Viewport, Model } = vbuf;
+function BuffeeUltraHighCapacity(editor) {
+  const { $e, render, renderHooks, appendLines } = editor._internals;
+  const { Viewport, Model } = editor;
 
   // Store original methods/getters
   const originalLastIndexGetter = Object.getOwnPropertyDescriptor(Model, 'lastIndex').get;
@@ -304,7 +304,7 @@ function BuffeeUltraHighCapacity(vbuf) {
       Model.lines = createLinesProxy();
 
       // Set navigation-only mode (can move cursor, no editing)
-      vbuf.interactive = 0;
+      editor.interactive = 0;
 
       // Override Model.lastIndex
       Object.defineProperty(Model, 'lastIndex', {
@@ -313,7 +313,7 @@ function BuffeeUltraHighCapacity(vbuf) {
       });
 
       // Override _internals.appendLines
-      vbuf._internals.appendLines = appendChunkedLines;
+      editor._internals.appendLines = appendChunkedLines;
 
       render(true);
     },
@@ -334,10 +334,10 @@ function BuffeeUltraHighCapacity(vbuf) {
       Model.lines = [];
 
       // Restore original appendLines
-      vbuf._internals.appendLines = originalAppendLines;
+      editor._internals.appendLines = originalAppendLines;
 
       // Restore normal mode (full editing)
-      vbuf.interactive = 1;
+      editor.interactive = 1;
 
       // Clear chunk data
       chunks = [];
@@ -377,8 +377,8 @@ function BuffeeUltraHighCapacity(vbuf) {
     }
   };
 
-  // Attach to vbuf instance
-  vbuf.UltraHighCapacity = UltraHighCapacity;
+  // Attach to editor instance
+  editor.UltraHighCapacity = UltraHighCapacity;
 
   return UltraHighCapacity;
 }

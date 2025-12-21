@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>buffee - Gutter and Status Bar</title>
   <script src="../buffee.js"></script>
-  <script src="../extensions/callbacks.js"></script>
+  <script src="../extensions/statusline.js"></script>
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../themes/boring.css">
@@ -19,7 +19,7 @@
   <p><a href="../index.html">home</a> / <a href="index.html">samples</a> / Gutter and Status Bar</p>
 
   <h1>Gutter and Status Bar</h1>
-  <p>Gutter visibility: <code>showGutter</code> option. Status bar: omit <code>.wb-status</code> element from template.</p>
+  <p>Gutter visibility: include/omit <code>.wb-gutter</code> element. Status bar: include/omit <code>.wb-status</code> element.</p>
 
   <h2>1. Default (gutter + status bar)</h2>
   <p><code>new Buffee(el)</code></p>
@@ -147,8 +147,8 @@ hello();`;
     // Default
     const elDefault = document.getElementById('editor-default');
     const edDefault = new Buffee(elDefault, {
-      viewportRows: 6,
-      showGutter: true,
+      rows: 6,
+                
       callbacks: BuffeeStatusLine(elDefault)
     });
     edDefault.Model.text = content;
@@ -156,7 +156,7 @@ hello();`;
     // No gutter
     const elNoGutter = document.getElementById('editor-no-gutter');
     const edNoGutter = new Buffee(elNoGutter, {
-      viewportRows: 10,
+      rows: 10,
       showGutter: false,
       callbacks: BuffeeStatusLine(elNoGutter)
     });
@@ -165,7 +165,7 @@ hello();`;
     // No status bar
     const elNoStatus = document.getElementById('editor-no-status');
     const edNoStatus = new Buffee(elNoStatus, {
-      viewportRows: 10,
+      rows: 10,
       showGutter: true
     });
     edNoStatus.Model.text = content;
@@ -173,8 +173,8 @@ hello();`;
     // Status line on top
     const elStatusTop = document.getElementById('editor-status-top');
     const edStatusTop = new Buffee(elStatusTop, {
-      viewportRows: 10,
-      showGutter: true,
+      rows: 10,
+                
       callbacks: BuffeeStatusLine(elStatusTop)
     });
     edStatusTop.Model.text = content;
@@ -182,8 +182,8 @@ hello();`;
     // Gutter on right
     const elGutterRight = document.getElementById('editor-gutter-right');
     const edGutterRight = new Buffee(elGutterRight, {
-      viewportRows: 10,
-      showGutter: true,
+      rows: 10,
+                
       callbacks: BuffeeStatusLine(elGutterRight)
     });
     edGutterRight.Model.text = content;

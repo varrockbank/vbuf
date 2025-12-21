@@ -193,15 +193,15 @@
         function initDSLEditor() {
             const dslEditorEl = document.getElementById('dsl-editor');
             dslEditor = new Buffee(dslEditorEl, {
-                showGutter: true,
-                viewportRows: 20
+                          
+                rows: 20
             });
 
             // Initialize JS output editor (read-only, different dimensions)
             const jsOutputEl = document.getElementById('js-output');
             jsOutputEditor = new Buffee(jsOutputEl, {
-                showGutter: true,
-                viewportRows: 20
+                          
+                rows: 20
             });
             jsOutputEditor.editMode = 'navigate';
 

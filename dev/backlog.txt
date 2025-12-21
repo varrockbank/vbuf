@@ -4,9 +4,6 @@ Website
 
 17. wrappers in React, etc.
 
-Refactor
-20. make buffee smart about gutter if html present, render, no otherwise
-
 Extensions 
 21. file loading indicator.
 

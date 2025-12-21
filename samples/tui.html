@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <title>buffee - TUI Elements</title>
   <script src="../buffee.js"></script>
-  <script src="../extensions/callbacks.js"></script>
+  <script src="../extensions/statusline.js"></script>
   <script src="../extensions/highlights.js"></script>
-  <script src="../extensions/tui-legacy.js"></script>
+  <script src="../extensions/tui.js"></script>
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../themes/chelsey.css">
@@ -29,7 +29,7 @@
   <p>Press <kbd>Tab</kbd> to navigate, <kbd>Enter</kbd> to activate</p>
 
   <h2>Buttons (no border)</h2>
-  <pre>new Buffee(el, { viewportRows: 3, showGutter: true })
+  <pre>new Buffee(el, { rows: 3 })
 TUI.addButton({ row: 1, col: 20, label: '[Save]' })</pre>
   <div class="wb buffee-themepack1 chelsey" id="buttons-plain">
     <textarea class="wb-clipboard-bridge"></textarea>
@@ -48,7 +48,7 @@ TUI.addButton({ row: 1, col: 20, label: '[Save]' })</pre>
   </div>
 
   <h2>Buttons (with border)</h2>
-  <pre>new Buffee(el, { viewportRows: 5, showGutter: true })
+  <pre>new Buffee(el, { rows: 5 })
 TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true })</pre>
   <div class="wb buffee-themepack1 chelsey" id="buttons-border">
     <textarea class="wb-clipboard-bridge"></textarea>
@@ -67,7 +67,7 @@ TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true })</pre>
   </div>
 
   <h2>Prompt (type to input, Enter to submit)</h2>
-  <pre>new Buffee(el, { viewportRows: 8, showGutter: true })
+  <pre>new Buffee(el, { rows: 8 })
 TUI.addPrompt({ row: 1, col: 2, width: 30, title: 'Search' })
 TUI.handleKeyDown(e.key)</pre>
   <div class="wb buffee-themepack1 chelsey" id="prompt-demo">
@@ -87,7 +87,7 @@ TUI.handleKeyDown(e.key)</pre>
   </div>
 
   <h2>ScrollBox (Arrow keys to scroll)</h2>
-  <pre>new Buffee(el, { viewportRows: 10, showGutter: true })
+  <pre>new Buffee(el, { rows: 10 })
 TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [...] })</pre>
   <div class="wb buffee-themepack1 chelsey" id="scrollbox-demo">
     <textarea class="wb-clipboard-bridge"></textarea>
@@ -110,8 +110,8 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     // Buttons (no border)
     const plainEl = document.getElementById('buttons-plain');
     const plainEditor = new Buffee(plainEl, {
-      viewportRows: 3,
-      showGutter: true,
+      rows: 3,
+                
       callbacks: BuffeeStatusLine(plainEl)
     });
     BuffeeTUI(plainEditor);
@@ -128,8 +128,8 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     // Buttons (with border)
     const borderEl = document.getElementById('buttons-border');
     const borderEditor = new Buffee(borderEl, {
-      viewportRows: 5,
-      showGutter: true,
+      rows: 5,
+                
       callbacks: BuffeeStatusLine(borderEl)
     });
     BuffeeTUI(borderEditor);
@@ -146,8 +146,8 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     // Prompt
     const promptEl = document.getElementById('prompt-demo');
     const promptEditor = new Buffee(promptEl, {
-      viewportRows: 8,
-      showGutter: true,
+      rows: 8,
+                
       callbacks: BuffeeStatusLine(promptEl)
     });
     BuffeeTUI(promptEditor);
@@ -163,8 +163,8 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     // ScrollBox
     const scrollEl = document.getElementById('scrollbox-demo');
     const scrollEditor = new Buffee(scrollEl, {
-      viewportRows: 10,
-      showGutter: true,
+      rows: 10,
+                
       callbacks: BuffeeStatusLine(scrollEl)
     });
     BuffeeTUI(scrollEditor);

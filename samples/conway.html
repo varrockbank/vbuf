@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>buffee - Conway's Game of Life</title>
   <script src="../buffee.js"></script>
-  <script src="../extensions/callbacks.js"></script>
+  <script src="../extensions/statusline.js"></script>
   <link rel="stylesheet" href="../reset.css">
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../themes/chelsey.css">
@@ -50,8 +50,8 @@
   <script>
     const editorEl = document.getElementById('editor');
     const editor = new Buffee(editorEl, {
-      viewportRows: 30,
-      showGutter: false,
+      rows: 30,
+                   
       callbacks: BuffeeStatusLine(editorEl)
     });
 
