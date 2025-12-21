@@ -49,7 +49,7 @@ Requires the container to have defined dimensions:
 ### Dimensions
 
 - Height = `viewportRows` × `lineHeight` pixels (or auto-calculated from container)
-- Width = `viewportCols` + gutter in `ch` units (or 100% of parent)
+- Width = `viewportCols` + gutterCols in `ch` units (or 100% of parent)
 
 ### Auto-fit Details
 
@@ -77,8 +77,7 @@ To disable auto-fit, specify `viewportRows`.
 const editor = new Buffee(document.getElementById('editor'), {
   // viewportRows: 20,  // Omit to auto-fit, or specify for fixed height
   // viewportCols: 80,  // Omit to fill parent, or specify for fixed width
-  spaces: 4,
-  showGutter: true,
+  spaces: 4
 });
 ```
 
@@ -89,7 +88,6 @@ const editor = new Buffee(document.getElementById('editor'), {
 | `viewportRows` | number | (auto) | Fixed visible lines (omit to auto-fit) |
 | `viewportCols` | number | (auto) | Fixed text columns (omit to fill parent) |
 | `spaces` | number | `4` | Tab width and indentation (0 = hard tabs) |
-| `showGutter` | boolean | `true` | Show line numbers |
 | `logger` | function | `console.log` | Custom logger |
 
 ---

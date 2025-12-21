@@ -126,7 +126,7 @@
 
   <h2>6. Auto-rows, fixed-cols (status bar stretches)</h2>
   <p><code>.wb { height: 300px; padding: 20px; }</code></p>
-  <p><code>new Buffee(el, { viewportCols: 55 })</code></p>
+  <p><code>new Buffee(el, { viewportCols: 40 })</code></p>
   <p>Fixed 55 columns, rows auto-calculated from height. Note: status bar stretches to container width while content is narrower.</p>
   <div class="wb buffee-themepack1 boring" id="editor-fixed-cols" style="height: 300px; padding: 20px; border: 2px dashed #666; resize: vertical; overflow: hidden;">
     <textarea class="wb-clipboard-bridge"></textarea>
@@ -146,7 +146,7 @@
 
   <h2>7. Auto-rows, fixed-cols (fit-content)</h2>
   <p><code>.wb { height: 300px; padding: 20px; width: fit-content; }</code></p>
-  <p><code>new Buffee(el, { viewportCols: 55 })</code></p>
+  <p><code>new Buffee(el, { viewportCols: 40 })</code></p>
   <p>Same as example 6, but with <code>width: fit-content</code> so the container shrinks to match content width.</p>
   <div class="wb buffee-themepack1 boring" id="editor-fit-content" style="height: 300px; padding: 20px; border: 2px dashed #666; width: fit-content; resize: vertical; overflow: hidden;">
     <textarea class="wb-clipboard-bridge"></textarea>
@@ -240,16 +240,16 @@
     // 6. Auto-rows, fixed-cols (status bar stretches)
     const elFixedCols = document.getElementById('editor-fixed-cols');
     const edFixedCols = new Buffee(elFixedCols, {
-      viewportCols: 55,
+      viewportCols: 40,
       callbacks: BuffeeStatusLine(elFixedCols)
     });
-    edFixedCols.Model.text = ruler(55) + '\n// Fixed 55 cols\n// Status bar stretches\n' +
+    edFixedCols.Model.text = ruler(40) + '\n// Fixed 55 cols\n// Status bar stretches\n' +
       Array.from({length: 20}, (_, i) => `Line ${i + 4}`).join('\n');
 
     // 7. Auto-rows, fixed-cols (fit-content)
     const elFitContent = document.getElementById('editor-fit-content');
     const edFitContent = new Buffee(elFitContent, {
-      viewportCols: 55,
+      viewportCols: 40,
       callbacks: BuffeeStatusLine(elFitContent)
     });
     edFitContent.Model.text = ruler(55) + '\n// Fixed 55 cols\n// width: fit-content\n' +

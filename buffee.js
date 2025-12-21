@@ -30,7 +30,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, config = {}) {
-  this.version = "8.8.14-alpha.1";
+  this.version = "9.0.0-alpha.1";
   const self = this;
 
   // TODO: make everything mutable, and observed.
@@ -39,7 +39,6 @@ function Buffee($parent, config = {}) {
     viewportRows,
     viewportCols,
     spaces = 4,
-    showGutter = true,
     logger,
     callbacks
   } = config;
@@ -53,7 +52,8 @@ function Buffee($parent, config = {}) {
   const prop = p => parseFloat(getComputedStyle($parent).getPropertyValue(p));
   const lineHeight = prop("--wb-cell");
   const editorPaddingPX = prop("--wb-padding");
-  const gutterPadding = prop("--wb-gutter-padding");
+  let gutterDigits = prop("--wb-gutter-digits-initial");
+  const gutterCols = () => gutterDigits + prop("--wb-gutter-digits-padding");
   const $ = (n, q) => n.querySelector(q); 
   const $e = $($parent, '.wb-elements');
   const $l = $($e, '.wb-lines');
@@ -62,20 +62,21 @@ function Buffee($parent, config = {}) {
   const $clipboardBridge = $($parent, '.wb-clipboard-bridge');
   const $gutter = $($e, '.wb-gutter');
 
-  let gutterSize = 0;  // Will be set on first render
-  $gutter.style.display = showGutter ? '' : 'none';                                                                                                                                                            
   // Set container width if viewportCols specified
+  // Width = gutter(ch) + lines(ch) + margins(px): gutter has margin*2, lines has margin*2
   if (viewportCols) {
-    const gutterWidthCH = showGutter ? (gutterSize + gutterPadding) : 0;
-    // Gutter has paddingRight: editorPaddingPX*2, lines has margin: editorPaddingPX (left+right)
-    const extraPX = showGutter ? editorPaddingPX * 4 : editorPaddingPX * 2;
-    $e.style.width = `calc(${gutterWidthCH + viewportCols}ch + ${extraPX}px)`;
+    if ($gutter) {
+      $e.style.width = `calc(${gutterCols() + viewportCols}ch + ${editorPaddingPX * 4}px)`;
+    } else {
+      $e.style.width = `calc(${viewportCols}ch + ${editorPaddingPX * 2}px)`;
+    }
   }
+
   // Set container height if viewportRows specified (don't use flex: 1)
   if (viewportRows) {
     const linesHeight = viewportRows * lineHeight + 'px';
     $textLayer.style.height = linesHeight;
-    $gutter.style.height = linesHeight;
+    $gutter && ($gutter.style.height = linesHeight);
   }
 
   const $selections = [];   // We place an invisible selection on each viewport line. We only display the active selection.
@@ -928,11 +929,17 @@ function Buffee($parent, config = {}) {
     lastFrame = frame;
     frame = temp;
 
-    // Use viewport's largest visible line number for gutter width
-    // Minimum of 2 digits to avoid resize jitter for small documents (1-99 lines)
-    const digits = Math.max(2, (Viewport.start + Viewport.displayLines).toString().length);
-    if (digits !== gutterSize)
-      $gutter.style.width = (gutterSize = digits) + gutterPadding + 'ch';
+    // Adjust gutter width based on largest visible line number
+    // Minimum width from CSS variable to avoid jitter for small documents
+    if ($gutter) {
+      // TODO: move into viewport
+      const digits = Math.max(gutterDigits, (Viewport.start + Viewport.displayLines).toString().length);
+      if (digits !== gutterDigits) {
+        gutterDigits = digits;
+        $gutter.style.width = gutterCols() + 'ch';
+        if (viewportCols) $e.style.width = `calc(${gutterCols() + viewportCols}ch + ${editorPaddingPX * 4}px)`;
+      }
+    }
 
     // Renders the containers for the viewport lines, as well as selections and highlights
     // Only adds/removes the delta of elements when viewport size changes
@@ -950,11 +957,11 @@ function Buffee($parent, config = {}) {
         }
         $textLayer.appendChild(fragmentLines);
         $l.appendChild(fragmentSelections);
-        $gutter.appendChild(fragmentGutters);
+        $gutter && $gutter.appendChild(fragmentGutters);
       } else if (Viewport.delta < 0) {
         // Remove excess line containers and selections
         for (let i = 0; i < -Viewport.delta; i++) {
-          $gutter.lastChild?.remove();
+          $gutter && $gutter.lastChild?.remove();
           $textLayer.lastChild?.remove();
           $selections.pop()?.remove();
         }
@@ -969,7 +976,7 @@ function Buffee($parent, config = {}) {
 
     // Update contents of line containers
     for(let i = 0; i < Viewport.displayLines; i++) {
-      $gutter.children[i].textContent = Viewport.start + i + 1;
+      $gutter && ($gutter.children[i].textContent = Viewport.start + i + 1);
       $textLayer.children[i].textContent = Model.lines[Viewport.start + i] ?? null;
       $selections[i].style.width = '0ch';
     }
@@ -1119,8 +1126,8 @@ function Buffee($parent, config = {}) {
     /** Content area offset from .wb-content: { ch, px, top } */
     get contentOffset() {
       return { 
-        ch: showGutter ? (gutterSize + gutterPadding) : 0, 
-        px: showGutter ? (editorPaddingPX * 3) : editorPaddingPX,
+        ch: $gutter ? gutterCols() : 0, 
+        px: $gutter ? (editorPaddingPX * 3) : editorPaddingPX,
         top: editorPaddingPX
       };
     },
