@@ -26,7 +26,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
-  this.version = "11.1.2-alpha.1";
+  this.version = "11.1.3-alpha.1";
   const self = this;
   /** Replaces tabs with spaces (spaces = number of spaces, 0 = keep tabs) */
   const expandTabs = s => Mode.spaces ? s.replace(/\t/g, ' '.repeat(Mode.spaces)) : s;
@@ -186,27 +186,6 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
      */
     get isForwardSelection() {
       return tail.row === head.row && tail.col < head.col || tail.row < head.row;
-    },
-
-    /**
-     * Sets cursor position with bounds checking for iOS compatibility.
-     * Takes viewport-relative coordinates from touch input.
-     * @param {Position} position - Target cursor position (viewport-relative)
-     */
-    iosSetCursorAndRender({row, col}) {
-      const linesFromViewportStart = Model.lastIndex - Viewport.start;
-      // Case 1: linesFromViewportStart is outside viewport. case 2: linesFromViewportStart is less than viewport.
-      const lastMeaningfulViewportRow = Math.min(Viewport.size-1, linesFromViewportStart);
-      row = Math.min(row, lastMeaningfulViewportRow);
-      // Convert to absolute row
-      const absRow = Viewport.start + row;
-      // Cursor 1 past last character
-      let positionOfLastChar = Model.lines[absRow].length;
-      this.setCursor({
-        row: absRow,
-        col: Math.min(col, positionOfLastChar)}
-      );
-      render();
     },
 
     /**
