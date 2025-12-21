@@ -102,10 +102,16 @@ Located in `themes/`. Apply with class `buffee-themepack1 {name}` on `.wb` eleme
 | `nord.css` | #2e3440 | #d8dee9 | Nord |
 | `star.css` | #000000 | #FFD700 | Star Wars gold |
 
-## Web Directory
+## Website Structure
 
-Documentation pages and shared assets in `web/`. CI screenshot tests run against these pages (see `snapshot_testing/screenshots.spec.js`).
+GitHub Pages serves from root. CI screenshot tests run against these (see `snapshot_testing/screenshots.spec.js`).
 
+**Root level** (also tested by CI):
+- `index.html` - homepage
+- `samples/` - interactive demos
+- `test/` - test runner
+
+**web/** (documentation and assets):
 | File | Purpose |
 |------|---------|
 | `template.html` | Required HTML structure |
