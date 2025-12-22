@@ -26,7 +26,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
-  this.version = "11.2.0-alpha.1";
+  this.version = "11.2.1-alpha";
   const self = this;
   /** Replaces tabs with spaces (spaces = number of spaces, 0 = keep tabs) */
   const expandTabs = s => Mode.spaces ? s.replace(/\t/g, ' '.repeat(Mode.spaces)) : s;
@@ -967,9 +967,9 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
     const arrowCode = arrowMap[event.key] || 0;
     if (arrowCode) {
       // direction: -1 (up/left) or 1 (down/right). isHorizontal: truthy for ±1, falsy for ±2
-      const direction = Math.sign(arrowCode);
-      const isHorizontal = Math.abs(arrowCode) === 1;
-      const edgeIndex = direction > 0 ? 1 : 0;
+      const direction = arrowCode >> 31 | 1;
+      const isHorizontal = arrowCode % 2;
+      const edgeIndex = direction > 0 | 0;
       event.preventDefault(); // prevents page scroll
       if (Mode.interactive === -1) return; // read-only mode: no navigation
 
