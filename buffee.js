@@ -26,7 +26,7 @@
  * editor.Model.text = 'Hello, World!';
  */
 function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
-  this.version = "11.1.6-alpha.1";
+  this.version = "11.2.0-alpha.1";
   const self = this;
   /** Replaces tabs with spaces (spaces = number of spaces, 0 = keep tabs) */
   const expandTabs = s => Mode.spaces ? s.replace(/\t/g, ' '.repeat(Mode.spaces)) : s;
@@ -934,7 +934,8 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
     $l.focus({ preventScroll: true });     // Return focus to editor
   });
 
-  // Bind keyboard control to move viewport
+  // Arrow key encoding: ±1 = horizontal, ±2 = vertical, sign = direction
+  const arrowMap = { ArrowDown: 2, ArrowUp: -2, ArrowLeft: -1, ArrowRight: 1 };
   $l.addEventListener('keydown', event => {
     // Do nothing for Meta+V (on Mac) or Ctrl+V (on Windows/Linux) as to avoid conflict with the paste event.
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "v") {
@@ -963,7 +964,12 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       return;
     }
 
-    if(event.key.startsWith("Arrow")) {
+    const arrowCode = arrowMap[event.key] || 0;
+    if (arrowCode) {
+      // direction: -1 (up/left) or 1 (down/right). isHorizontal: truthy for ±1, falsy for ±2
+      const direction = Math.sign(arrowCode);
+      const isHorizontal = Math.abs(arrowCode) === 1;
+      const edgeIndex = direction > 0 ? 1 : 0;
       event.preventDefault(); // prevents page scroll
       if (Mode.interactive === -1) return; // read-only mode: no navigation
 
@@ -971,33 +977,25 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
         if(!event.shiftKey && Selection.isSelection) Selection.makeCursor();
         if(event.shiftKey && !Selection.isSelection) Selection.makeSelection();
 
-        if(event.key === "ArrowLeft") {
-          Selection.moveCursorStartOfLine();
-        } else if (event.key === "ArrowRight") {
-          Selection.moveCursorEndOfLine();
+        if (isHorizontal) {
+          Selection[direction > 0 ? 'moveCursorEndOfLine' : 'moveCursorStartOfLine']();
         }
       } else if (event.altKey) {
         if(!event.shiftKey && Selection.isSelection) Selection.makeCursor();
         if(event.shiftKey && !Selection.isSelection) Selection.makeSelection();
 
-        if(event.key === "ArrowLeft") {
-          Selection.moveBackWord();
-        } else if (event.key === "ArrowRight") {
-          Selection.moveWord();
+        if (isHorizontal) {
+          Selection[direction > 0 ? 'moveWord' : 'moveBackWord']();
         }
       } else if (!event.shiftKey && Selection.isSelection) { // no meta key, no shift key, selection.
-        if(event.key === "ArrowLeft") {
-          Selection.setCursor(Selection.ordered[0]); // Move cursor to the first edge
+        if (isHorizontal) {
+          Selection.setCursor(Selection.ordered[edgeIndex]);
           render();
-        } else if (event.key === "ArrowRight") {
-          Selection.setCursor(Selection.ordered[1]); // Move cursor to the second edge
-          render();
-        } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-          const movingDown = event.key === "ArrowDown";
-          const edge = Selection.ordered[movingDown ? 1 : 0];
+        } else {
+          const edge = Selection.ordered[edgeIndex];
           // edge.row is already absolute
           const targetAbsRow = $clamp(
-            edge.row + (movingDown ? 1 : -1),
+            edge.row + direction,
             0,
             Model.lastIndex
           );
@@ -1018,16 +1016,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
         }
       } else { // no meta key.
         if (event.shiftKey && !Selection.isSelection) Selection.makeSelection();
-
-        if (event.key === "ArrowDown") {
-          Selection.moveRow(1);
-        } else if (event.key === "ArrowUp") {
-          Selection.moveRow(-1);
-        } else if (event.key === "ArrowLeft") {
-          Selection.moveCol(-1);
-        } else if (event.key === "ArrowRight") {
-          Selection.moveCol(1);
-        }
+        Selection[isHorizontal ? 'moveCol' : 'moveRow'](direction);
       }
     } else if (Mode.interactive !== 1) { // navigation-only or read-only mode: no editing
     } else if (event.key === "Backspace") {

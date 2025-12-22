@@ -1,5 +1,9 @@
 * Project Devlog
 
+** 11.2.0-alpha.1 [2025-12-22]  gz+min: 3.64 KB (0), min: 10.06 KB (-0.21)
+*** golf
+- arrow key encoding with arrowMap, Math.sign, Math.abs
+
 ** 11.1.6-alpha.1 [2025-12-21]  gz+min: 3.64 KB (+0.01), min: 10.27 KB (-0.07)
 *** refactor
 - Cache Object.entries(callbacks || {})
