@@ -55,6 +55,7 @@
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
       <div class="buffee-lines" tabindex="0">
+        <div class="buffee-layer-selection"></div>
         <blockquote class="buffee-layer-text"></blockquote>
         <div class="buffee-layer-elements"></div>
         <div class="buffee-cursor"></div>
@@ -117,6 +118,7 @@
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
       <div class="buffee-lines" tabindex="0">
+        <div class="buffee-layer-selection"></div>
         <blockquote class="buffee-layer-text"></blockquote>
         <div class="buffee-layer-elements"></div>
         <div class="buffee-cursor"></div>
@@ -136,11 +138,7 @@
     const editorEl = document.getElementById('editor');
     const logsEl = document.getElementById('logs-editor');
 
-    const logs = new Buffee(logsEl, {
-      rows: 8,
-                   
-      callbacks: BuffeeStatusLine(logsEl)
-    });
+    const logs = BuffeeStatusLine(new Buffee(logsEl, { rows: 8 }));
 
     function log(s) {
       console.log(s);
@@ -154,13 +152,9 @@
       logs._render(true);
     }
 
-    const editor = new Buffee(editorEl, {
-      rows: 10,
-      logger: log,
-      callbacks: BuffeeStatusLine(editorEl)
-    });
-    BuffeeFileLoader(editor);
-    BuffeeUltraHighCapacity(editor);
+    const editor = BuffeeUltraHighCapacity(BuffeeFileLoader(BuffeeStatusLine(
+      new Buffee(editorEl, { rows: 10, logger: log })
+    )));
 
     editor.Model.text = 'Select a file to load...';
     editorEl.focus();

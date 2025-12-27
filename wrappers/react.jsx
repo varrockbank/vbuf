@@ -58,12 +58,12 @@ const BuffeeEditor = forwardRef(function BuffeeEditor(props, ref) {
     const el = containerRef.current;
     const config = { rows, cols, spaces };
 
-    // Add status line callbacks if available
-    if (showStatus && typeof BuffeeStatusLine !== 'undefined') {
-      config.callbacks = BuffeeStatusLine(el);
-    }
+    let editor = new Buffee(el, config);
 
-    const editor = new Buffee(el, config);
+    // Add status line extension if available
+    if (showStatus && typeof BuffeeStatusLine !== 'undefined') {
+      editor = BuffeeStatusLine(editor);
+    }
     editorRef.current = editor;
 
     if (initialText) {
@@ -110,6 +110,7 @@ const BuffeeEditor = forwardRef(function BuffeeEditor(props, ref) {
       <div className="no-select buffee-elements">
         {!gutterRight && gutter}
         <div className="buffee-lines" tabIndex={0}>
+          <div className="buffee-layer-selection" />
           <blockquote className="buffee-layer-text" />
           <div className="buffee-layer-elements" />
           <div className="buffee-cursor" />

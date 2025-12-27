@@ -33,7 +33,7 @@ TUI.enabled = true</pre>
     <textarea class="buffee-clipboard-bridge"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
-      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+      <div class="buffee-lines" tabindex="0"><div class="buffee-layer-selection"></div><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
     </div>
     <div class="buffee-status">
       <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
@@ -56,7 +56,7 @@ await editor.UltraHighCapacity.appendLines([...])</pre>
     <textarea class="buffee-clipboard-bridge"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
-      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+      <div class="buffee-lines" tabindex="0"><div class="buffee-layer-selection"></div><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
     </div>
     <div class="buffee-status">
       <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
@@ -82,20 +82,14 @@ example();`;
 
     // Option 1: TUI mode
     const elTui = document.getElementById('editor-tui');
-    const edTui = new Buffee(elTui, {
-      rows: 10,
-      callbacks: BuffeeStatusLine(elTui)
-    });
+    const edTui = BuffeeStatusLine(new Buffee(elTui, { rows: 10 }));
     BuffeeTUI(edTui);
     edTui.Model.text = content;
     edTui.TUI.enabled = true;
 
     // Option 2: Ultra High Capacity mode (for large files)
     const elChunked = document.getElementById('editor-chunked');
-    const edChunked = new Buffee(elChunked, {
-      rows: 10,
-      callbacks: BuffeeStatusLine(elChunked)
-    });
+    const edChunked = BuffeeStatusLine(new Buffee(elChunked, { rows: 10 }));
     BuffeeUltraHighCapacity(edChunked);
     edChunked.UltraHighCapacity.activate();
     (async () => {

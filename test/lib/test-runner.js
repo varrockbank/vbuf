@@ -174,7 +174,7 @@ function createEditorNode() {
     <textarea class="buffee-clipboard-bridge" aria-hidden="true"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
-      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+      <div class="buffee-lines" tabindex="0"><div class="buffee-layer-selection"></div><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
     </div>
     <div class="buffee-status">
       <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
@@ -194,7 +194,7 @@ class EditorTestHarness {
   constructor(node, size = 10) {
     this.node = node;
     this.blockquote = node.querySelector('.buffee-lines') || node;
-    this.editor = new Buffee(node, { rows: size, callbacks: BuffeeStatusLine(node) });
+    this.editor = BuffeeStatusLine(new Buffee(node, { rows: size }));
     this.walkthrough = new Walkthrough();
     window.currentTestFixture = this;
   }

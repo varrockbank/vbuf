@@ -142,6 +142,7 @@
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
       <div class="buffee-lines" tabindex="0">
+        <div class="buffee-layer-selection"></div>
         <blockquote class="buffee-layer-text"></blockquote>
         <div class="buffee-layer-elements"></div>
         <div class="buffee-cursor"></div>
@@ -168,7 +169,7 @@
 
   <script>
     const el = document.getElementById('editor');
-    const editor = new Buffee(el, { rows: 10, callbacks: BuffeeStatusLine(el) });
+    const editor = BuffeeStatusLine(new Buffee(el, { rows: 10 }));
     BuffeeUndoTree(editor);
 
     const btnUndo = document.getElementById('btn-undo');
@@ -287,16 +288,16 @@
     });
 
     // Update tree on any edit
-    const originalInsert = editor._.insert;
-    const originalDelete = editor._.delete;
+    const originalInsert = editor._._insert;
+    const originalDelete = editor._._delete;
 
-    editor._.insert = function(...args) {
+    editor._._insert = function(...args) {
       const result = originalInsert.apply(this, args);
       setTimeout(updateTree, 0);
       return result;
     };
 
-    editor._.delete = function(...args) {
+    editor._._delete = function(...args) {
       const result = originalDelete.apply(this, args);
       setTimeout(updateTree, 0);
       return result;

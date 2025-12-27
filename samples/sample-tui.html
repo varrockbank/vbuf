@@ -30,7 +30,7 @@ TUI.addButton({ row: 1, col: 20, label: '[Save]' })</pre>
     <textarea class="buffee-clipboard-bridge"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
-      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+      <div class="buffee-lines" tabindex="0"><div class="buffee-layer-selection"></div><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
     </div>
     <div class="buffee-status">
       <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
@@ -49,7 +49,7 @@ TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true })</pre>
     <textarea class="buffee-clipboard-bridge"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
-      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+      <div class="buffee-lines" tabindex="0"><div class="buffee-layer-selection"></div><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
     </div>
     <div class="buffee-status">
       <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
@@ -69,7 +69,7 @@ TUI.handleKeyDown(e.key)</pre>
     <textarea class="buffee-clipboard-bridge"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
-      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+      <div class="buffee-lines" tabindex="0"><div class="buffee-layer-selection"></div><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
     </div>
     <div class="buffee-status">
       <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
@@ -88,7 +88,7 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
     <textarea class="buffee-clipboard-bridge"></textarea>
     <div class="no-select buffee-elements">
       <div class="buffee-gutter"></div>
-      <div class="buffee-lines" tabindex="0"><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
+      <div class="buffee-lines" tabindex="0"><div class="buffee-layer-selection"></div><blockquote class="buffee-layer-text"></blockquote><div class="buffee-layer-elements"></div><div class="buffee-cursor"></div></div>
     </div>
     <div class="buffee-status">
       <div class="buffee-status-left"><span class="buffee-linecount"></span></div>
@@ -104,11 +104,7 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
 
     // Buttons (no border)
     const plainEl = document.getElementById('buttons-plain');
-    const plainEditor = new Buffee(plainEl, {
-      rows: 3,
-                
-      callbacks: BuffeeStatusLine(plainEl)
-    });
+    const plainEditor = BuffeeStatusLine(new Buffee(plainEl, { rows: 3 }));
     BuffeeTUI(plainEditor);
     plainEditor.Model.text = '\n  Select action:';
     plainEditor.TUI.addButton({ row: 1, col: 20, label: '[Save]', onActivate: () => { alert('Save clicked'); } });
@@ -122,11 +118,7 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
 
     // Buttons (with border)
     const borderEl = document.getElementById('buttons-border');
-    const borderEditor = new Buffee(borderEl, {
-      rows: 5,
-                
-      callbacks: BuffeeStatusLine(borderEl)
-    });
+    const borderEditor = BuffeeStatusLine(new Buffee(borderEl, { rows: 5 }));
     BuffeeTUI(borderEditor);
     borderEditor.Model.text = '\n\n\n\n';
     borderEditor.TUI.addButton({ row: 1, col: 2, label: ' OK ', border: true, onActivate: () => { alert('OK clicked'); } });
@@ -140,11 +132,7 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
 
     // Prompt
     const promptEl = document.getElementById('prompt-demo');
-    const promptEditor = new Buffee(promptEl, {
-      rows: 8,
-                
-      callbacks: BuffeeStatusLine(promptEl)
-    });
+    const promptEditor = BuffeeStatusLine(new Buffee(promptEl, { rows: 8 }));
     BuffeeTUI(promptEditor);
     promptEditor.Model.text = '\n\n\n\n\n\n\n';
     promptEditor.TUI.addPrompt({ row: 1, col: 2, width: 30, title: 'Search', onActivate: (el) => { alert('Search: ' + el.input); } });
@@ -157,11 +145,7 @@ TUI.addScrollBox({ row: 1, col: 2, width: 40, height: 8, title: 'Logs', lines: [
 
     // ScrollBox
     const scrollEl = document.getElementById('scrollbox-demo');
-    const scrollEditor = new Buffee(scrollEl, {
-      rows: 10,
-                
-      callbacks: BuffeeStatusLine(scrollEl)
-    });
+    const scrollEditor = BuffeeStatusLine(new Buffee(scrollEl, { rows: 10 }));
     BuffeeTUI(scrollEditor);
     scrollEditor.Model.text = '\n\n\n\n\n\n\n\n\n';
     const logLines = [

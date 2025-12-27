@@ -1,6 +1,89 @@
 * Project Devlog
 
-** 12.0.0-alpha [2025-12-24]  gz+min: 3.58 KB (0), min: 9.90 KB (0)
+** 12.6.6-alpha.1 [2025-12-24] 
+*** refactor 
+- declare $clamp as lambda util
+
+** 12.6.5-alpha.1 [2025-12-24] gz+min: 3.26 KB (0), min: 9.02 KB (-0.02)
+*** refactor 
+- query against $parent container unconditionally
+
+** 12.6.4-alpha.1 [2025-12-24]  gz+min: 3.26 KB (-0.01), min: 9.04 KB (-0.03)
+*** refactor 
+- set line height for lines, gutter, selection in a loop
+
+** 12.6.3-alpha.1 [2025-12-24]  gz+min: 3.27 KB (-0.01), min: 9.07 KB (-0.03)
+*** refactor 
+- remove $selections, prune #sizeSelections
+
+** 12.6.2-alpha.1 [2025-12-24]  gz+min: 3.28 KB (+0.00), min: 9.09 KB (+0.03)
+*** refactor 
+- encode update lambda for each of lines, selections, gutters in definition map
+
+** 12.6.1-alpha.1 [2025-12-24]  gz+min: 3.28 KB (-0.00), min: 9.07 KB (-0.03)
+*** refactor 
+- loop over selections, lines, gutters logic
+
+** 12.6.0-alpha.1 [2025-12-24]  gz+min: 3.29 KB (-0.03), min: 9.09 KB (-0.05)
+*** refactor 
+- style the selection with child css selector, avoids setting class in code
+
+** 12.5.0-alpha.1 [2025-12-24]  gz+min: 3.31 KB (+0.00), min: 9.14 KB (0)
+*** perf 
+- cache the children of lines and gutters
+
+** 12.4.0-alpha.1 [2025-12-24]  gz+min: 3.31 KB (-0.00), min: 9.14 KB (+0.02)
+*** refactor 
+- add selection to their own layer 
+
+** 12.3.4-alpha.1 [2025-12-24]  gz+min: 3.31 KB (-0.06), min: 9.12 KB (-0.13)
+*** golf 
+
+** 12.3.3-alpha.1 [2025-12-24]  gz+min: 3.37 KB (-0.02), min: 9.25 KB (-0.07)
+*** golf
+- moveWord, moveBackword
+
+** 12.3.2-alpha.1 [2025-12-24]  gz+min: 3.39 KB (-0.01), min: 9.32 KB (-0.04)
+*** golf 
+- collapse branches
+
+** 12.3.1-alpha.1 [2025-12-24]  gz+min: 3.40 KB (-0.00), min: 9.35 KB (-0.04)
+*** golf 
+- simplify loop to find unindentation spaces
+
+** 12.3.0-alpha.1 [2025-12-24]  gz+min: 3.40 KB (-0.10), min: 9.38 KB (-0.23)
+*** breaking
+- remove `callbacks` config option and `frameCallbacks` internal pattern
+- BuffeeStatusLine now decorator: `BuffeeStatusLine(new Buffee(el))`
+- add `editor._.frameCount` getter for render count tracking
+
+** 12.2.3-alpha.1 [2025-12-24]  gz+min: 3.50 KB (+0.01), min: 9.56 KB (-0.01)
+*** perf 
+- cache #isSpace, #isWord regex
+
+** 12.2.2-alpha.1 [2025-12-24]  gz+min: 3.48 KB (+0.00), min: 9.57 KB (+0.00)
+*** golf 
+- export _insert, _delete to extensions instead of renaming as insert, delete
+
+** 12.2.1-alpha.1 [2025-12-24]  gz+min: 3.48 KB (-0.00), min: 9.57 KB (-0.01)
+*** golf 
+- render function doesn't need to return this 
+
+** 12.2.0-alpha.1 [2025-12-24]  gz+min: 3.48 KB (-0.08), min: 9.58 KB (-0.25)
+*** extensions / rendering hooks
+- consolidate renderHooks from object with 3 arrays to single array
+- hooks receive (container, viewport, rebuilt) where rebuilt = Viewport.delta
+- remove onContainerRebuild, onRenderContent, onRenderComplete
+
+** 12.1.1-alpha.1 [2025-12-24]  gz+min: 3.54 KB (-0.03), min: 9.78 KB (-0.04)
+*** golf 
+- optimize branch checks in insert method
+
+** 12.1.0-alpha.1 [2025-12-24]  gz+min: 3.56 KB (-0.02), min: 9.82 KB (-0.07)
+*** golf
+- always keep cursor visible, just hide off screen for read-only
+
+** 12.0.0-alpha.1 [2025-12-24]  gz+min: 3.58 KB (0), min: 9.90 KB (0)
 *** breaking
 - refactor to decorator pattern for extensions
 - remove editor.use() method from core
@@ -8,11 +91,11 @@
 - access internals via: const { render, insert, delete: del } = editor._
 - extensions are pure functions: BuffeeHistory(editor) returns editor
 
-** 11.2.2-alpha [2025-12-22]  gz+min: 3.62 KB (+0.00), min: 10.05 KB (+0.00)
+** 11.2.2-alpha.1 [2025-12-22]  gz+min: 3.62 KB (+0.00), min: 10.05 KB (+0.00)
 *** golf
 - inline isHorizontal and edgeIndex, only 2 vars: arrowCode, direction
 
-** 11.2.1-alpha [2025-12-22]  gz+min: 3.62 KB (-0.01), min: 10.04 KB (-0.02)
+** 11.2.1-alpha.1 [2025-12-22]  gz+min: 3.62 KB (-0.01), min: 10.04 KB (-0.02)
 *** golf
 - bitwise ops: n >> 31 | 1 for sign, n % 2 for horizontal
 
@@ -61,7 +144,7 @@
 *** breaking
 - remove _internals object, expose internal API via editor._
 - editor._.head, editor._.tail (getters for cursor state)
-- editor._.insert, editor._.delete (wrappable primitives)
+- editor._._insert, editor._._delete (wrappable primitives)
 - editor._.render, editor._.renderHooks
 - editor._.$e, editor._.$l, editor._.$textLayer
 - editor._.contentOffset, editor._.appendLines

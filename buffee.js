@@ -7,7 +7,6 @@
  * @property {number} [rows] - Fixed number of visible lines (if omitted, auto-fits to container height)
  * @property {number} [cols] - Fixed number of text columns (auto-calculates container width including gutter)
  * @property {number} [spaces=4] - Number of spaces per tab/indentation level
- * @property {function(string): void} [logger=console] - Logger with log and warning methods
  */
 
 /**
@@ -25,11 +24,17 @@
  * const editor = new Buffee(document.getElementById('editor'), { rows: 25 });
  * editor.Model.text = 'Hello, World!';
  */
-function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
-  this.version = "12.0.0-alpha";
+function Buffee($parent, { rows, cols, spaces = 4 } = {}) {
+  this.version = "12.6.6-alpha.1";
   const self = this;
   /** Replaces tabs with spaces (spaces = number of spaces, 0 = keep tabs) */
   const expandTabs = s => Mode.spaces ? s.replace(/\t/g, ' '.repeat(Mode.spaces)) : s;
+  const isSpace = ch => /\s/.test(ch);
+  const isWord = ch => /[\p{L}\p{Nd}_]/u.test(ch);
+  const prop = p => parseFloat(getComputedStyle($parent).getPropertyValue(p));
+  const $ = q => $parent.querySelector(q);
+  const $clamp = (value, min, max) => value < min ? min : ( value > max ? max : value);
+
   /**
    * Editor mode settings (shared between internal and external code).
    * @namespace Mode
@@ -45,37 +50,33 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
      */
     interactive: 1
   };
-  const frameCallbacks = Object.entries(callbacks || {});
-  
-  const prop = p => parseFloat(getComputedStyle($parent).getPropertyValue(p));
-  const lineHeight = prop("--buffee-cell");
-  const editorPaddingPX = prop("--buffee-padding");
-  const gutterDigitsMinimum = prop("--buffee-gutter-digits-initial");
-  let gutterDigits = -1; // as long as different from guggers digit minimum, we trigger setting gutter on first render
-  const gutterCols = () => gutterDigits + prop("--buffee-gutter-digits-padding");
-  const $ = (n, q) => n.querySelector(q); 
-  const $e = $($parent, '.buffee-elements');
-  const $l = $($e, '.buffee-lines');
-  const $cursor = $($e, '.buffee-cursor');
-  const $textLayer = $($e, '.buffee-layer-text');
-  const $clipboardBridge = $($parent, '.buffee-clipboard-bridge');
-  const $gutter = $($e, '.buffee-gutter');
+
+  let gutterDigits = -1; // as long as different from gutters digit minimum, we trigger setting gutter on first render
+
+  const lineHeight = prop('--buffee-cell');
+  const editorPaddingPX = prop('--buffee-padding');
+  const gutterDigitsMinimum = prop('--buffee-gutter-digits-initial');
+  const gutterCols = () => gutterDigits + prop('--buffee-gutter-digits-padding');
+  const $e = $('.buffee-elements');
+  const $l = $('.buffee-lines');
+  const $cursor = $('.buffee-cursor');
+  const $textLayer = $('.buffee-layer-text');
+  const $selectionLayer = $('.buffee-layer-selection');
+  const $clipboardBridge = $('.buffee-clipboard-bridge');
+  const $gutter = $('.buffee-gutter');
+
+  // [array, fragment, parent, tagName, updateFn]
+  const viewportLayers = [
+    [[], document.createDocumentFragment(), $textLayer, 'pre', (el, i) => el.textContent = Model.lines[Viewport.start + i] ?? null],
+    [[], document.createDocumentFragment(), $gutter, 'div', (el, i) => el.textContent = Viewport.start + i + 1],
+    [[], document.createDocumentFragment(), $selectionLayer, 'div', (el) => el.style.width = 0]
+  ];
 
   // Set container width if cols specified
   // Width = gutter(ch) + lines(ch) + margins(px): gutter has margin*2, lines has margin*2
   cols && !$gutter && ($e.style.width = `calc(${cols}ch + ${editorPaddingPX * 2}px)`);
-
-  // Set container height if rows specified (don't use flex: 1)
-  if (rows) {
-    const linesHeight = rows * lineHeight + 'px';
-    $textLayer.style.height = linesHeight;
-    $gutter && ($gutter.style.height = linesHeight);
-  }
-
-  const $selections = [];   // We place an invisible selection on each viewport line. We only display the active selection.
-
-  const [fragmentLines, fragmentSelections, fragmentGutters] = [0,0,0]
-    .map(() => document.createDocumentFragment());
+  // Set container height if rows specified (don't use flex: 1). TODO: perhaps can just set on parent
+  rows && viewportLayers.forEach(([, , p]) => p && (p.style.height = rows * lineHeight + 'px'));
 
   const detachedHead = { row : 0, col : 0};
   // head.row and tail.row are ABSOLUTE line numbers (Model indices, not viewport-relative).
@@ -110,23 +111,16 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
           head.col = Math.min(maxCol, Model.lines[++head.row].length);
 
           // Scroll viewport if cursor went below visible area
-          if (head.row > Viewport.end) {
-            Viewport.start = head.row - Viewport.size + 1;
-          }
+          if (head.row > Viewport.end) Viewport.start = head.row - Viewport.size + 1;
         }
         // else: at last line of file, No-Op
-      } else {
-        // Move up
-        if (head.row > 0) {
-          // Adjust column to fit new line's length
-          head.col = Math.min(maxCol, Model.lines[--head.row].length);
-          // Scroll viewport if cursor went above visible area
-          if (head.row < Viewport.start) {
-            Viewport.start = head.row;
-          }
-        }
-        // else: at first line of file, No-Op
+      } else if (head.row > 0) { // Move up
+        // Adjust column to fit new line's length
+        head.col = Math.min(maxCol, Model.lines[--head.row].length);
+        // Scroll viewport if cursor went above visible area
+        if (head.row < Viewport.start) Viewport.start = head.row;
       }
+      // else: at first line of file, No-Op
       render();
     },
 
@@ -140,30 +134,18 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       if (value === 1) {
         if (head.col < Model.lines[head.row].length) {                             // Move right 1 character (including to newline position).
           maxCol = ++head.col;
-        } else {
-          if (head.row < Model.lastIndex) {                   // Move to beginning of next line.
-            maxCol = head.col = 0;
-            // Scroll viewport if cursor went below visible area
-            if (++head.row > Viewport.end) {
-              Viewport.start = head.row - Viewport.size + 1;
-            }
-          }
-          // else: at end of file, No-Op
-        }
-      } else if (value === -1) {
-        if (head.col > 0) {                                   // Move left 1 character.
+        } else if (head.row < Model.lastIndex) {                   // Move to beginning of next line.
+          maxCol = head.col = 0;
+          // Scroll viewport if cursor went below visible area
+          if (++head.row > Viewport.end) Viewport.start = head.row - Viewport.size + 1;
+        } // else: at end of file, No-Op
+      } else if (head.col > 0) {
           maxCol = --head.col;
-        } else {
-          if (head.row > 0) {                                 // Move to end of previous line (phantom newline position)
-            maxCol = head.col = Model.lines[--head.row].length;
-            // Scroll viewport if cursor went above visible area
-            if (head.row < Viewport.start) {
-              Viewport.start = head.row;
-            }
-          }
-          // else: at start of file, No-Op
-        }
-      }
+      } else if (head.row > 0) {                                 // Move to end of previous line (phantom newline position)
+          maxCol = head.col = Model.lines[--head.row].length;
+          // Scroll viewport if cursor went above visible area
+          if (head.row < Viewport.start) Viewport.start = head.row;
+      } // else: at start of file, No-Op
       render();
     },
 
@@ -201,14 +183,12 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       const [left, right] = this.ordered;
       if(left.row === right.row) {
         const text = Model.lines[left.row];
-        const isLastLine = left.row === Model.lastIndex;
-        const selectedText = text.slice(left.col, right.col);
-
+        const texts = [text.slice(left.col, right.col)];
+        
         // If selection extends to phantom newline position and there is a newline
-        if (right.col >= text.length && !isLastLine) {
-          return [selectedText, ''];  // Include empty string to represent newline
-        }
-        return [selectedText];
+        if (right.col >= text.length && left.row < Model.lastIndex) texts.push('');
+
+        return texts;
       } else {
         const firstLine = Model.lines[left.row].slice(left.col);
         const lastLine = Model.lines[right.row].slice(0, right.col);
@@ -265,37 +245,25 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
 
         // Get selected text before deleting
         const selectedText = this.lines.join('\n');
+        self._._delete(first.row, first.col, selectedText);
+        const insertedLines = self._._insert(first.row, first.col, s);
 
-        // Delete selection, then insert new text
-        self._.delete(first.row, first.col, selectedText);
-        const insertedLines = s.length > 0
-          ? self._.insert(first.row, first.col, s)
-          : null;
-
+        head.row = first.row;
         // Update cursor to end of inserted text
-        if (!insertedLines || insertedLines.length === 1) {
-          // Single-line insert (single char, multi-char, or empty)
-          head.row = first.row;
-          head.col = first.col + s.length;
-        } else {
-          // Multi-line insert
-          head.row = first.row + insertedLines.length - 1;
+        if (insertedLines?.length > 1) {
+          head.row += insertedLines.length - 1;
           head.col = insertedLines[insertedLines.length - 1].length;
-        }
+        } else head.col = first.col + s.length;
+        
         this.makeCursor();
       } else {
-        const insertedLines = self._.insert(tail.row, tail.col, s);
+        const insertedLines = self._._insert(tail.row, tail.col, s);
 
         // Update cursor
-        if (!insertedLines) {
-          // Single char - no newlines
-          maxCol = head.col += s.length;
-        } else if (insertedLines.length === 1) {
-          maxCol = head.col += s.length;
-        } else {
+        if (insertedLines?.length > 1) {
           head.row += insertedLines.length - 1;
           maxCol = head.col = insertedLines[insertedLines.length - 1].length;
-        }
+        } else maxCol = head.col += s.length;
       }
       if (!skipRender) render();
     },
@@ -309,18 +277,14 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       if (tail.col > 0) {
         // Delete character before cursor
         const charToDelete = Model.lines[tail.row][tail.col - 1];
-        self._.delete(tail.row, tail.col - 1, charToDelete);
+        self._._delete(tail.row, tail.col - 1, charToDelete);
         head.col--;
       } else if (tail.row > 0) {
         // At start of line - delete newline (join with previous line)
         const prevLineLen = Model.lines[tail.row - 1].length;
-        self._.delete(tail.row - 1, prevLineLen, '\n');
+        self._._delete(tail.row - 1, prevLineLen, '\n');
         head.col = prevLineLen;
-        head.row--;
-        // Scroll viewport if cursor went above visible area
-        if (head.row < Viewport.start) {
-          Viewport.start = head.row;
-        }
+        if (--head.row < Viewport.start) Viewport.start = head.row;
       }
 
       render();
@@ -333,7 +297,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       if (this.isSelection) Selection.insert('', true); // skipRender - we render below
 
       // Insert newline character
-      self._.insert(tail.row, tail.col, '\n');
+      self._._insert(tail.row, tail.col, '\n');
 
       head.col = 0, head.row++;
       if (head.row > Viewport.end) Viewport.start = head.row - Viewport.size + 1;
@@ -346,32 +310,17 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
      * Word boundaries are whitespace, word characters, or punctuation runs.
      */
     moveBackWord() {
-      const s = Model.lines[head.row];
-
       if(head.col === 0) {
         if(head.row > 0) {
-          head.row--;
-          head.col = Model.lines[head.row].length;
-          // Scroll viewport if cursor went above visible area
-          if (head.row < Viewport.start) {
-            Viewport.start = head.row;
-          }
+          head.col = Model.lines[--head.row].length;
+          if (head.row < Viewport.start) Viewport.start = head.row;
         }
-        // else: at first line of file - do nothing
       } else {
-        const isSpace = ch => /\s/.test(ch);
-        const isWord = ch => /[\p{L}\p{Nd}_]/u.test(ch);
+        const s = Model.lines[head.row];
         let j = head.col;
-        if (isSpace(s[j])) { // Case 1: at whitespace → skip to next non-space character
-          while (j > 0 && isSpace(s[j])) j--;
-          while (j > 0 && isWord(s[j])) j--;
-        } else if (isWord(s[j])) { // Case 2: at word-chars → consume word run to 1 past the word
-          while (j > 0 && isWord(s[j])) j--;
-        } else { // Case 3: at punctuation/symbols
-          const c = s[j--];
-          // Consuming continuous sequence of the same char
-          while( j > 0 && s[j] === c) j--;
-        }
+        if (isSpace(s[j])) { while (j > 0 && isSpace(s[j])) j--; while (j > 0 && isWord(s[j])) j--; } // whitespace
+        else if (isWord(s[j])) while (j > 0 && isWord(s[j])) j--; // word
+        else { const c = s[j--]; while(j > 0 && s[j] === c) j--; } // punctuation
         head.col = j;
       }
 
@@ -387,29 +336,15 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       const n = s.length;
       if(head.col === n) { // Edge case: At end of line
         if (head.row < Model.lastIndex) {
-          // Not at last line - move to next line
           head.col = 0;
-          head.row++;
-          // Scroll viewport if cursor went below visible area
-          if (head.row > Viewport.end) {
-            Viewport.start = head.row - Viewport.size + 1;
-          }
+          if (++head.row > Viewport.end) Viewport.start = head.row - Viewport.size + 1;
         }
         // else: at end of file - do nothing
       } else {
-        const isSpace = ch => /\s/.test(ch);
-        const isWord = ch => /[\p{L}\p{Nd}_]/u.test(ch);
         let j = head.col;
-        if (isSpace(s[j])) { // Case 1: at whitespace → skip run to end of spaces, then next non-word
-          while (j < n && isSpace(s[j])) j++;
-          while (j < n && isWord(s[j])) j++;
-        } else if (isWord(s[j])) { // Case 2: at word-chars → consume word run to 1 past the word
-          while (j < n && isWord(s[j])) j++;
-        } else { // Case 3: at punctuation/symbols
-          const c = s[j++];
-          // Consuming continuous sequence of the same char
-          while( j < n && s[j] === c) j++;
-        }
+        if (isSpace(s[j])) { while (j < n && isSpace(s[j])) j++; while (j < n && isWord(s[j])) j++; } // whitespace
+        else if (isWord(s[j])) while (j < n && isWord(s[j])) j++; // word
+        else { const c = s[j++]; while(j < n && s[j] === c) j++; } // punctuation
         head.col = j;
       }
 
@@ -465,15 +400,9 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
             cursor.col -= unindentationsFirstLine - indentableSpacesFromCursor;
         } else {
           const line = Model.lines[i];
-          let maxUnindent = 0;
-          for(let k = 0; k < Math.min(Mode.spaces, line.length); k++) {
-            if (line.charAt(k) === " ") {
-              maxUnindent++;
-            } else {
-              break;
-            }
-          }
-          Model.lines[i] = line.slice(maxUnindent);
+          let k = 0;
+          while (k < Mode.spaces && line[k] === ' ') k++;
+          Model.lines[i] = line.slice(k);
         }
       }
 
@@ -485,18 +414,8 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
   // Extension hooks - allows extensions to hook into editor without Buffee knowing about them
   // ============================================================================
 
-  /**
-   * Render hooks that extensions can register callbacks with.
-   * @type {Object}
-   */
-  const renderHooks = {
-    /** Called when the viewport container is rebuilt (for setting up DOM elements) */
-    onContainerRebuild: [],
-    /** Called during render after text content is set (for overlaying elements) */
-    onRenderContent: [],
-    /** Called at the end of render (for highlights and final touches) */
-    onRenderComplete: []
-  };
+  /** Render hooks - called after text content is set. Args: ($l, Viewport, rebuilt) */
+  const renderHooks = [];
 
   /**
    * Document model managing text content.
@@ -672,36 +591,20 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
     },
   };
   
-  /** @private Double-buffer for render state diffing */
-  let frame = { lineCount: 0, row: 0, col: 0, frameCount: 0 };
-  let lastFrame = { lineCount: -1, row: -1, col: -1, frameCount: -1 };
+  let frameCount = 0;
 
   function sizeSelection(i, left, width) {
-    const style = $selections[i].style;
-    left != null && (style.left = left + 'ch');
-    width != null && (style.width = width + 'ch');
+    const style = viewportLayers[2][0][i].style;
+    style.left = left + 'ch';
+    style.width = width + 'ch';
   }
 
   /**
    * Renders the editor viewport, selection, and calls extension hooks.
    * @private
-   * @returns {Buffee} The Buffee instance for chaining
    */
   function render() {
-    frame.lineCount = Model.lastIndex + 1;
-    frame.row = head.row;
-    frame.col = head.col;
-    frame.spaces = Mode.spaces;
-    frame.frameCount = lastFrame.frameCount + 1;
-    // TODO: consider caching Object.entries once.
-    for (const [key, callback] of frameCallbacks) {
-      if (frame[key] !== lastFrame[key]) {
-        callback(frame, self);
-      }
-    }
-    const temp = lastFrame;
-    lastFrame = frame;
-    frame = temp;
+    frameCount++;
 
     // Adjust gutter width based on largest visible line number
     // Minimum width from CSS variable to avoid jitter for small documents
@@ -718,52 +621,31 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
 
     // Renders the containers for the viewport lines, as well as selections and highlights
     // Only adds/removes the delta of elements when viewport size changes
-    if(Viewport.delta) {
-      if (Viewport.delta > 0) {
+    const rebuilt = Viewport.delta;
+    if (rebuilt) {
+      if (rebuilt > 0) {
         // Add new line containers and selections
-        const base = $selections.length;
-        for (let i = 0; i < Viewport.delta; i++) {
-          fragmentLines.appendChild(document.createElement("pre"));
-          fragmentGutters.appendChild(document.createElement("div"));
-
-          const sel = $selections[base + i] = fragmentSelections.appendChild(document.createElement("div"));
-          sel.className = "buffee-selection";
-          sel.style.top = (base + i) * lineHeight + 'px';
+        for (let i = 0; i < rebuilt; i++) {
+          viewportLayers.forEach(([arr, frag, , tag]) => arr.push(frag.appendChild(document.createElement(tag))));
         }
-        $textLayer.appendChild(fragmentLines);
-        $l.appendChild(fragmentSelections);
-        $gutter && $gutter.appendChild(fragmentGutters);
-      } else if (Viewport.delta < 0) {
+        viewportLayers.forEach(([, frag, parent]) => parent?.appendChild(frag));
+      } else {
         // Remove excess line containers and selections
-        for (let i = 0; i < -Viewport.delta; i++) {
-          $gutter && $gutter.lastChild?.remove();
-          $textLayer.lastChild?.remove();
-          $selections.pop()?.remove();
+        for (let i = 0; i < -rebuilt; i++) {
+          viewportLayers.forEach(([arr]) => arr.pop()?.remove());
         }
       }
       Viewport.delta = 0;
-
-      // Call extension hooks for container rebuild
-      for (const hook of renderHooks.onContainerRebuild) {
-        hook($l, Viewport);
-      }
     }
 
     // Update contents of line containers
     for(let i = 0; i < Viewport.displayLines; i++) {
-      $gutter && ($gutter.children[i].textContent = Viewport.start + i + 1);
-      $textLayer.children[i].textContent = Model.lines[Viewport.start + i] ?? null;
-      $selections[i].style.width = '0ch';
+      viewportLayers.forEach(([arr, , , , update]) => arr[i] && update(arr[i], i));
     }
 
-    // Call extension hooks for content overlay
-    for (const hook of renderHooks.onRenderContent) {
-      hook($l, Viewport);
-    }
-
-    // In read-only mode (-1), hide cursor and skip selection rendering
-    if (Mode.interactive === -1) {
-      $cursor.style.visibility = 'hidden';
+    // In read-only mode (-1), hide cursor off screen and skip selection rendering
+    if (Mode.interactive < 0) {
+      $cursor.style.left = '-1ch';
     } else {
       const [firstEdge, secondEdge] = Selection.ordered;
 
@@ -774,10 +656,9 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       // Render middle selection lines (only those within viewport)
       for (let absRow = firstEdge.row + 1; absRow <= secondEdge.row - 1; absRow++) {
         const viewportRow = absRow - Viewport.start;
-        if (viewportRow >= 0 && viewportRow < Viewport.size) {
+        if (viewportRow >= 0 && viewportRow < Viewport.size)
           // +1 for phantom newline character (shows newline is part of selection)
           sizeSelection(viewportRow, 0, Model.lines[absRow].length + 1);
-        }
       }
 
       // Render the first edge line (if within viewport)
@@ -793,9 +674,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       // Render the second edge line (if within viewport and multi-line selection)
       // Excludes cursor head position
       if (secondEdge.row !== firstEdge.row && secondViewportRow >= 0 && secondViewportRow < Viewport.size) {
-        // Last line of selection starts from column 0
-        const width = Math.min(secondEdge.col, Model.lines[secondEdge.row].length);
-        sizeSelection(secondViewportRow, 0, width);
+        sizeSelection(secondViewportRow, 0, Math.min(secondEdge.col, Model.lines[secondEdge.row].length));
       }
       // * END render selection
 
@@ -804,7 +683,6 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
       if (headViewportRow >= 0 && headViewportRow < Viewport.size) {
         $cursor.style.top = headViewportRow * lineHeight + 'px';
         $cursor.style.left = head.col + 'ch';
-        $cursor.style.visibility = 'visible';
 
         // Horizontal scroll to keep cursor in view
         const containerRect = $l.getBoundingClientRect();
@@ -822,18 +700,13 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
         }
         // Snap to character boundary to prevent accumulated drift
         $l.scrollLeft = Math.round($l.scrollLeft / charWidth) * charWidth;
-      } else {
-        // TODO: why do we ever do this
-        $cursor.style.visibility = 'hidden';
       }
     }
 
-    // Call extension hooks for render complete
-    for (const hook of renderHooks.onRenderComplete) {
-      hook($l, Viewport);
+    // Call extension hooks
+    for (const hook of renderHooks) {
+      hook($l, Viewport, rebuilt);
     }
-
-    return this;
   }
 
   // ============================================================================
@@ -861,6 +734,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
   this._ = {
     get head() { return head; },
     get tail() { return tail; },
+    get frameCount() { return frameCount; },
     get contentOffset() {
       return {
         ch: $gutter ? gutterCols() : 0,
@@ -873,8 +747,8 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
     $textLayer,
     render,
     renderHooks,
-    insert: _insert,
-    delete: _delete,
+    _insert,
+    _delete,
     appendLines(newLines, skipRender = false) {
       Model.lines.push(...newLines.map(expandTabs));
       if (!skipRender) render();
@@ -903,9 +777,7 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
   $l.addEventListener('paste', e => {
     e.preventDefault(); // stop browser from inserting raw clipboard text
     const text = e.clipboardData.getData("text/plain");
-    if (text) {
-      Selection.insert(text);
-    }
+    if (text) Selection.insert(text);
   });
   const copy = e => {
     e.preventDefault(); // take over the clipboard contents                   
@@ -962,16 +834,12 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
         if(!event.shiftKey && Selection.isSelection) Selection.makeCursor();
         if(event.shiftKey && !Selection.isSelection) Selection.makeSelection();
 
-        if (arrowCode % 2) {
-          Selection[direction > 0 ? 'moveCursorEndOfLine' : 'moveCursorStartOfLine']();
-        }
+        if (arrowCode % 2) Selection[direction > 0 ? 'moveCursorEndOfLine' : 'moveCursorStartOfLine']();
       } else if (event.altKey) {
         if(!event.shiftKey && Selection.isSelection) Selection.makeCursor();
         if(event.shiftKey && !Selection.isSelection) Selection.makeSelection();
 
-        if (arrowCode % 2) {
-          Selection[direction > 0 ? 'moveWord' : 'moveBackWord']();
-        }
+        if (arrowCode % 2) Selection[direction > 0 ? 'moveWord' : 'moveBackWord']();
       } else if (!event.shiftKey && Selection.isSelection) { // no meta key, no shift key, selection.
         if (arrowCode % 2) {
           Selection.setCursor(Selection.ordered[direction > 0 | 0]);
@@ -986,65 +854,33 @@ function Buffee($parent, { rows, cols, spaces = 4, logger, callbacks } = {}) {
           );
 
           // Scroll viewport if target is outside visible area
-          if (targetAbsRow < Viewport.start) {
-            Viewport.start = targetAbsRow;
-          } else if (targetAbsRow > Viewport.end) {
-            Viewport.start = targetAbsRow - Viewport.size + 1;
-          }
+          if (targetAbsRow < Viewport.start) Viewport.start = targetAbsRow;
+          else if (targetAbsRow > Viewport.end) Viewport.start = targetAbsRow - Viewport.size + 1;
 
           maxCol = Math.min(edge.col, Model.lines[targetAbsRow].length);
-          Selection.setCursor({
-            row: targetAbsRow,
-            col: maxCol
-          });
+          Selection.setCursor({ row: targetAbsRow, col: maxCol});
           render();
         }
       } else { // no meta key.
         if (event.shiftKey && !Selection.isSelection) Selection.makeSelection();
         Selection[arrowCode % 2 ? 'moveCol' : 'moveRow'](direction);
       }
-    } else if (Mode.interactive !== 1) { // navigation-only or read-only mode: no editing
+    } else if (Mode.interactive !== 1 || event.key === "Escape") { // navigation-only or read-only mode: no editing
     } else if (event.key === "Backspace") {
       Selection.delete();
     } else if (event.key === "Enter") {
       Selection.newLine();
-    } else if (event.key === "Escape") {
     } else if (event.key === "Tab" ) {
       // Capture Tab for indentation (standard code editor behavior).
       // Users needing keyboard navigation can use browser shortcuts or focus the editor container.
       event.preventDefault();
 
-      if(event.shiftKey) {
-        Selection.unindent();
-      } else if(Selection.isSelection) {
-        Selection.indent();
-      } else {
-        Selection.insert(" ".repeat(Mode.spaces));
-      }
-    } else if (event.key.length > 1) {
-      logger.warn('Ignoring unknown key: ', event.code, event.key);
-    } else {
+      if(event.shiftKey) Selection.unindent();
+      else if(Selection.isSelection) Selection.indent();
+      else Selection.insert(" ".repeat(Mode.spaces));
+    } else if (event.key.length == 1) {
       event.key === " " && event.preventDefault();
       Selection.insert(event.key);
     }
   });
-}
-
-/**
- * Clamps a value between a minimum and maximum, logging a warning if out of bounds.
- * @param {number} value - The value to clamp
- * @param {number} min - Minimum allowed value
- * @param {number} max - Maximum allowed value
- * @returns {number} The clamped value
- */
-function $clamp(value, min, max) {
-  if (value < min) {
-    logger.warn("Out of bounds");
-    return min;
-  }
-  if (value > max) {
-    logger.warn("Out of bounds");
-    return max;
-  }
-  return value;
 }

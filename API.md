@@ -438,14 +438,15 @@ Internal state is exposed via `editor._` for building extensions. Extensions can
 // Internal API (for extensions) - accessed via editor._
 const {
   render,       // render() function
-  renderHooks,  // Hook registration object
+  renderHooks,  // Hook registration array
+  frameCount,   // Number of render calls (getter)
   $e,           // Elements container DOM element
   $l,           // Lines container DOM element
   $textLayer,   // Text layer DOM element
   head,         // Cursor head position { row, col }
   tail,         // Cursor tail position { row, col }
-  insert,       // Primitive insert(row, col, text) function
-  delete: del,  // Primitive delete(row, col, text) function
+  _insert,      // Primitive insert(row, col, text) function
+  _delete,      // Primitive delete(row, col, text) function
   appendLines,  // appendLines(lines, skipRender?) function
   contentOffset // { ch, px, top } for positioning
 } = editor._;
@@ -456,22 +457,16 @@ const { Viewport, Selection, Model, Mode, lineHeight } = editor;
 
 ### Render Hooks
 
-Extensions register callbacks that run during the render cycle:
+Extensions register callbacks that run after each render:
 
 ```javascript
-// Called when viewport containers are rebuilt (resize, initial render)
-renderHooks.onContainerRebuild.push(($container, viewport) => {
-  // Set up DOM elements, highlights, etc.
-});
-
-// Called after text content is set (for overlaying elements)
-renderHooks.onRenderContent.push(($container, viewport) => {
-  // Modify textContent, add overlays, etc.
-});
-
-// Called at end of render (for final touches)
-renderHooks.onRenderComplete.push(($container, viewport) => {
-  // Update highlights, animations, etc.
+// Called after text content is set
+// rebuilt is non-zero when viewport container changed (resize, initial render)
+renderHooks.push(($container, viewport, rebuilt) => {
+  // Modify textContent, add overlays, update highlights, etc.
+  if (rebuilt) {
+    // Container was rebuilt - set up new DOM elements
+  }
 });
 ```
 
@@ -482,7 +477,7 @@ function MyExtension(editor) {
   const { render, renderHooks } = editor._;
 
   // Register render hook
-  renderHooks.onRenderComplete.push(($e, viewport) => {
+  renderHooks.push(($container, viewport, rebuilt) => {
     // Custom rendering logic
   });
 
